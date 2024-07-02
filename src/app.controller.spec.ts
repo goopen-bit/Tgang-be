@@ -14,8 +14,11 @@ describe('AppController', () => {
 
   describe('getHello', () => {
     it('should return "Hello World!"', () => {
-      const appController = app.get(AppController);
-      expect(appController.getHello()).toBe('Hello World!');
+      const appController = app.get<AppController>(AppController);
+      const hello = appController.getHello();
+      expect(hello.name).toBe(process.env.npm_package_name);
+      expect(hello.uptime).toBeDefined();
+      expect(hello.version).toBe(process.env.npm_package_version);
     });
   });
 });

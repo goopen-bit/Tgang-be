@@ -1,0 +1,14 @@
+services:
+  mongodb:
+    image: mongo
+    container_name: t-mongo
+    restart: always
+    ports:
+      - '${MONGODB_PORT:-27017}:27017'
+
+  redis:
+    image: redis
+    restart: always
+    container_name: bc-redis
+    ports:
+      - '${REDIS_PORT:-6379}:6379'

@@ -11,4 +11,11 @@ export enum NodeEnvironments {
 /**
  * List of MongoDB's collections used in application.
  */
-export enum DbCollections {}
+export enum DbCollections {
+  USERS = 'users',
+}
+
+export interface AuthTokenData {
+  id: number
+  username: string;
+}

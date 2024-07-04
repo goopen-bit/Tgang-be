@@ -22,6 +22,16 @@ export const logLevel =
   (process.env['LOG_LEVEL']?.split(',') as unknown as LogLevel[]) || undefined;
 
 /**
+ * Telegram bot token.
+ */
+export const telegramBotToken = process.env['TELEGRAM_BOT_TOKEN'];
+
+/**
+ * JWT secret key
+ */
+export const jwtSecret = process.env['JWT_SECRET'];
+
+/**
  * MongoDB URL.
  */
 export const mongoUrl = process.env['MONGO_URL'];

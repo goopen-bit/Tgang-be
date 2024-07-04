@@ -13,6 +13,7 @@ export enum NodeEnvironments {
  */
 export enum DbCollections {
   USERS = 'users',
+  PRODUCTS = 'products',
 }
 
 export interface AuthTokenData {

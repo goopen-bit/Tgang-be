@@ -6,7 +6,9 @@ import { AppService } from './app.service';
 import { HealthModule } from './common/health/health.module';
 import { mongoDb, mongoUrl, redisUrl } from './config/env';
 import { AuthModule } from './auth/auth.module';
-import { UserModule } from './users/user.module';
+import { UserModule } from './user/user.module';
+import { ProductModule } from './product/product.module';
+import { MarketModule } from './market/market.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { UserModule } from './users/user.module';
     HealthModule,
     AuthModule,
     UserModule,
+    ProductModule,
+    MarketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

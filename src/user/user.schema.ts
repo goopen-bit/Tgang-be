@@ -1,10 +1,19 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, now } from 'mongoose';
+import { Document } from 'mongoose';
 import { DbCollections } from '../config/types';
+import { IProduct } from '../product/product.interface';
+
+@Schema({ _id: false })
+class Product implements IProduct {
+  @Prop()
+  name: string;
+
+  @Prop()
+  quantity: number;
+}
 
 @Schema({
   collection: DbCollections.USERS,
-  timestamps: true,
 })
 export class User extends Document {
   @Prop()
@@ -12,6 +21,12 @@ export class User extends Document {
 
   @Prop()
   username: string;
+
+  @Prop()
+  cashAmount: number;
+
+  @Prop({ type: Product })
+  products: Product;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

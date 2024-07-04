@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UserService } from '../users/user.service';
+import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { createHmac } from 'crypto';
 import { telegramBotToken } from 'src/config/env';
@@ -12,14 +12,6 @@ export class AuthService {
     private userService: UserService,
     private jwtService: JwtService,
   ) {}
-
-  async validateUser(username: string): Promise<any> {
-    const user = await this.userService.findOne(username);
-    if (user) {
-      return user;
-    }
-    return null;
-  }
 
   async login(telegramInitData: any) {
     this.logger.debug(telegramInitData);
@@ -38,6 +30,7 @@ export class AuthService {
     }
 
     const user = JSON.parse(telegramInitData.user);
+    await this.userService.findOneOrCreate(user);
     return {
       access_token: this.jwtService.sign({ id: user.id, username: user.username }),
     };

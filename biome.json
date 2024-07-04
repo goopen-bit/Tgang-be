@@ -43,6 +43,9 @@
       "jsxQuoteStyle": "double",
       "trailingCommas": "all",
       "quoteStyle": "single"
+    },
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
     }
   }
 }

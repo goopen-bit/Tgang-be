@@ -25,8 +25,8 @@ export class User extends Document {
   @Prop()
   cashAmount: number;
 
-  @Prop({ type: Product })
-  products: Product;
+  @Prop({ type: [Product] })
+  products: [Product];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

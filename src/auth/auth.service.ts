@@ -1,17 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { createHmac } from 'crypto';
-import { telegramBotToken } from 'src/config/env';
+import { telegramBotToken } from '../config/env';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(
-    private userService: UserService,
-    private jwtService: JwtService,
-  ) {}
+  constructor(private jwtService: JwtService) {}
 
   async login(telegramInitData: any) {
     this.logger.debug(telegramInitData);
@@ -30,7 +26,6 @@ export class AuthService {
     }
 
     const user = JSON.parse(telegramInitData.user);
-    await this.userService.findOneOrCreate(user);
     return {
       access_token: this.jwtService.sign({ id: user.id, username: user.username }),
     };

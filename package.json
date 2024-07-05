@@ -20,6 +20,10 @@
     "migrate:status": "ts-node node_modules/.bin/migrate-mongo status -f ./migrate-mongo/migrations.ts",
     "migrate:up": "ts-node node_modules/.bin/migrate-mongo up -f ./migrate-mongo/migrations.ts",
     "migrate:down": "ts-node node_modules/.bin/migrate-mongo down -f ./migrate-mongo/migrations.ts && npm run migrate:status",
+    "migrate:seed:create": "ts-node node_modules/.bin/migrate-mongo create -f ./migrate-mongo/seeders.ts",
+    "migrate:seed:status": "ts-node node_modules/.bin/migrate-mongo status -f ./migrate-mongo/seeders.ts",
+    "migrate:seed:up": "ts-node node_modules/.bin/migrate-mongo up -f ./migrate-mongo/seeders.ts",
+    "migrate:seed:down": "ts-node node_modules/.bin/migrate-mongo down -f ./migrate-mongo/seeders.ts && npm run migrate:seed:status",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "dev:up": "docker-compose -f docker-compose.dev.yml up -d",
     "dev:down": "docker-compose -f docker-compose.dev.yml down"
@@ -44,6 +48,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.3",
+    "@faker-js/faker": "^8.4.1",
     "@nestjs/cli": "^10.3.1",
     "@nestjs/schematics": "^10.1.0",
     "@nestjs/testing": "^10.3.2",
@@ -71,6 +76,7 @@
       "ts"
     ],
     "rootDir": "src",
+    "globalSetup": "../test/setup/jest.setup.ts",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

@@ -13,7 +13,7 @@ export enum NodeEnvironments {
  */
 export enum DbCollections {
   USERS = 'users',
-  PRODUCTS = 'products',
+  MARKETS = 'markets',
 }
 
 export interface AuthTokenData {

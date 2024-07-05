@@ -1,12 +1,21 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { DbCollections } from '../config/types';
-import { IProduct } from '../product/product.interface';
+import { EProduct } from '../product/product.const';
 
 @Schema({ _id: false })
-class Product implements IProduct {
+class CarryingGear {
   @Prop()
   name: string;
+
+  @Prop()
+  capacity: number;
+}
+
+@Schema({ _id: false })
+class Product {
+  @Prop()
+  name: EProduct;
 
   @Prop()
   quantity: number;
@@ -27,6 +36,9 @@ export class User extends Document {
 
   @Prop({ type: [Product] })
   products: [Product];
+
+  @Prop({ type: [CarryingGear] })
+  carryingGear: [CarryingGear];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

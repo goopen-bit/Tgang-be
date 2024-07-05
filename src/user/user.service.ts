@@ -3,7 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './user.schema';
 import { AuthTokenData } from '../config/types';
-import { EProduct } from 'src/product/product.const';
+import { EProduct } from '../product/product.const';
+import { CARRYING_CAPACITY, STARTING_CASH } from './user.constants';
 
 @Injectable()
 export class UserService {
@@ -19,7 +20,7 @@ export class UserService {
     }
     return this.userModel.create({
       ...user,
-      cashAmount: 100,
+      cashAmount: STARTING_CASH,
       products: Object.values(EProduct).map((product) => ({
         name: product,
         quantity: 0,
@@ -29,5 +30,20 @@ export class UserService {
 
   async findOne(id: number) {
     return this.userModel.findOne({ id });
+  }
+
+  getCarryAmountAndCapacity(user: User) {
+    let carryAmount = 0;
+    let carryCapacity = CARRYING_CAPACITY;
+    user.products.forEach((product) => {
+      carryAmount += product.quantity;
+    });
+    user.carryingGear.forEach((gear) => {
+      carryCapacity += gear.capacity;
+    });
+    return {
+      carryAmount,
+      carryCapacity,
+    };
   }
 }

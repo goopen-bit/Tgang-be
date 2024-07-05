@@ -11,6 +11,6 @@ export class UserController {
 
   @Get()
   async login(@GetAuthToken() user: AuthTokenData) {
-    return this.userService.findOne(user.id);
+    return this.userService.findOneOrCreate(user);
   }
 }

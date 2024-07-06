@@ -10,7 +10,7 @@ export class ProductService {
   constructor(
     private userService: UserService,
     private marketService: MarketService,
-    private customerService: CustomerService,
+    private customerService: CustomerService
   ) {}
 
   async buyProduct(userId: number, marketId: string, params: BuyProductDto) {
@@ -39,12 +39,15 @@ export class ProductService {
       throw new HttpException("Product not unlocked", 400);
     }
     await user.save();
-    return userProduct;
+    return user;
   }
 
   async sellProduct(userId: number, marketId: string, params: SellProductDto) {
     const { name, product } = params;
-    const customers = await this.customerService.findOneOrCreate(userId, marketId);
+    const customers = await this.customerService.findOneOrCreate(
+      userId,
+      marketId
+    );
     const customer = customers.find((c) => c.name === name);
     if (!customer) {
       throw new HttpException("Customer not found", 404);
@@ -67,7 +70,12 @@ export class ProductService {
 
     userProduct.quantity -= params.quantity;
     user.cashAmount += customer.price * params.quantity;
-    await this.customerService.updateQuantity(userId, marketId, name, customer.quantity - params.quantity);
+    await this.customerService.updateQuantity(
+      userId,
+      marketId,
+      name,
+      customer.quantity - params.quantity
+    );
     await user.save();
     return userProduct;
   }

@@ -1,17 +1,16 @@
-import { HttpException, Injectable } from '@nestjs/common';
-import { UserService } from '../user/user.service';
-import { Market } from './market.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { EProduct } from '../product/product.const';
-import { BuyProductDto } from './dto/buy-product.dto';
+import { HttpException, Injectable } from "@nestjs/common";
+import { UserService } from "../user/user.service";
+import { Market } from "./market.schema";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { BuyProductDto } from "./dto/buy-product.dto";
 
 @Injectable()
 export class MarketService {
   constructor(
     @InjectModel(Market.name)
     private marketModel: Model<Market>,
-  
+
     private userService: UserService
   ) {}
 
@@ -24,17 +23,17 @@ export class MarketService {
     const user = await this.userService.findOne(userId);
     const market = await this.getMarket(marketId);
     if (!user || !market) {
-      throw new HttpException('User or market not found', 404);
+      throw new HttpException("User or market not found", 404);
     }
 
     const marketProduct = market.products.find((p) => p.name === product);
     if (user.cashAmount < marketProduct.price * quantity) {
-      throw new HttpException('Not enough cash', 400);
+      throw new HttpException("Not enough cash", 400);
     }
 
     const carry = this.userService.getCarryAmountAndCapacity(user);
     if (carry.carryAmount + quantity > carry.carryCapacity) {
-      throw new HttpException('Not enough carry capacity', 400);
+      throw new HttpException("Not enough carry capacity", 400);
     }
 
     user.cashAmount -= marketProduct.price * quantity;
@@ -42,7 +41,7 @@ export class MarketService {
     if (userProduct) {
       userProduct.quantity += quantity;
     } else {
-      user.products.push({ name: product, quantity });
+      user.products.push({ ...marketProduct, quantity });
     }
     await user.save();
     return user;

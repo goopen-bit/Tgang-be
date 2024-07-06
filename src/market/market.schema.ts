@@ -1,13 +1,9 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import { DbCollections } from '../config/types';
-import { EProduct } from '../product/product.const';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
+import { DbCollections } from "../config/types";
+import { Product } from "src/product/product.schema";
 
-@Schema({ _id: false })
-class Product {
-  @Prop()
-  name: EProduct;
-
+export class MarketProduct extends Product {
   @Prop()
   price: number;
 }
@@ -22,8 +18,8 @@ export class Market extends Document {
   @Prop()
   name: string;
 
-  @Prop({ type: [Product] })
-  products: [Product];
+  @Prop({ type: [MarketProduct] })
+  products: [MarketProduct];
 }
 
 export const MarketSchema = SchemaFactory.createForClass(Market);

@@ -1,12 +1,12 @@
-import { DbCollections } from 'src/config/types';
-import { Db } from 'mongodb';
-import { EProduct } from 'src/product/product.const';
+import { DbCollections } from "src/config/types";
+import { Db } from "mongodb";
+import { EProduct } from "src/product/product.const";
 
 module.exports = {
   async up(db: Db) {
     await db.collection(DbCollections.MARKETS).insertOne({
-      id: 'NY',
-      name: 'New York',
+      id: "NY",
+      name: "New York",
       products: [
         {
           name: EProduct.WEED,
@@ -33,7 +33,7 @@ module.exports = {
           price: 15,
         },
         {
-          name: EProduct.METHAMPHETAMINE,
+          name: EProduct.METH,
           price: 40,
         },
         {
@@ -57,6 +57,6 @@ module.exports = {
   },
 
   async down(db: Db) {
-    await db.collection(DbCollections.MARKETS).deleteOne({ id: 'NY' });
-  }
+    await db.collection(DbCollections.MARKETS).deleteOne({ id: "NY" });
+  },
 };

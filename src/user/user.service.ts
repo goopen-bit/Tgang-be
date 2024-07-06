@@ -1,16 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User } from './user.schema';
-import { AuthTokenData } from '../config/types';
-import { EProduct } from '../product/product.const';
-import { CARRYING_CAPACITY, STARTING_CASH } from './user.constants';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { User } from "./user.schema";
+import { AuthTokenData } from "../config/types";
+import { EProduct } from "../product/product.const";
+import { CARRYING_CAPACITY, STARTING_CASH } from "./user.constants";
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name)
-    private userModel: Model<User>,
+    private userModel: Model<User>
   ) {}
 
   async findOneOrCreate(user: AuthTokenData) {
@@ -21,10 +21,16 @@ export class UserService {
     return this.userModel.create({
       ...user,
       cashAmount: STARTING_CASH,
-      products: Object.values(EProduct).map((product) => ({
-        name: product,
-        quantity: 0,
-      })),
+      products: [
+        {
+          name: EProduct.WEED,
+          quantity: 0,
+          unlocked: true,
+          selected: true,
+          maxCarry: 100,
+          slot: null,
+        },
+      ],
     });
   }
 

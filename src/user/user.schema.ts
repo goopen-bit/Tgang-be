@@ -1,7 +1,6 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import { DbCollections } from '../config/types';
-import { EProduct } from '../product/product.const';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
+import { Product } from "src/product/product.schema";
 
 @Schema({ _id: false })
 class CarryingGear {
@@ -12,33 +11,36 @@ class CarryingGear {
   capacity: number;
 }
 
-@Schema({ _id: false })
-class Product {
-  @Prop()
-  name: EProduct;
+export class UserProduct extends Product {
+  @Prop({ required: true, default: false })
+  unlocked: boolean;
 
-  @Prop()
-  quantity: number;
+  @Prop({ required: true, default: false })
+  selected: boolean;
+
+  @Prop({ required: true, default: 100 })
+  maxCarry: number;
+
+  @Prop({ default: null })
+  slot: number | null;
 }
 
-@Schema({
-  collection: DbCollections.USERS,
-})
+@Schema()
 export class User extends Document {
-  @Prop()
+  @Prop({ required: true, unique: true })
   id: number;
 
-  @Prop()
+  @Prop({ required: true })
   username: string;
 
-  @Prop()
+  @Prop({ required: true })
   cashAmount: number;
 
-  @Prop({ type: [Product] })
-  products: [Product];
+  @Prop({ type: [Product], default: [] })
+  products: Product[];
 
   @Prop({ type: [CarryingGear] })
-  carryingGear: [CarryingGear];
+  carryingGear: CarryingGear[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

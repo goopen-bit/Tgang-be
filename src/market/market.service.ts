@@ -4,6 +4,7 @@ import { Market } from "./market.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { BuyProductDto } from "./dto/buy-product.dto";
+import { User } from "src/user/user.schema";
 
 @Injectable()
 export class MarketService {
@@ -11,7 +12,10 @@ export class MarketService {
     @InjectModel(Market.name)
     private marketModel: Model<Market>,
 
-    private userService: UserService
+    private userService: UserService,
+
+    @InjectModel(User.name)
+    private userModel: Model<User>
   ) {}
 
   async getMarket(id: string) {
@@ -41,7 +45,11 @@ export class MarketService {
     if (userProduct) {
       userProduct.quantity += quantity;
     } else {
-      user.products.push({ ...marketProduct, quantity });
+      const newProduct = this.userService.initUserProduct({
+        name: product,
+        quantity,
+      });
+      user.products.push(newProduct);
     }
     await user.save();
     return user;

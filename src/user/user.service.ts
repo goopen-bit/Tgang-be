@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { User } from "./user.schema";
+import { User, UserProduct } from "./user.schema";
 import { AuthTokenData } from "../config/types";
 import { EProduct } from "../product/product.const";
 import { CARRYING_CAPACITY, STARTING_CASH } from "./user.constants";
@@ -36,6 +36,12 @@ export class UserService {
 
   async findOne(id: number) {
     return this.userModel.findOne({ id });
+  }
+
+  initUserProduct(productData: Partial<UserProduct>) {
+    const productModel = this.userModel.discriminators.UserProduct;
+    const product = new productModel(productData);
+    return product;
   }
 
   getCarryAmountAndCapacity(user: User) {

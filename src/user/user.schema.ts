@@ -36,8 +36,8 @@ export class User extends Document {
   @Prop({ required: true })
   cashAmount: number;
 
-  @Prop({ type: [Product], default: [] })
-  products: Product[];
+  @Prop({ type: [UserProduct], default: [] })
+  products: UserProduct[];
 
   @Prop({ type: [CarryingGear] })
   carryingGear: CarryingGear[];

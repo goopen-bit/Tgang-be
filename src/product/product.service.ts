@@ -3,7 +3,7 @@ import { UserService } from "../user/user.service";
 import { BuyProductDto } from "./dto/buy-product.dto";
 import { MarketService } from "../market/market.service";
 import { CustomerService } from "../customer/customer.service";
-import { SellProductDto } from "./dto/sell-product.dto";
+import { CustomerBatchDto } from "../customer/dto/customer-batch.dto";
 
 @Injectable()
 export class ProductService {
@@ -42,41 +42,51 @@ export class ProductService {
     return user;
   }
 
-  async sellProduct(userId: number, marketId: string, params: SellProductDto) {
-    const { name, product } = params;
-    const customers = await this.customerService.findOneOrCreate(
-      userId,
-      marketId
-    );
-    const customer = customers.find((c) => c.name === name);
-    if (!customer) {
-      throw new HttpException("Customer not found", 404);
-    }
-
+  async validateUserDeals(
+    userId: number,
+    marketId: string,
+    deals: CustomerBatchDto[]
+  ) {
     const user = await this.userService.findOne(userId);
-    const userProduct = user.products.find((p) => p.name === product);
 
-    if (!userProduct) {
-      throw new HttpException("User does not own this product", 400);
+    let batchIndex: number;
+    let customerBatch;
+
+    for (const deal of deals) {
+      const currentBatchIndex = this.customerService.getBatchIndexFromCustomerIndex(deal.customerIndex);
+      const customerBatchTimestamp = this.customerService.getTimeStampFromIndex(currentBatchIndex);
+      // If the deal is olden than one hour or newer than one hour, continue
+      if (
+        customerBatchTimestamp.getTime() < new Date().getTime() - 3600000 ||
+        customerBatchTimestamp.getTime() > new Date().getTime() + 3600000
+      ) {
+        continue;
+      }
+
+      if (!customerBatch || batchIndex !== currentBatchIndex) {
+        const batchIndex = this.customerService.getBatchIndexFromCustomerIndex(deal.customerIndex);
+        customerBatch = await this.customerService.getCustomerBatch(marketId, batchIndex);
+      }
+
+      const customer = customerBatch.find((c) => c.product === deal.product);
+      if (!customer) {
+        continue;
+      }
+
+      if (customer.quantity < deal.quantity) {
+        deal.quantity = customer.quantity;
+      }
+
+      const userProduct = user.products.find((p) => p.name === deal.product);
+      if (userProduct.quantity < deal.quantity) {
+        deal.quantity = userProduct.quantity;
+      }
+
+      userProduct.quantity -= deal.quantity;
+      user.cashAmount += customer.price * deal.quantity;
     }
 
-    if (userProduct.quantity < params.quantity) {
-      params.quantity = userProduct.quantity;
-    }
-
-    if (customer.quantity < params.quantity) {
-      params.quantity = customer.quantity;
-    }
-
-    userProduct.quantity -= params.quantity;
-    user.cashAmount += customer.price * params.quantity;
-    await this.customerService.updateQuantity(
-      userId,
-      marketId,
-      name,
-      customer.quantity - params.quantity
-    );
     await user.save();
-    return userProduct;
+    return user;
   }
 }

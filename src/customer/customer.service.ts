@@ -65,9 +65,12 @@ export class CustomerService {
   }
 
   async getCustomerBatch(marketId: string, customerBatchIndex: number): Promise<CustomerBatchDto[]> {
-    // Don't return batches older than one hour
-    if (this.getTimeStampFromIndex(customerBatchIndex).getTime() > new Date().getTime() + 3600000) {
-      return [];
+    // Don't return batches older or newer than one hour
+    if (
+      this.getTimeStampFromIndex(customerBatchIndex).getTime() < new Date().getTime() - 3600000 ||
+      this.getTimeStampFromIndex(customerBatchIndex).getTime() > new Date().getTime() + 3600000
+    ) {
+      throw new Error('Invalid customer batch index');
     }
 
     const batchIndexKey = this.getBatchIndexKey(marketId);

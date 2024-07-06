@@ -5,7 +5,4 @@ import { EProduct } from "../product/product.const";
 export class Product {
   @Prop({ required: true })
   name: EProduct;
-
-  @Prop({ required: true })
-  quantity: number;
 }

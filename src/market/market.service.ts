@@ -3,8 +3,7 @@ import { UserService } from "../user/user.service";
 import { Market } from "./market.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { BuyProductDto } from "./dto/buy-product.dto";
-import { User } from "src/user/user.schema";
+import { BuyProductDto } from "../product/dto/buy-product.dto";
 
 @Injectable()
 export class MarketService {
@@ -37,18 +36,14 @@ export class MarketService {
       throw new HttpException("Not enough carry capacity", 400);
     }
 
-    user.cashAmount -= marketProduct.price * quantity;
     const userProduct = user.products.find((p) => p.name === product);
-    if (userProduct) {
+    if (userProduct && userProduct.unlocked) {
+      user.cashAmount -= marketProduct.price * quantity;
       userProduct.quantity += quantity;
     } else {
-      const newProduct = this.userService.initUserProduct({
-        name: product,
-        quantity,
-      });
-      user.products.push(newProduct);
+      throw new HttpException("Product not unlocked", 400);
     }
     await user.save();
-    return user;
+    return userProduct;
   }
 }

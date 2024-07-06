@@ -4,13 +4,14 @@ import { UserService } from './user.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { mongoUrl, mongoDb } from '../config/env';
 import { User, UserSchema } from './user.schema';
-import { STARTING_CASH } from './user.constants';
+import { STARTING_CASH } from './user.const';
 
 describe('UserService', () => {
+  let module: TestingModule;
   let service: UserService;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       imports: [      
         MongooseModule.forRoot(mongoUrl, {
           dbName: mongoDb,
@@ -50,5 +51,9 @@ describe('UserService', () => {
       expect(res.username).toBe(params.username);
       expect(res.cashAmount).toBeGreaterThan(STARTING_CASH);
     });
+  });
+
+  afterAll(async () => {
+    await module.close();
   });
 });

@@ -1,23 +1,17 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { User, UserProduct, UserProductSchema } from "./user.schema";
+import { User, UserProduct } from "./user.schema";
 import { AuthTokenData } from "../config/types";
 import { EProduct } from "../product/product.const";
-import { CARRYING_CAPACITY, STARTING_CASH } from "./user.constants";
+import { CARRYING_CAPACITY, STARTING_CASH } from "./user.const";
 
 @Injectable()
 export class UserService {
-  private userProductModel;
   constructor(
     @InjectModel(User.name)
-    private userModel: Model<User>
-  ) {
-    this.userProductModel = this.userModel.discriminator(
-      "UserProduct",
-      UserProductSchema
-    );
-  }
+    private userModel: Model<User>,
+  ) { }
 
   async findOneOrCreate(user: AuthTokenData) {
     const existingUser = await this.userModel.findOne({ id: user.id });
@@ -27,13 +21,12 @@ export class UserService {
     return this.userModel.create({
       ...user,
       cashAmount: STARTING_CASH,
+      reputation: 0,
       products: [
         this.initUserProduct({
           name: EProduct.WEED,
           quantity: 0,
           unlocked: true,
-          selected: true,
-          slot: 0,
         }),
       ],
     });
@@ -43,8 +36,11 @@ export class UserService {
     return this.userModel.findOne({ id });
   }
 
-  initUserProduct(productData: Partial<UserProduct>) {
-    const product = new this.userProductModel(productData);
+  initUserProduct(productData: UserProduct) {
+    const product = new UserProduct();
+    product.unlocked = productData.unlocked;
+    product.name = productData.name;
+    product.quantity = productData.quantity;
     return product;
   }
 

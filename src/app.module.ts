@@ -8,6 +8,7 @@ import { mongoDb, mongoUrl, redisUrl } from "./config/env";
 import { AuthModule } from "./auth/auth.module";
 import { UserModule } from "./user/user.module";
 import { MarketModule } from "./market/market.module";
+import { CustomerModule } from './customer/customer.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { MarketModule } from "./market/market.module";
     AuthModule,
     UserModule,
     MarketModule,
+    // CustomerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

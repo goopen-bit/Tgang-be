@@ -13,6 +13,7 @@ import { UserModule } from '../user/user.module';
     UserModule,
   ],
   providers: [MarketService],
-  controllers: [MarketController]
+  exports: [MarketService],
+  controllers: [MarketController],
 })
 export class MarketModule {}

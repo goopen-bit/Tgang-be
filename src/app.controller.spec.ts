@@ -21,4 +21,8 @@ describe('AppController', () => {
       expect(hello.version).toBe(process.env.npm_package_version);
     });
   });
+
+  afterAll(async () => {
+    await app.close();
+  });
 });

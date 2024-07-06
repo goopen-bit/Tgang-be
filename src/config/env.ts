@@ -19,7 +19,7 @@ export const apiPort = parseInt(process.env["API_PORT"]) || 3000;
  * Logger log levels.
  */
 export const logLevel =
-  (process.env["LOG_LEVEL"]?.split(",") as unknown as LogLevel[]) || "verbose";
+  (process.env["LOG_LEVEL"]?.split(",") as unknown as LogLevel[]) || undefined;
 
 /**
  * Telegram bot token.

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
-import { Product } from "src/product/product.schema";
+import { Product } from "../product/product.schema";
 
 @Schema({ _id: false })
 class CarryingGear {
@@ -13,17 +13,11 @@ class CarryingGear {
 
 @Schema({ _id: false })
 export class UserProduct extends Product {
+  @Prop({ required: true })
+  quantity: number;
+
   @Prop({ required: true, default: false })
   unlocked: boolean;
-
-  @Prop({ required: true, default: false })
-  selected: boolean;
-
-  @Prop({ required: true, default: 100 })
-  maxCarry: number;
-
-  @Prop({ default: null })
-  slot: number | null;
 }
 
 @Schema()
@@ -33,6 +27,9 @@ export class User extends Document {
 
   @Prop({ required: true })
   username: string;
+
+  @Prop({ required: true })
+  reputation: number;
 
   @Prop({ required: true })
   cashAmount: number;

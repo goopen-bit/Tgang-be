@@ -1,10 +1,11 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import { DbCollections } from "../config/types";
-import { Product } from "src/product/product.schema";
+import { Product } from "../product/product.schema";
 
+@Schema({ _id: false })
 export class MarketProduct extends Product {
-  @Prop()
+  @Prop({ required: true })
   price: number;
 }
 
@@ -12,10 +13,10 @@ export class MarketProduct extends Product {
   collection: DbCollections.MARKETS,
 })
 export class Market extends Document {
-  @Prop()
+  @Prop({ required: true, unique: true })
   id: string;
 
-  @Prop()
+  @Prop({ required: true })
   name: string;
 
   @Prop({ type: [MarketProduct] })

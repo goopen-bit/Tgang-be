@@ -3,7 +3,6 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { MongoErrorFilter } from "./common/filters/mongo.filter";
 import { apiPort, logLevel } from "./config/env";
-import { Logger } from "@nestjs/common";
 
 export function useGlobal(app: INestApplication) {
   app.useGlobalFilters(new MongoErrorFilter());

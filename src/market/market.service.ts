@@ -12,10 +12,7 @@ export class MarketService {
     @InjectModel(Market.name)
     private marketModel: Model<Market>,
 
-    private userService: UserService,
-
-    @InjectModel(User.name)
-    private userModel: Model<User>
+    private userService: UserService
   ) {}
 
   async getMarket(id: string) {

@@ -1,17 +1,23 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { User, UserProduct } from "./user.schema";
+import { User, UserProduct, UserProductSchema } from "./user.schema";
 import { AuthTokenData } from "../config/types";
 import { EProduct } from "../product/product.const";
 import { CARRYING_CAPACITY, STARTING_CASH } from "./user.constants";
 
 @Injectable()
 export class UserService {
+  private userProductModel;
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>
-  ) {}
+  ) {
+    this.userProductModel = this.userModel.discriminator(
+      "UserProduct",
+      UserProductSchema
+    );
+  }
 
   async findOneOrCreate(user: AuthTokenData) {
     const existingUser = await this.userModel.findOne({ id: user.id });
@@ -22,14 +28,13 @@ export class UserService {
       ...user,
       cashAmount: STARTING_CASH,
       products: [
-        {
+        this.initUserProduct({
           name: EProduct.WEED,
           quantity: 0,
           unlocked: true,
           selected: true,
-          maxCarry: 100,
-          slot: null,
-        },
+          slot: 0,
+        }),
       ],
     });
   }
@@ -39,8 +44,7 @@ export class UserService {
   }
 
   initUserProduct(productData: Partial<UserProduct>) {
-    const productModel = this.userModel.discriminators.UserProduct;
-    const product = new productModel(productData);
+    const product = new this.userProductModel(productData);
     return product;
   }
 

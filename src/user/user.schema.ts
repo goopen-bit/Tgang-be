@@ -11,6 +11,7 @@ class CarryingGear {
   capacity: number;
 }
 
+@Schema({ _id: false })
 export class UserProduct extends Product {
   @Prop({ required: true, default: false })
   unlocked: boolean;
@@ -43,4 +44,5 @@ export class User extends Document {
   carryingGear: CarryingGear[];
 }
 
+export const UserProductSchema = SchemaFactory.createForClass(UserProduct);
 export const UserSchema = SchemaFactory.createForClass(User);

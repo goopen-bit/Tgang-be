@@ -5,14 +5,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { mongoUrl, mongoDb, redisUrl } from '../config/env';
 import { UserModule } from '../user/user.module';
 import { MarketModule } from '../market/market.module';
-import { faker } from '@faker-js/faker';
-import { AuthTokenData } from '../config/types';
 import { UserService } from '../user/user.service';
 
 describe('CustomerService', () => {
   let module: TestingModule;
   let service: CustomerService;
-  let userService: UserService;
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -32,30 +29,18 @@ describe('CustomerService', () => {
     }).compile();
 
     service = module.get<CustomerService>(CustomerService);
-    userService = module.get<UserService>(UserService);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe('findOneOrCreate', () => {
-    let user: AuthTokenData;
-    beforeEach(async () => {
-      user = { id: faker.number.int(), username: faker.internet.userName() };
-      await userService.findOneOrCreate(user);
-    });
-
+  describe('getCustomerBatch', () => {
     it('should return a list of customers', async () => {
-      const customers = await service.findOneOrCreate(user.id, 'NY');
+      const batchIndex = service.getIndexFromTimeStamp(new Date());
+      const customers = await service.getCustomerBatch('NY', batchIndex);
       expect(customers).toBeDefined();
-      expect(customers.length).toBeGreaterThan(0);
-    });
-
-    it('should return the same list of customers', async () => {
-      const customers1 = await service.findOneOrCreate(user.id, 'NY');
-      const customers2 = await service.findOneOrCreate(user.id, 'NY');
-      expect(customers1).toEqual(customers2);
+      expect(customers.length).toBe(100);
     });
   });
 

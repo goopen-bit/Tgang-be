@@ -6,7 +6,6 @@ import { MarketModule } from '../market/market.module';
 
 @Module({
   imports: [
-    UserModule,
     MarketModule,
   ],
   providers: [CustomerService],

@@ -1,71 +1,91 @@
 import { InjectRedis } from '@goopen/nestjs-ioredis-provider';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
-import { UserService } from '../user/user.service';
-import { AuthTokenData } from '../config/types';
-import { CUSTOMER_LIMIT, PRICE_MULTIPLIER } from '../user/user.const';
 import { MarketService } from '../market/market.service';
-import { faker } from '@faker-js/faker';
-import { Customer } from './customer.interface';
+import { Market } from '../market/market.schema';
+import { CustomerBatchDto } from './dto/customer-batch.dto';
 
 @Injectable()
 export class CustomerService {
+  private readonly logger = new Logger(this.constructor.name);
+
   constructor(
     @InjectRedis() private readonly redisClient: Redis,
-
-    private userService: UserService,
     private marketService: MarketService,
   ) {}
 
-  private getCustomerKey(userId: number, marketId: string) {
-    return `${marketId}:${userId}`;
+  getIndexFromTimeStamp(timestamp: Date) {
+    return Math.floor(timestamp.getTime() / 60000);
   }
 
-  private async generateCustomerList(userId: number, marketId: string): Promise<Customer[]> {
-    const user = await this.userService.findOne(userId);
-    const market = await this.marketService.getMarket(marketId);
+  getTimeStampFromIndex(index: number) {
+    return new Date(index * 60000);
+  }
 
-    const limit = CUSTOMER_LIMIT + Math.log1p(user.reputation);
-    const priceMultiplier = PRICE_MULTIPLIER + Math.log1p(user.reputation) / 10;
-    // Generate a list of buyers from the market for random products
-    const customerList = [];
-    for (let i = 0; i < limit; i++) {
-      const product = market.products[Math.floor(Math.random() * market.products.length)];
-      const quantity = Math.floor(Math.random() * 10) + 1;
-      customerList.push({
-        name: faker.person.fullName(),
-        product: product.name,
-        quantity,
-        price: Math.floor(product.price * priceMultiplier).toFixed(2)
+  getBatchIndexKey(marketId: string) {
+    return `customers:${marketId}:batchIndex`;
+  }
+
+  getBatchKey(marketId: string, batchIndex: number) {
+    return `customers:${marketId}:${batchIndex}`;
+  }
+
+  async generateCustomers(market: Market, index: number) {
+    const customers = [];
+    for (let i = 0; i < 100; i++) {
+      customers.push({
+        product: market.products[Math.floor(Math.random() * market.products.length)],
+        quantity: Math.floor(Math.random() * 10) + 1,
+        customerIndex: index * 100 + i,
       });
     }
 
-    return customerList;
+    const batchKey = this.getBatchKey(market.id, index);
+    const expireTime = this.getTimeStampFromIndex(index + 60);
+    const ttl = expireTime.getTime() - Date.now();
+    await this.redisClient.set(batchKey, JSON.stringify(customers), 'PX', ttl);
+    const batchIndexKey = this.getBatchIndexKey(market.id);
+    await this.redisClient.set(batchIndexKey, index);
   }
 
-  async findOneOrCreate(userId: number, marketId: string) {
-    const key = this.getCustomerKey(userId, marketId);
-    const customerList = await this.redisClient.get(key);
-    if (customerList) {
-      return JSON.parse(customerList);
+  async generateCustomerBatches(marketId: string, targetTimestamp: Date) {
+    const market = await this.marketService.getMarket(marketId);
+    const batchIndexKey = this.getBatchIndexKey(marketId);
+    const batchIndex = await this.redisClient.get(batchIndexKey);
+
+    let index = batchIndex ? parseInt(batchIndex) : this.getIndexFromTimeStamp(new Date());
+    while (this.getTimeStampFromIndex(index) < targetTimestamp) {
+      await this.generateCustomers(market, index);
+      index++;
     }
-    const customers = await this.generateCustomerList(userId, marketId);
-    await this.redisClient.set(key, JSON.stringify(customers), 'EX', 60);
-    return customers;
   }
 
-  async updateQuantity(userId: number, marketId: string, name: string, quantity: number) {
-    const key = this.getCustomerKey(userId, marketId);
-    const customerList = await this.redisClient.get(key);
-    if (!customerList) {
-      return;
+  getBatchIndexFromCustomerIndex(customerIndex: number) {
+    return Math.floor(customerIndex / 100);
+  }
+
+  async getCustomerBatch(marketId: string, customerBatchIndex: number): Promise<CustomerBatchDto[]> {
+    // Don't return batches older or newer than one hour
+    if (
+      this.getTimeStampFromIndex(customerBatchIndex).getTime() < new Date().getTime() - 3600000 ||
+      this.getTimeStampFromIndex(customerBatchIndex).getTime() > new Date().getTime() + 3600000
+    ) {
+      throw new Error('Invalid customer batch index');
     }
-    const customers = JSON.parse(customerList);
-    const customer = customers.find((c) => c.name === name);
-    if (!customer) {
-      return;
+
+    const batchIndexKey = this.getBatchIndexKey(marketId);
+    const batchIndex = await this.redisClient.get(batchIndexKey);
+    const index = batchIndex ? parseInt(batchIndex) : this.getIndexFromTimeStamp(new Date())
+
+    const customerBatchTimestamp = this.getTimeStampFromIndex(customerBatchIndex + 60);
+
+    if (this.getTimeStampFromIndex(index) < customerBatchTimestamp) {
+      this.logger.debug(`Generating customer batches for ${marketId} up to ${customerBatchTimestamp}`);
+      await this.generateCustomerBatches(marketId, customerBatchTimestamp);
     }
-    customer.quantity = quantity;
-    await this.redisClient.set(key, JSON.stringify(customers));
+
+    const batchKey = this.getBatchKey(marketId, customerBatchIndex);
+    const batch = await this.redisClient.get(batchKey);
+    return JSON.parse(batch);
   }
 }

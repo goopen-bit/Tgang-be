@@ -26,6 +26,9 @@ export class UserProduct extends Product {
   toObject: {
     getters: true,
   },
+  toJSON: {
+    getters: true,
+  },
 })
 export class User extends Document {
   @Prop({ required: true, unique: true })

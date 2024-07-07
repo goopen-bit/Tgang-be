@@ -33,7 +33,9 @@ export class ProductService {
 
     const userProduct = user.products.find((p) => p.name === product);
     if (userProduct && userProduct.unlocked) {
-      user.cashAmount -= marketProduct.price * quantity;
+      //@note TODO Update this discount based on the user upgrades Base is 10%
+      const baseDiscount = 0.9;
+      user.cashAmount -= marketProduct.price * baseDiscount * quantity;
       userProduct.quantity += quantity;
     } else {
       throw new HttpException("Product not unlocked", 400);
@@ -53,8 +55,10 @@ export class ProductService {
     let customerBatch;
 
     for (const deal of deals) {
-      const currentBatchIndex = this.customerService.getBatchIndexFromCustomerIndex(deal.customerIndex);
-      const customerBatchTimestamp = this.customerService.getTimeStampFromIndex(currentBatchIndex);
+      const currentBatchIndex =
+        this.customerService.getBatchIndexFromCustomerIndex(deal.customerIndex);
+      const customerBatchTimestamp =
+        this.customerService.getTimeStampFromIndex(currentBatchIndex);
       // If the deal is olden than one hour or newer than one hour, continue
       if (
         customerBatchTimestamp.getTime() < new Date().getTime() - 3600000 ||
@@ -64,11 +68,17 @@ export class ProductService {
       }
 
       if (!customerBatch || batchIndex !== currentBatchIndex) {
-        const batchIndex = this.customerService.getBatchIndexFromCustomerIndex(deal.customerIndex);
-        customerBatch = await this.customerService.getCustomerBatch(marketId, batchIndex);
+        const batchIndex = this.customerService.getBatchIndexFromCustomerIndex(
+          deal.customerIndex
+        );
+        customerBatch = await this.customerService.getCustomerBatch(
+          marketId,
+          batchIndex
+        );
       }
-
-      const customer = customerBatch.find((c) => c.product === deal.product);
+      const customer = customerBatch.find(
+        (c) => c.customerIndex === deal.customerIndex
+      );
       if (!customer) {
         continue;
       }
@@ -76,14 +86,13 @@ export class ProductService {
       if (customer.quantity < deal.quantity) {
         deal.quantity = customer.quantity;
       }
-
       const userProduct = user.products.find((p) => p.name === deal.product);
       if (userProduct.quantity < deal.quantity) {
         deal.quantity = userProduct.quantity;
       }
-
       userProduct.quantity -= deal.quantity;
-      user.cashAmount += customer.price * deal.quantity;
+      const amount = customer.product.price * deal.quantity;
+      user.cashAmount += amount;
     }
 
     await user.save();

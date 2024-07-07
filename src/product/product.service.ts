@@ -15,6 +15,8 @@ export class ProductService {
 
   async buyProduct(userId: number, marketId: string, params: BuyProductDto) {
     const { product, quantity } = params;
+    //@note TODO Update this discount based on the user upgrades Base is 10%
+    const baseDiscount = 0.9;
     const user = await this.userService.findOne(userId);
     const market = await this.marketService.getMarket(marketId);
     if (!user || !market) {
@@ -22,7 +24,7 @@ export class ProductService {
     }
 
     const marketProduct = market.products.find((p) => p.name === product);
-    if (user.cashAmount < marketProduct.price * quantity) {
+    if (user.cashAmount < marketProduct.price * baseDiscount * quantity) {
       throw new HttpException("Not enough cash", 400);
     }
 
@@ -33,8 +35,6 @@ export class ProductService {
 
     const userProduct = user.products.find((p) => p.name === product);
     if (userProduct && userProduct.unlocked) {
-      //@note TODO Update this discount based on the user upgrades Base is 10%
-      const baseDiscount = 0.9;
       user.cashAmount -= marketProduct.price * baseDiscount * quantity;
       userProduct.quantity += quantity;
     } else {

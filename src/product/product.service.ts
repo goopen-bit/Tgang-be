@@ -4,6 +4,7 @@ import { BuyProductDto } from "./dto/buy-product.dto";
 import { MarketService } from "../market/market.service";
 import { CustomerService } from "../customer/customer.service";
 import { CustomerBatchDto } from "../customer/dto/customer-batch.dto";
+import { getUnixTime } from "date-fns";
 
 @Injectable()
 export class ProductService {
@@ -61,8 +62,8 @@ export class ProductService {
         this.customerService.getTimeStampFromIndex(currentBatchIndex);
       // If the deal is olden than one hour or newer than one hour, continue
       if (
-        customerBatchTimestamp.getTime() < new Date().getTime() - 3600000 ||
-        customerBatchTimestamp.getTime() > new Date().getTime() + 3600000
+        getUnixTime(customerBatchTimestamp) < new Date().getTime() - 3600 ||
+        getUnixTime(customerBatchTimestamp) > new Date().getTime() + 3600
       ) {
         continue;
       }

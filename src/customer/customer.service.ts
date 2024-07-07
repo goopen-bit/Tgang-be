@@ -4,6 +4,7 @@ import Redis from "ioredis";
 import { MarketService } from "../market/market.service";
 import { Market } from "../market/market.schema";
 import { CustomerBatchDto } from "./dto/customer-batch.dto";
+import { fromUnixTime, getUnixTime, startOfMinute } from "date-fns";
 
 @Injectable()
 export class CustomerService {
@@ -15,11 +16,12 @@ export class CustomerService {
   ) {}
 
   getIndexFromTimeStamp(timestamp: Date) {
-    return Math.floor(timestamp.getTime() / 60000);
+    const roundedTimestamp = startOfMinute(timestamp);
+    return getUnixTime(roundedTimestamp) / 60;
   }
 
   getTimeStampFromIndex(index: number) {
-    return new Date(index * 60000);
+    return fromUnixTime(index * 60);
   }
 
   getBatchIndexKey(marketId: string) {
@@ -58,6 +60,12 @@ export class CustomerService {
     let index = batchIndex
       ? parseInt(batchIndex)
       : this.getIndexFromTimeStamp(new Date());
+    const lastBatchIndexTimestamp = this.getTimeStampFromIndex(index);
+    // If last batch index is older than one hour, start from the current time
+    if (getUnixTime(lastBatchIndexTimestamp) < getUnixTime(new Date()) - 3600) {
+      index = this.getIndexFromTimeStamp(new Date());
+    }
+
     while (this.getTimeStampFromIndex(index) < targetTimestamp) {
       await this.generateCustomers(market, index);
       index++;
@@ -73,11 +81,10 @@ export class CustomerService {
     customerBatchIndex: number
   ): Promise<CustomerBatchDto[]> {
     // Don't return batches older or newer than one hour
+    const batchTimestamp = this.getTimeStampFromIndex(customerBatchIndex);
     if (
-      this.getTimeStampFromIndex(customerBatchIndex).getTime() <
-        new Date().getTime() - 3600000 ||
-      this.getTimeStampFromIndex(customerBatchIndex).getTime() >
-        new Date().getTime() + 3600000
+      getUnixTime(batchTimestamp) < new Date().getTime() - 3600 ||
+      getUnixTime(batchTimestamp) > new Date().getTime() + 3600
     ) {
       throw new Error("Invalid customer batch index");
     }

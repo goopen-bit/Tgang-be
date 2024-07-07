@@ -83,8 +83,8 @@ export class CustomerService {
     // Don't return batches older or newer than one hour
     const batchTimestamp = this.getTimeStampFromIndex(customerBatchIndex);
     if (
-      getUnixTime(batchTimestamp) < new Date().getTime() - 3600 ||
-      getUnixTime(batchTimestamp) > new Date().getTime() + 3600
+      getUnixTime(batchTimestamp) < getUnixTime(new Date()) - 3600 ||
+      getUnixTime(batchTimestamp) > getUnixTime(new Date()) + 3600
     ) {
       throw new Error("Invalid customer batch index");
     }

@@ -62,8 +62,8 @@ export class ProductService {
         this.customerService.getTimeStampFromIndex(currentBatchIndex);
       // If the deal is olden than one hour or newer than one hour, continue
       if (
-        getUnixTime(customerBatchTimestamp) < new Date().getTime() - 3600 ||
-        getUnixTime(customerBatchTimestamp) > new Date().getTime() + 3600
+        getUnixTime(customerBatchTimestamp) < getUnixTime(new Date()) - 3600 ||
+        getUnixTime(customerBatchTimestamp) > getUnixTime(new Date()) + 3600
       ) {
         continue;
       }

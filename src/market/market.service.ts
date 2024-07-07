@@ -1,9 +1,8 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { Market } from "./market.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { BuyProductDto } from "../product/dto/buy-product.dto";
 
 @Injectable()
 export class MarketService {
@@ -14,36 +13,19 @@ export class MarketService {
     private userService: UserService
   ) {}
 
-  async getMarket(id: string) {
+  getMarket(id: string) {
     return this.marketModel.findOne({ id });
   }
 
-  async buyProduct(userId: number, marketId: string, params: BuyProductDto) {
-    const { product, quantity } = params;
-    const user = await this.userService.findOne(userId);
+  async getMarketWithReputation(marketId: string, userId: number) {
     const market = await this.getMarket(marketId);
-    if (!user || !market) {
-      throw new HttpException("User or market not found", 404);
-    }
+    const user = await this.userService.findOne(userId);
 
-    const marketProduct = market.products.find((p) => p.name === product);
-    if (user.cashAmount < marketProduct.price * quantity) {
-      throw new HttpException("Not enough cash", 400);
-    }
+    // Decrease the market prices by 1% for each reputation point
+    market.products.forEach((product) => {
+      product.price = Math.floor(product.price * (1 - user.reputation / 100));
+    });
 
-    const carry = this.userService.getCarryAmountAndCapacity(user);
-    if (carry.carryAmount + quantity > carry.carryCapacity) {
-      throw new HttpException("Not enough carry capacity", 400);
-    }
-
-    const userProduct = user.products.find((p) => p.name === product);
-    if (userProduct && userProduct.unlocked) {
-      user.cashAmount -= marketProduct.price * quantity;
-      userProduct.quantity += quantity;
-    } else {
-      throw new HttpException("Product not unlocked", 400);
-    }
-    await user.save();
-    return userProduct;
+    return market;
   }
 }

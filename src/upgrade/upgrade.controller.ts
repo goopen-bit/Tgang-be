@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post, Get, Param } from "@nestjs/common";
 import { UpgradeService } from "./upgrade.service";
 import { Auth } from "../decorators/auth.decorator";
 import { AuthTokenData } from "../config/types";
@@ -13,5 +13,15 @@ export class UpgradeController {
   @Post("/buy")
   buy(@GetAuthToken() user: AuthTokenData, @Body() body: BuyUpgradeDto) {
     return this.upgradeService.buyUpgrade(user.id, body);
+  }
+
+  @Get()
+  findAll() {
+    return this.upgradeService.findAll();
+  }
+
+  @Get(":id")
+  findOne(@Param("id") id: number) {
+    return this.upgradeService.findOne(id);
   }
 }

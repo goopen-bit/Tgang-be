@@ -135,6 +135,63 @@ describe("UpgradeService", () => {
     });
   });
 
+  describe("findAll and findOne", () => {
+    let upgrade1: Upgrade;
+    let upgrade2: Upgrade;
+
+    beforeEach(async () => {
+      upgrade1 = await service.create({
+        id: 789,
+        title: "Weed_lab",
+        description: "Start your weed production",
+        level: 0,
+        maxLevel: 5,
+        levelPrices: [200, 400, 600, 800, 1000],
+        value: [0.9, 0.86, 0.85, 0.82, 0.8, 0.75],
+        image: "https://test.jpg",
+        locked: false,
+        group: "production",
+        requirement: null,
+      });
+
+      upgrade2 = await service.create({
+        id: 101,
+        title: "Workout",
+        description: "Increase your health score",
+        level: 0,
+        maxLevel: 5,
+        levelPrices: [200, 400, 600, 800, 1000],
+        value: [0.9, 0.86, 0.85, 0.82, 0.8, 0.75],
+        image: "https://test.jpg",
+        locked: false,
+        group: "stats",
+        requirement: null,
+      });
+    });
+
+    it("should return all upgrades", async () => {
+      const upgrades = await service.findAll();
+      expect(upgrades.length).toBeGreaterThanOrEqual(2);
+      expect(upgrades).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: 789 }),
+          expect.objectContaining({ id: 101 }),
+        ])
+      );
+    });
+
+    it("should return one upgrade by id", async () => {
+      const upgrade = await service.findOne(upgrade1.id);
+      expect(upgrade).toBeDefined();
+      expect(upgrade.id).toBe(upgrade1.id);
+    });
+
+    afterEach(async () => {
+      await service.delete(upgrade1.id);
+      await service.delete(upgrade2.id);
+    });
+  });
+
   afterAll(async () => {
     await service.delete(456);
     await module.close();

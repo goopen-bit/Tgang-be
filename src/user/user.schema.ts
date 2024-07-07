@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import { Upgrade } from "../upgrade/upgrade.schema";
 import { Product } from "../product/product.schema";
+import { CARRYING_CAPACITY } from "./user.const";
 
 @Schema({ _id: false })
 class CarryingGear {
@@ -21,7 +22,11 @@ export class UserProduct extends Product {
   unlocked: boolean;
 }
 
-@Schema()
+@Schema({
+  toObject: {
+    getters: true,
+  },
+})
 export class User extends Document {
   @Prop({ required: true, unique: true })
   id: number;
@@ -43,7 +48,30 @@ export class User extends Document {
 
   @Prop({ type: [CarryingGear] })
   carryingGear: CarryingGear[];
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      let capacity = CARRYING_CAPACITY;
+      this.carryingGear.forEach((gear) => {
+        capacity += gear.capacity;
+      });
+      return capacity;
+    }
+  })
+  carryCapacity: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      let amount = 0;
+      this.products.forEach((product) => {
+        amount += product.quantity;
+      });
+      return amount;
+    }
+  })
+  carryAmount: number;
 }
 
-export const UserProductSchema = SchemaFactory.createForClass(UserProduct);
 export const UserSchema = SchemaFactory.createForClass(User);

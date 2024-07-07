@@ -29,8 +29,7 @@ export class ProductService {
       throw new HttpException("Not enough cash", 400);
     }
 
-    const carry = this.userService.getCarryAmountAndCapacity(user);
-    if (carry.carryAmount + quantity > carry.carryCapacity) {
+    if (user.carryAmount + quantity > user.carryCapacity) {
       throw new HttpException("Not enough carry capacity", 400);
     }
 

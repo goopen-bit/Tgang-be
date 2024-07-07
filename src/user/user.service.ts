@@ -54,19 +54,4 @@ export class UserService {
     product.quantity = productData.quantity;
     return product;
   }
-
-  getCarryAmountAndCapacity(user: User) {
-    let carryAmount = 0;
-    let carryCapacity = CARRYING_CAPACITY;
-    user.products.forEach((product) => {
-      carryAmount += product.quantity;
-    });
-    user.carryingGear.forEach((gear) => {
-      carryCapacity += gear.capacity;
-    });
-    return {
-      carryAmount,
-      carryCapacity,
-    };
-  }
 }

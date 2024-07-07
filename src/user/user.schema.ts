@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
+import { Upgrade } from "../upgrade/upgrade.schema";
 import { Product } from "../product/product.schema";
 
 @Schema({ _id: false })
@@ -36,6 +37,9 @@ export class User extends Document {
 
   @Prop({ type: [UserProduct], default: [] })
   products: UserProduct[];
+
+  @Prop({ type: [Upgrade], default: [] })
+  upgrades: Upgrade[];
 
   @Prop({ type: [CarryingGear] })
   carryingGear: CarryingGear[];

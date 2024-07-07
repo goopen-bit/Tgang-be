@@ -10,8 +10,8 @@ import { CARRYING_CAPACITY, STARTING_CASH } from "./user.const";
 export class UserService {
   constructor(
     @InjectModel(User.name)
-    private userModel: Model<User>,
-  ) { }
+    private userModel: Model<User>
+  ) {}
 
   async findOneOrCreate(user: AuthTokenData) {
     const existingUser = await this.userModel.findOne({ id: user.id });
@@ -29,11 +29,18 @@ export class UserService {
           unlocked: true,
         }),
       ],
+      upgrades: [],
     });
   }
 
   async findOne(id: number) {
     return this.userModel.findOne({ id });
+  }
+
+  async update(userId: number, updateData: Partial<User>) {
+    return this.userModel
+      .findOneAndUpdate({ id: userId }, { $set: updateData }, { new: true })
+      .exec();
   }
 
   initUserProduct(productData: UserProduct) {

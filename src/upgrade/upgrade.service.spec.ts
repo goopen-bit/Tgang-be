@@ -128,10 +128,11 @@ describe("UpgradeService", () => {
         "Upgrade not unlocked"
       );
     });
-  });
 
-  afterEach(async () => {
-    await service.delete(123);
+    afterEach(async () => {
+      await service.delete(upgrade.id);
+      await userService.delete(user.id);
+    });
   });
 
   afterAll(async () => {

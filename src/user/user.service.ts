@@ -43,6 +43,10 @@ export class UserService {
       .exec();
   }
 
+  async delete(id: number): Promise<any> {
+    return this.userModel.deleteOne({ id }).exec();
+  }
+
   initUserProduct(productData: UserProduct) {
     const product = new UserProduct();
     product.unlocked = productData.unlocked;

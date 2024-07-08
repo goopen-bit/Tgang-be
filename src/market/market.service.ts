@@ -20,10 +20,16 @@ export class MarketService {
   async getMarketWithReputation(marketId: string, userId: number) {
     const market = await this.getMarket(marketId);
     const user = await this.userService.findOne(userId);
-
-    // Decrease the market prices by 1% for each reputation point
     market.products.forEach((product) => {
       product.price = Math.floor(product.price * (1 - user.reputation / 100));
+      const dealerUpgrade = user.upgrades.find(
+        (upgrade) =>
+          upgrade.group === "product" && upgrade.title === product.name
+      );
+      if (dealerUpgrade) {
+        const discount = dealerUpgrade.value[dealerUpgrade.level];
+        product.price = Math.floor(product.price * discount);
+      }
     });
 
     return market;

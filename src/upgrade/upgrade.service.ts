@@ -40,6 +40,7 @@ export class UpgradeService {
         user.upgrades.find((u) => u.id === purchasedUpgrade.id)?.level
     );
   }
+
   private processUpgradePurchase(
     user: User,
     upgrade: Upgrade
@@ -76,7 +77,7 @@ export class UpgradeService {
       throw new HttpException("User or Upgrade not found", 404);
     }
 
-    if (upgrade.locked) {
+    if (this.isProductLockedForUser(user, upgrade)) {
       throw new HttpException("Upgrade not unlocked", 400);
     }
 
@@ -87,6 +88,11 @@ export class UpgradeService {
 
     await user.save();
     return user;
+  }
+
+  isProductLockedForUser(user: User, upgrade: Upgrade): boolean {
+    const userUpgrade = user.upgrades.find((p) => p.title === upgrade.title);
+    return userUpgrade ? userUpgrade.locked : upgrade.locked;
   }
 
   findAll(): UpgradesCategory[] {

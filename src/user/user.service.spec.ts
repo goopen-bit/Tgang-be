@@ -59,6 +59,8 @@ describe("UserService", () => {
       expect(res.cashAmount).toBeGreaterThan(STARTING_CASH);
       await service.delete(params.id);
     });
+
+    //@note add a test to check that product and upgrades are initialised properly
   });
 
   afterAll(async () => {

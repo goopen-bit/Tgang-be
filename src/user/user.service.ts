@@ -5,6 +5,7 @@ import { User, UserProduct } from "./user.schema";
 import { AuthTokenData } from "../config/types";
 import { EProduct } from "../product/product.const";
 import { CARRYING_CAPACITY, STARTING_CASH } from "./user.const";
+import { EUpgrade, upgradesData } from "../upgrade/data/upgrades";
 
 @Injectable()
 export class UserService {
@@ -18,6 +19,9 @@ export class UserService {
     if (existingUser) {
       return existingUser;
     }
+    const coke = upgradesData.find((e) => e.category === "dealer").upgrades[
+      EUpgrade.COKE
+    ];
     return this.userModel.create({
       ...user,
       cashAmount: STARTING_CASH,
@@ -29,7 +33,7 @@ export class UserService {
           unlocked: true,
         }),
       ],
-      upgrades: [],
+      upgrades: [{ ...coke }],
     });
   }
 

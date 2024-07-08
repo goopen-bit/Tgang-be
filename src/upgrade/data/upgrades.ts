@@ -1,5 +1,19 @@
 import { UpgradesCategory } from "../upgrade.interface";
 
+export enum EUpgrade {
+  COKE,
+  METH,
+  HEROIN,
+  WEED_LAB,
+  WORKOUT,
+}
+
+export enum EUpgradeCategory {
+  DEALER,
+  FARMER,
+  GANGSTER,
+}
+
 export const upgradesData: UpgradesCategory[] = [
   {
     category: "dealer",

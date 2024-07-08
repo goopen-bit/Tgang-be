@@ -49,7 +49,7 @@ export class ProductService {
     deals: number[]
   ) {
     const user = await this.userService.findOne(userId);
-    const market = await this.marketService.getMarket(marketId);
+    const market = await this.marketService.getMarketWithReputation(marketId, userId);
 
     let batchIndex: number;
     let customerBatch;

@@ -5,6 +5,7 @@ import { MarketService } from "../market/market.service";
 import { Market } from "../market/market.schema";
 import { CustomerBatchDto } from "./dto/customer-batch.dto";
 import { fromUnixTime, getUnixTime, startOfMinute } from "date-fns";
+import { CUSTOMER_BATCH_SIZE } from "./customer.const";
 
 @Injectable()
 export class CustomerService {
@@ -34,13 +35,11 @@ export class CustomerService {
 
   async generateCustomers(market: Market, index: number) {
     const customers = [];
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < CUSTOMER_BATCH_SIZE; i++) {
       customers.push({
-        // @note use only weed to test for now as it make it hard to play otherwise
-        // product: market.products[Math.floor(Math.random() * market.products.length)],
-        product: market.products[0],
+        product: market.products[Math.floor(Math.random() * market.products.length)].name,
         quantity: Math.floor(Math.random() * 3) + 1,
-        customerIndex: index * 100 + i,
+        customerIndex: index * CUSTOMER_BATCH_SIZE + i,
       });
     }
 
@@ -66,14 +65,14 @@ export class CustomerService {
       index = this.getIndexFromTimeStamp(new Date());
     }
 
-    while (this.getTimeStampFromIndex(index) < targetTimestamp) {
+    while (this.getTimeStampFromIndex(index) <= targetTimestamp) {
       await this.generateCustomers(market, index);
       index++;
     }
   }
 
   getBatchIndexFromCustomerIndex(customerIndex: number) {
-    return Math.floor(customerIndex / 100);
+    return Math.floor(customerIndex / CUSTOMER_BATCH_SIZE);
   }
 
   async getCustomerBatch(

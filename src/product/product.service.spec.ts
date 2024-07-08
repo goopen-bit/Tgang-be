@@ -9,12 +9,19 @@ import { AuthTokenData } from "../config/types";
 import { EProduct } from "./product.const";
 import { MarketModule } from "../market/market.module";
 import { CustomerModule } from "../customer/customer.module";
-import { RedisModule } from "@goopen/nestjs-ioredis-provider";
+import { REDIS_CLIENT, RedisModule } from "@goopen/nestjs-ioredis-provider";
+import Redis from "ioredis";
+import { CustomerService } from "../customer/customer.service";
+import { CUSTOMER_BATCH_SIZE } from "../customer/customer.const";
+import { STARTING_CASH } from "../user/user.const";
+import { subMinutes } from "date-fns";
 
 describe("ProductService", () => {
   let module: TestingModule;
   let service: ProductService;
   let userService: UserService;
+  let customerService: CustomerService;
+  let redis: Redis;
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -36,6 +43,8 @@ describe("ProductService", () => {
 
     service = module.get<ProductService>(ProductService);
     userService = module.get<UserService>(UserService);
+    customerService = module.get<CustomerService>(CustomerService);
+    redis = module.get<Redis>(REDIS_CLIENT);
   });
 
   it("should be defined", () => {
@@ -91,9 +100,116 @@ describe("ProductService", () => {
         })
       ).rejects.toThrow("Product not unlocked");
     });
+  });
 
-    afterEach(async () => {
-      await userService.delete(user.id);
+  describe("validateUserDeals", () => {
+    let customerIndex;
+    beforeAll(async () => {
+      const index = customerService.getIndexFromTimeStamp(subMinutes(new Date(), 40));
+      customerIndex = index * CUSTOMER_BATCH_SIZE;
+      const key = customerService.getBatchKey("NY", index);
+      const batch = [
+        {
+          product: EProduct.WEED,
+          quantity: 3,
+          customerIndex: customerIndex + 0,
+        },
+        {
+          product: EProduct.COCAINE,
+          quantity: 1,
+          customerIndex: customerIndex + 1,
+        },
+        {
+          product: EProduct.MDMA,
+          quantity: 4,
+          customerIndex: customerIndex + 2,
+        },
+        {
+          product: EProduct.WEED,
+          quantity: 7,
+          customerIndex: customerIndex + 3,
+        },
+        {
+          product: EProduct.MDMA,
+          quantity: 3,
+          customerIndex: customerIndex + 4,
+        },
+      ];
+      await redis.set(key, JSON.stringify(batch), "PX", 10000);
+    });
+
+    let user: AuthTokenData;
+    beforeEach(async () => {
+      user = { id: faker.number.int(), username: faker.internet.userName() };
+      const u = await userService.findOneOrCreate(user);
+      u.products = [
+        {
+          name: EProduct.WEED,
+          quantity: 10,
+          unlocked: true,
+        },
+        {
+          name: EProduct.MDMA,
+          quantity: 6,
+          unlocked: true,
+        }
+      ];
+      await u.save();
+    });
+
+    it("should validate user deals", async () => {
+      const res = await service.validateUserDeals(user.id, "NY", [
+        customerIndex + 0,
+        customerIndex + 2,
+      ]);
+      expect(res).toBeDefined();
+      const userWeed = res.products.find((p) => p.name === EProduct.WEED);
+      const userMdma = res.products.find((p) => p.name === EProduct.MDMA);
+      expect(userWeed.quantity).toBe(7);
+      expect(userMdma.quantity).toBe(2);
+      expect(res.cashAmount).toBe(STARTING_CASH + 20 * 3 + 30 * 4);
+    });
+
+    it("should skip deals that are not available to customer", async () => {
+      const res = await service.validateUserDeals(user.id, "NY", [
+        customerIndex + 0,
+        customerIndex + 1,
+      ]);
+      expect(res).toBeDefined();
+      const userWeed = res.products.find((p) => p.name === EProduct.WEED);
+      const userMdma = res.products.find((p) => p.name === EProduct.MDMA);
+      expect(userWeed.quantity).toBe(7);
+      expect(userMdma.quantity).toBe(6);
+      expect(res.cashAmount).toBe(STARTING_CASH + 20 * 3);
+    });
+
+    it("should skip deals that are below quantity", async () => {
+      const res = await service.validateUserDeals(user.id, "NY", [
+        customerIndex + 2,
+        customerIndex + 4,
+      ]);
+      expect(res).toBeDefined();
+      const userWeed = res.products.find((p) => p.name === EProduct.WEED);
+      const userMdma = res.products.find((p) => p.name === EProduct.MDMA);
+      expect(userWeed.quantity).toBe(10);
+      expect(userMdma.quantity).toBe(2);
+      expect(res.cashAmount).toBe(STARTING_CASH + 30 * 4);
+    });
+
+    it("should ignore deals that are not valid for the user", async () => {
+      const res = await service.validateUserDeals(user.id, "NY", [
+        customerIndex + 0,
+        customerIndex + 1,
+        customerIndex + 2,
+        customerIndex + 3,
+        customerIndex + 4,
+      ]);
+      expect(res).toBeDefined();
+      const userWeed = res.products.find((p) => p.name === EProduct.WEED);
+      const userMdma = res.products.find((p) => p.name === EProduct.MDMA);
+      expect(userWeed.quantity).toBe(0);
+      expect(userMdma.quantity).toBe(2);
+      expect(res.cashAmount).toBe(STARTING_CASH + 20 * 10 + 30 * 4);
     });
   });
 

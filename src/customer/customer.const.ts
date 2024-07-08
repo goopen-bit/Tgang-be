@@ -1,0 +1,1 @@
+export const CUSTOMER_BATCH_SIZE = 100;

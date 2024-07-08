@@ -1,13 +1,14 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { HttpException, Injectable, Logger } from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { BuyProductDto } from "./dto/buy-product.dto";
 import { MarketService } from "../market/market.service";
 import { CustomerService } from "../customer/customer.service";
-import { CustomerBatchDto } from "../customer/dto/customer-batch.dto";
 import { getUnixTime } from "date-fns";
 
 @Injectable()
 export class ProductService {
+  private readonly logger = new Logger(this.constructor.name);
+
   constructor(
     private userService: UserService,
     private marketService: MarketService,
@@ -16,16 +17,14 @@ export class ProductService {
 
   async buyProduct(userId: number, marketId: string, params: BuyProductDto) {
     const { product, quantity } = params;
-    //@note TODO Update this discount based on the user upgrades Base is 10%
-    const baseDiscount = 0.9;
     const user = await this.userService.findOne(userId);
-    const market = await this.marketService.getMarket(marketId);
+    const market = await this.marketService.getMarketWithReputation(marketId, userId);
     if (!user || !market) {
       throw new HttpException("User or market not found", 404);
     }
 
     const marketProduct = market.products.find((p) => p.name === product);
-    if (user.cashAmount < marketProduct.price * baseDiscount * quantity) {
+    if (user.cashAmount < marketProduct.price * quantity) {
       throw new HttpException("Not enough cash", 400);
     }
 
@@ -35,7 +34,7 @@ export class ProductService {
 
     const userProduct = user.products.find((p) => p.name === product);
     if (userProduct && userProduct.unlocked) {
-      user.cashAmount -= marketProduct.price * baseDiscount * quantity;
+      user.cashAmount -= marketProduct.price * quantity;
       userProduct.quantity += quantity;
     } else {
       throw new HttpException("Product not unlocked", 400);
@@ -47,16 +46,17 @@ export class ProductService {
   async validateUserDeals(
     userId: number,
     marketId: string,
-    deals: CustomerBatchDto[]
+    deals: number[]
   ) {
     const user = await this.userService.findOne(userId);
+    const market = await this.marketService.getMarket(marketId);
 
     let batchIndex: number;
     let customerBatch;
 
     for (const deal of deals) {
       const currentBatchIndex =
-        this.customerService.getBatchIndexFromCustomerIndex(deal.customerIndex);
+        this.customerService.getBatchIndexFromCustomerIndex(deal);
       const customerBatchTimestamp =
         this.customerService.getTimeStampFromIndex(currentBatchIndex);
       // If the deal is olden than one hour or newer than one hour, continue
@@ -69,29 +69,36 @@ export class ProductService {
 
       if (!customerBatch || batchIndex !== currentBatchIndex) {
         const batchIndex = this.customerService.getBatchIndexFromCustomerIndex(
-          deal.customerIndex
+          deal
         );
         customerBatch = await this.customerService.getCustomerBatch(
           marketId,
           batchIndex
         );
       }
-      const customer = customerBatch.find(
-        (c) => c.customerIndex === deal.customerIndex
-      );
+
+      // If the deal is not found in the batch, continue
+      const customer = customerBatch.find((c) => c.customerIndex === deal);
       if (!customer) {
         continue;
       }
 
-      if (customer.quantity < deal.quantity) {
-        deal.quantity = customer.quantity;
+      // If the user doesn't have the product or the product is not unlocked, continue
+      console.log(JSON.stringify(customer, null, 2));
+      const userProduct = user.products.find((p) => p.name === customer.product);
+      if (!userProduct || !userProduct.unlocked) {
+        continue;
       }
-      const userProduct = user.products.find((p) => p.name === deal.product);
-      if (userProduct.quantity < deal.quantity) {
-        deal.quantity = userProduct.quantity;
+
+      // If the user doesn't have enough quantity, continue
+      if (userProduct.quantity < customer.quantity) {
+        continue;
       }
-      userProduct.quantity -= deal.quantity;
-      const amount = customer.product.price * deal.quantity;
+
+      this.logger.debug(`User ${userId} has a deal with customer ${deal}`);
+      const marketPrice = market.products.find((p) => p.name === customer.product).price;
+      userProduct.quantity -= customer.quantity;
+      const amount = marketPrice * customer.quantity;
       user.cashAmount += amount;
     }
 

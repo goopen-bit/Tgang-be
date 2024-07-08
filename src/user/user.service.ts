@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { User, UserProduct } from "./user.schema";
@@ -33,18 +33,29 @@ export class UserService {
     });
   }
 
-  async findOne(id: number) {
-    return this.userModel.findOne({ id });
+  async findOne(id: number): Promise<User> {
+    const user = await this.userModel.findOne({ id }).exec();
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    return user;
   }
 
-  async update(userId: number, updateData: Partial<User>) {
-    return this.userModel
+  async update(userId: number, updateData: Partial<User>): Promise<User> {
+    const user = await this.userModel
       .findOneAndUpdate({ id: userId }, { $set: updateData }, { new: true })
       .exec();
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    return user;
   }
 
-  async delete(id: number): Promise<any> {
-    return this.userModel.deleteOne({ id }).exec();
+  async delete(id: number): Promise<void> {
+    const result = await this.userModel.deleteOne({ id }).exec();
+    if (result.deletedCount === 0) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   initUserProduct(productData: UserProduct) {

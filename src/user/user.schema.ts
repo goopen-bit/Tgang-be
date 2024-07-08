@@ -1,8 +1,40 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
-import { Upgrade } from "../upgrade/upgrade.schema";
 import { Product } from "../product/product.schema";
 import { CARRYING_CAPACITY } from "./user.const";
+
+@Schema({ _id: false })
+class UserUpgrade {
+  @Prop({ required: true })
+  id: number;
+
+  @Prop({ required: true })
+  title: string;
+
+  @Prop({ required: true })
+  description: string;
+
+  @Prop({ required: true })
+  level: number;
+
+  @Prop({ required: true })
+  maxLevel: number;
+
+  @Prop({ required: true })
+  levelPrices: number[];
+
+  @Prop({ required: true })
+  value: number[];
+
+  @Prop({ required: true })
+  image: string;
+
+  @Prop({ required: true })
+  locked: boolean;
+
+  @Prop({ required: true })
+  group: string;
+}
 
 @Schema({ _id: false })
 class CarryingGear {
@@ -46,8 +78,8 @@ export class User extends Document {
   @Prop({ type: [UserProduct], default: [] })
   products: UserProduct[];
 
-  @Prop({ type: [Upgrade], default: [] })
-  upgrades: Upgrade[];
+  @Prop({ type: [UserUpgrade], default: [] })
+  upgrades: UserUpgrade[];
 
   @Prop({ type: [CarryingGear] })
   carryingGear: CarryingGear[];
@@ -60,7 +92,7 @@ export class User extends Document {
         capacity += gear.capacity;
       });
       return capacity;
-    }
+    },
   })
   carryCapacity: number;
 
@@ -72,7 +104,7 @@ export class User extends Document {
         amount += product.quantity;
       });
       return amount;
-    }
+    },
   })
   carryAmount: number;
 }

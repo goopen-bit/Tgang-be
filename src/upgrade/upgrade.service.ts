@@ -1,22 +1,19 @@
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { Upgrade } from "./upgrade.schema";
-import { HttpException, Injectable } from "@nestjs/common";
+import { Injectable, HttpException } from "@nestjs/common";
 import { BuyUpgradeDto } from "./dto/buy-upgrade.dto";
 import { UserService } from "../user/user.service";
+import { upgradesData } from "./data/upgrades";
+import { Upgrade, UpgradesCategory } from "./upgrade.interface";
 
 @Injectable()
 export class UpgradeService {
-  constructor(
-    @InjectModel(Upgrade.name)
-    private upgradeModel: Model<Upgrade>,
-    private userService: UserService
-  ) {}
+  private upgrades: UpgradesCategory[] = upgradesData;
+
+  constructor(private userService: UserService) {}
 
   async buyUpgrade(userId: number, params: BuyUpgradeDto) {
     const { id } = params;
     const user = await this.userService.findOne(userId);
-    const upgrade = await this.findOne(id);
+    const upgrade = this.findOne(id);
     if (!user || !upgrade) {
       throw new HttpException("User or Upgrade not found", 404);
     }
@@ -34,10 +31,10 @@ export class UpgradeService {
       if (user.cashAmount < upgradePrice) {
         throw new HttpException("Not enough cash", 400);
       }
-      user.upgrades.push(upgrade);
+      user.upgrades.push({ ...upgrade, level: 0 });
     } else {
       // If the user already has this upgrade, get the price for the next level
-      if (userUpgrade.level + 1 >= userUpgrade.maxLevel) {
+      if (userUpgrade.level + 1 >= upgrade.maxLevel) {
         throw new HttpException("Upgrade already at max level", 400);
       }
       upgradePrice = upgrade.levelPrices[userUpgrade.level + 1];
@@ -54,26 +51,17 @@ export class UpgradeService {
     return user;
   }
 
-  async create(createUpgradeDto: any): Promise<Upgrade> {
-    const createdUpgrade = new this.upgradeModel(createUpgradeDto);
-    return createdUpgrade.save();
+  findAll(): UpgradesCategory[] {
+    return this.upgrades;
   }
 
-  async findAll(): Promise<Upgrade[]> {
-    return this.upgradeModel.find().exec();
-  }
-
-  async findOne(id: number): Promise<Upgrade> {
-    return this.upgradeModel.findOne({ id }).exec();
-  }
-
-  async update(id: number, updateUpgradeDto: any): Promise<Upgrade> {
-    return this.upgradeModel
-      .findOneAndUpdate({ id }, updateUpgradeDto, { new: true })
-      .exec();
-  }
-
-  async delete(id: number): Promise<any> {
-    return this.upgradeModel.deleteOne({ id }).exec();
+  findOne(id: number): Upgrade | undefined {
+    for (const category of this.upgrades) {
+      const upgrade = category.upgrades.find((u) => u.id === id);
+      if (upgrade) {
+        return upgrade;
+      }
+    }
+    return undefined;
   }
 }

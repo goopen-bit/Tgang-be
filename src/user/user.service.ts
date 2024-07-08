@@ -21,7 +21,7 @@ export class UserService {
     return this.userModel.create({
       ...user,
       cashAmount: STARTING_CASH,
-      reputation: 0,
+      reputation: 1,
       products: [
         this.initUserProduct({
           name: EProduct.WEED,

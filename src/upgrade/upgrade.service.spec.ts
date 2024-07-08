@@ -40,7 +40,7 @@ describe("UpgradeService", () => {
       id: faker.number.int(),
       username: faker.internet.userName(),
       cashAmount: 5000,
-      reputation: 0,
+      reputation: 1,
       products: [],
       upgrades: [],
       carryingGear: [],

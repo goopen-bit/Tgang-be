@@ -49,7 +49,7 @@ export class ProductService {
     deals: number[]
   ) {
     const user = await this.userService.findOne(userId);
-    const market = await this.marketService.getMarketWithReputation(marketId, userId);
+    const market = await this.marketService.getMarket(marketId);
 
     let batchIndex: number;
     let customerBatch;
@@ -84,7 +84,6 @@ export class ProductService {
       }
 
       // If the user doesn't have the product or the product is not unlocked, continue
-      console.log(JSON.stringify(customer, null, 2));
       const userProduct = user.products.find((p) => p.name === customer.product);
       if (!userProduct || !userProduct.unlocked) {
         continue;

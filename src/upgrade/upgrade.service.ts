@@ -4,6 +4,7 @@ import { UserService } from "../user/user.service";
 import { upgradesData } from "./data/upgrades";
 import { Upgrade, UpgradesCategory } from "./upgrade.interface";
 import { User } from "../user/user.schema";
+import { EProduct } from "src/product/product.const";
 
 @Injectable()
 export class UpgradeService {
@@ -39,6 +40,19 @@ export class UpgradeService {
       upg.requirement.level ===
         user.upgrades.find((u) => u.id === purchasedUpgrade.id)?.level
     );
+  }
+
+  private addProductToUser(user: User, upgrade: Upgrade) {
+    if (Object.values(EProduct).includes(upgrade.title as EProduct)) {
+      const productExists = user.products.some((p) => p.name === upgrade.title);
+      if (!productExists) {
+        user.products.push({
+          name: upgrade.title as EProduct,
+          quantity: 0,
+          unlocked: true,
+        });
+      }
+    }
   }
 
   private processUpgradePurchase(
@@ -83,7 +97,7 @@ export class UpgradeService {
 
     const userUpgrade = this.processUpgradePurchase(user, upgrade);
     user.cashAmount -= userUpgrade.price;
-
+    this.addProductToUser(user, upgrade);
     this.unlockDependentUpgrades(user, upgrade);
 
     await user.save();

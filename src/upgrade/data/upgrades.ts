@@ -19,9 +19,22 @@ export const upgradesData: UpgradesCategory[] = [
     category: "dealer",
     upgrades: [
       {
+        id: 0,
+        title: "Weed",
+        description: "Unlock new customers and reduce market price",
+        level: 0,
+        maxLevel: 5,
+        levelPrices: [200, 400, 600, 800, 1600, 3200],
+        value: [0.9, 0.86, 0.85, 0.82, 0.8, 0.75],
+        image: "/assets/weed.jpeg",
+        locked: false,
+        group: "product",
+        requirement: null,
+      },
+      {
         id: 1,
         title: "Coke",
-        description: "Get a new dealer with cheaper price",
+        description: "Unlock new customers and reduce market price",
         level: 0,
         maxLevel: 5,
         levelPrices: [200, 400, 600, 800, 1600, 3200],
@@ -34,7 +47,7 @@ export const upgradesData: UpgradesCategory[] = [
       {
         id: 2,
         title: "Meth",
-        description: "Get a new dealer with cheaper price",
+        description: "Unlock new customers and reduce market price",
         level: 0,
         maxLevel: 5,
         levelPrices: [200, 400, 600, 800, 1600, 3200],
@@ -47,7 +60,7 @@ export const upgradesData: UpgradesCategory[] = [
       {
         id: 3,
         title: "Heroin",
-        description: "Get a new dealer with cheaper price",
+        description: "Unlock new customers and reduce market price",
         level: 0,
         maxLevel: 5,
         levelPrices: [200, 400, 600, 800, 1600, 3200],

@@ -107,6 +107,20 @@ export class User extends Document {
     },
   })
   carryAmount: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      return Buffer.from(this.id.toString()).toString('base64')
+    }
+  })
+  referralToken: string;
+
+  @Prop()
+  referredBy?: string;
+
+  @Prop({ type: [String], default: [] })
+  referredUsers: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

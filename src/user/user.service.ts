@@ -4,7 +4,7 @@ import { Model } from "mongoose";
 import { User, UserProduct } from "./user.schema";
 import { AuthTokenData } from "../config/types";
 import { EProduct } from "../product/product.const";
-import { CARRYING_CAPACITY, STARTING_CASH } from "./user.const";
+import { CARRYING_CAPACITY, REFERRAL_CASH, STARTING_CASH } from "./user.const";
 import { EUpgrade, upgradesData } from "../upgrade/data/upgrades";
 
 @Injectable()
@@ -14,17 +14,32 @@ export class UserService {
     private userModel: Model<User>
   ) {}
 
-  async findOneOrCreate(user: AuthTokenData) {
+  private getIdFromReferralToken(referralToken: string) {
+    return Buffer.from(referralToken, "base64").toString("utf-8");
+  }
+
+  async findOneOrCreate(user: AuthTokenData, referralToken?: string) {
     const existingUser = await this.userModel.findOne({ id: user.id });
     if (existingUser) {
       return existingUser;
     }
+
+    let referrer: User;
+    if (referralToken) {
+      referrer = await this.findByReferralToken(referralToken);
+      if (referrer) {
+        referrer.cashAmount += REFERRAL_CASH;
+        referrer.referredUsers.push(user.username);
+        await referrer.save();
+      }
+    }
+
     const coke = upgradesData.find((e) => e.category === "dealer").upgrades[
       EUpgrade.COKE
     ];
     return this.userModel.create({
       ...user,
-      cashAmount: STARTING_CASH,
+      cashAmount: referrer?.username ? STARTING_CASH + REFERRAL_CASH : STARTING_CASH,
       reputation: 1,
       products: [
         this.initUserProduct({
@@ -34,7 +49,13 @@ export class UserService {
         }),
       ],
       upgrades: [{ ...coke }],
+      referredBy: referrer?.username,
     });
+  }
+
+  async findByReferralToken(referralToken: string) {
+    const id = this.getIdFromReferralToken(referralToken);
+    return this.userModel.findOne({ id });
   }
 
   async findOne(id: number): Promise<User> {

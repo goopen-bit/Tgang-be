@@ -67,7 +67,7 @@ export class UpgradeService {
       if (user.cashAmount < upgradePrice) {
         throw new HttpException("Not enough cash", 400);
       }
-      user.upgrades.push({ ...upgrade, level: 0 });
+      user.upgrades.push({ ...upgrade, level: 1 });
       userUpgrade = user.upgrades.find((u) => u.id === upgrade.id);
     } else {
       if (userUpgrade.level + 1 >= upgrade.maxLevel) {

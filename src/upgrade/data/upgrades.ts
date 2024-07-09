@@ -70,8 +70,7 @@ export const upgradesData: UpgradesCategory[] = [
         maxLevel: 5,
         levelPrices: [200, 400, 600, 800, 1600, 3200],
         value: [1.1, 1.2, 1.3, 1.4, 1.42, 1.45],
-        image:
-          "https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.jpg",
+        image: "/assets/weed_lab_small.png",
         locked: false,
         group: "production",
         requirement: null,

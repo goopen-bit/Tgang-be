@@ -6,6 +6,7 @@ import { Market } from "../market/market.schema";
 import { CustomerBatchDto } from "./dto/customer-batch.dto";
 import { fromUnixTime, getUnixTime, startOfMinute } from "date-fns";
 import { CUSTOMER_BATCH_SIZE } from "./customer.const";
+import { UserService } from "../user/user.service";
 
 @Injectable()
 export class CustomerService {
@@ -13,7 +14,8 @@ export class CustomerService {
 
   constructor(
     @InjectRedis() private readonly redisClient: Redis,
-    private marketService: MarketService
+    private marketService: MarketService,
+    private userService: UserService
   ) {}
 
   getIndexFromTimeStamp(timestamp: Date) {
@@ -37,7 +39,9 @@ export class CustomerService {
     const customers = [];
     for (let i = 0; i < CUSTOMER_BATCH_SIZE; i++) {
       customers.push({
-        product: market.products[Math.floor(Math.random() * market.products.length)].name,
+        product:
+          market.products[Math.floor(Math.random() * market.products.length)]
+            .name,
         quantity: Math.floor(Math.random() * 3) + 1,
         customerIndex: index * CUSTOMER_BATCH_SIZE + i,
       });
@@ -77,7 +81,8 @@ export class CustomerService {
 
   async getCustomerBatch(
     marketId: string,
-    customerBatchIndex: number
+    customerBatchIndex: number,
+    userId: number
   ): Promise<CustomerBatchDto[]> {
     // Don't return batches older or newer than one hour
     const batchTimestamp = this.getTimeStampFromIndex(customerBatchIndex);
@@ -107,6 +112,36 @@ export class CustomerService {
 
     const batchKey = this.getBatchKey(marketId, customerBatchIndex);
     const batch = await this.redisClient.get(batchKey);
-    return JSON.parse(batch);
+    const user = await this.userService.findOne(userId);
+
+    if (!batch) {
+      throw new Error("Customer batch not found");
+    }
+
+    const parsedBatch = JSON.parse(batch);
+    const userUpgradesSet = new Set(
+      user.upgrades.map((upgrade) => upgrade.title)
+    );
+
+    const finalBatch = [];
+    const nonMatchingCustomers = [];
+    //@note keep this for a possible futur upgrade
+    const percentOfNonMatchingCustomer = 0.02;
+    const nonMatchingInterval = Math.floor(1 / percentOfNonMatchingCustomer);
+
+    parsedBatch.forEach((customer, index) => {
+      if (userUpgradesSet.has(customer.product)) {
+        finalBatch.push(customer);
+      } else if (Math.random() < percentOfNonMatchingCustomer) {
+        nonMatchingCustomers.push(customer);
+      }
+
+      if (index % nonMatchingInterval === 0 && nonMatchingCustomers.length) {
+        finalBatch.push(nonMatchingCustomers.shift());
+      }
+    });
+    finalBatch.push(...nonMatchingCustomers);
+
+    return finalBatch;
   }
 }

@@ -1,1 +1,1 @@
-export const CUSTOMER_BATCH_SIZE = 100;
+export const CUSTOMER_BATCH_SIZE = 1000;

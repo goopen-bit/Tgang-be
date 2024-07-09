@@ -18,7 +18,10 @@ export class ProductService {
   async buyProduct(userId: number, marketId: string, params: BuyProductDto) {
     const { product, quantity } = params;
     const user = await this.userService.findOne(userId);
-    const market = await this.marketService.getMarketWithReputation(marketId, userId);
+    const market = await this.marketService.getMarketWithReputation(
+      marketId,
+      userId
+    );
     if (!user || !market) {
       throw new HttpException("User or market not found", 404);
     }
@@ -43,11 +46,7 @@ export class ProductService {
     return user;
   }
 
-  async validateUserDeals(
-    userId: number,
-    marketId: string,
-    deals: number[]
-  ) {
+  async validateUserDeals(userId: number, marketId: string, deals: number[]) {
     const user = await this.userService.findOne(userId);
     const market = await this.marketService.getMarket(marketId);
 
@@ -68,12 +67,12 @@ export class ProductService {
       }
 
       if (!customerBatch || batchIndex !== currentBatchIndex) {
-        const batchIndex = this.customerService.getBatchIndexFromCustomerIndex(
-          deal
-        );
+        const batchIndex =
+          this.customerService.getBatchIndexFromCustomerIndex(deal);
         customerBatch = await this.customerService.getCustomerBatch(
           marketId,
-          batchIndex
+          batchIndex,
+          user.id
         );
       }
 
@@ -84,7 +83,9 @@ export class ProductService {
       }
 
       // If the user doesn't have the product or the product is not unlocked, continue
-      const userProduct = user.products.find((p) => p.name === customer.product);
+      const userProduct = user.products.find(
+        (p) => p.name === customer.product
+      );
       if (!userProduct || !userProduct.unlocked) {
         continue;
       }
@@ -95,7 +96,9 @@ export class ProductService {
       }
 
       this.logger.debug(`User ${userId} has a deal with customer ${deal}`);
-      const marketPrice = market.products.find((p) => p.name === customer.product).price;
+      const marketPrice = market.products.find(
+        (p) => p.name === customer.product
+      ).price;
       userProduct.quantity -= customer.quantity;
       const amount = marketPrice * customer.quantity;
       user.cashAmount += amount;

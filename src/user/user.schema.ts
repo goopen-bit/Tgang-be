@@ -39,7 +39,10 @@ class UserUpgrade {
 @Schema({ _id: false })
 class CarryingGear {
   @Prop()
-  name: string;
+  id: number;
+
+  @Prop()
+  title: string;
 
   @Prop()
   capacity: number;

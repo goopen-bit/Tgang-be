@@ -2,11 +2,11 @@ import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
 import { Injectable, Logger } from "@nestjs/common";
 import Redis from "ioredis";
 import { MarketService } from "../market/market.service";
-import { Market } from "../market/market.schema";
 import { CustomerBatchDto } from "./dto/customer-batch.dto";
 import { fromUnixTime, getUnixTime, startOfMinute } from "date-fns";
 import { CUSTOMER_BATCH_SIZE } from "./customer.const";
 import { UserService } from "../user/user.service";
+import { Market } from "../market/market.interface";
 
 @Injectable()
 export class CustomerService {

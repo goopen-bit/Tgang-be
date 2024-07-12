@@ -1,6 +1,7 @@
-import { EProduct } from "src/product/product.const";
+import { EProduct } from "../../product/product.const";
+import { Market } from "../market.interface";
 
-export const markets = [{
+export const markets: Market[] = [{
   id: "NY",
   name: "New York",
   products: [

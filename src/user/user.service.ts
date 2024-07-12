@@ -34,12 +34,14 @@ export class UserService {
       }
     }
 
-    const coke = upgradesData.find((e) => e.category === "dealer").upgrades[
-      EUpgrade.COKE
+    const weed = upgradesData.find((e) => e.category === "dealer").upgrades[
+      EUpgrade.WEED
     ];
     return this.userModel.create({
       ...user,
-      cashAmount: referrer?.username ? STARTING_CASH + REFERRAL_CASH : STARTING_CASH,
+      cashAmount: referrer?.username
+        ? STARTING_CASH + REFERRAL_CASH
+        : STARTING_CASH,
       reputation: 1,
       products: [
         this.initUserProduct({
@@ -48,7 +50,7 @@ export class UserService {
           unlocked: true,
         }),
       ],
-      upgrades: [{ ...coke }],
+      upgrades: [{ ...weed }],
       referredBy: referrer?.username,
     });
   }

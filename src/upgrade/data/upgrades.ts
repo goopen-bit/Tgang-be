@@ -1,6 +1,7 @@
 import { Upgrade, UpgradesCategory } from "../upgrade.interface";
 
 export enum EUpgrade {
+  WEED,
   COKE,
   METH,
   HEROIN,

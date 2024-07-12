@@ -1,20 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { UserService } from "../user/user.service";
-import { Market } from "./market.schema";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { markets } from "./data/market";
 
 @Injectable()
 export class MarketService {
   constructor(
-    @InjectModel(Market.name)
-    private marketModel: Model<Market>,
-
     private userService: UserService
   ) {}
 
   getMarket(id: string) {
-    return this.marketModel.findOne({ id });
+    return markets.find((market) => market.id === id);
   }
 
   async getMarketWithReputation(marketId: string, userId: number) {

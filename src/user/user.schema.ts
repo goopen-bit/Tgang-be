@@ -114,8 +114,8 @@ export class User extends Document {
   @Prop({
     virtual: true,
     get: function () {
-      return Buffer.from(this.id.toString()).toString('base64')
-    }
+      return Buffer.from(this.id.toString()).toString("base64");
+    },
   })
   referralToken: string;
 

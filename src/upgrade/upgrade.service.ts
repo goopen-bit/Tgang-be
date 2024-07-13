@@ -91,7 +91,7 @@ export class UpgradeService {
       userUpgrade.level += 1;
     }
 
-    return { price: upgradePrice, level: userUpgrade.level };
+    return { price: upgradePrice, level: userUpgrade?.level || 0 };
   }
 
   async buyUpgrade(userId: number, params: BuyUpgradeDto) {
@@ -104,16 +104,17 @@ export class UpgradeService {
     if (this.isProductLockedForUser(user, upgrade)) {
       throw new HttpException("Upgrade not unlocked", 400);
     }
-
     const userUpgrade = this.processUpgradePurchase(user, upgrade);
     user.cashAmount -= userUpgrade.price;
-
     switch (upgrade.group) {
       case "product":
         this.addProductToUser(user, upgrade);
+        break;
       case "gear":
         this.addCarryingGear(user, upgrade);
+        break;
       default:
+        () => {};
     }
     await this.unlockDependentUpgrades(user, upgrade);
     await user.save();

@@ -105,7 +105,9 @@ describe("ProductService", () => {
   describe("validateUserDeals", () => {
     let customerIndex;
     beforeAll(async () => {
-      const index = customerService.getIndexFromTimeStamp(subMinutes(new Date(), 40));
+      const index = customerService.getIndexFromTimeStamp(
+        subMinutes(new Date(), 40)
+      );
       customerIndex = index * CUSTOMER_BATCH_SIZE;
       const key = customerService.getBatchKey("NY", index);
       const batch = [
@@ -152,7 +154,7 @@ describe("ProductService", () => {
           name: EProduct.MDMA,
           quantity: 6,
           unlocked: true,
-        }
+        },
       ];
       await u.save();
     });

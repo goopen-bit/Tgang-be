@@ -4,7 +4,7 @@ import { UserService } from "../user/user.service";
 import { upgradesData } from "./data/upgrades";
 import { Upgrade, UpgradesCategory } from "./upgrade.interface";
 import { User } from "../user/user.schema";
-import { EProduct } from "src/product/product.const";
+import { EProduct } from "../product/product.const";
 
 @Injectable()
 export class UpgradeService {
@@ -53,6 +53,17 @@ export class UpgradeService {
         });
       }
     }
+    return user;
+  }
+
+  private addCarryingGear(user: User, upgrade: Upgrade) {
+    user.cashAmount -= upgrade.levelPrices[0];
+    user.carryingGear.push({
+      id: upgrade.id,
+      title: upgrade.title,
+      capacity: upgrade.value[0],
+    });
+    return user;
   }
 
   private processUpgradePurchase(
@@ -67,7 +78,7 @@ export class UpgradeService {
       if (user.cashAmount < upgradePrice) {
         throw new HttpException("Not enough cash", 400);
       }
-      user.upgrades.push({ ...upgrade, level: 1 });
+      user.upgrades.push({ ...upgrade, level: 0 });
       userUpgrade = user.upgrades.find((u) => u.id === upgrade.id);
     } else {
       if (userUpgrade.level + 1 >= upgrade.maxLevel) {
@@ -84,31 +95,27 @@ export class UpgradeService {
   }
 
   async buyUpgrade(userId: number, params: BuyUpgradeDto) {
-    const { id, group } = params;
-    switch (group) {
-      case "gear":
-        return this.addCarryingGear(userId, id);
-      default:
-        return this.buyProduct(userId, id);
-    }
-  }
-
-  async buyProduct(userId: number, id: number) {
-    const user = await this.userService.findOne(userId);
+    const { id } = params;
+    let user = await this.userService.findOne(userId);
     const upgrade = await this.findOne(id);
     if (!user || !upgrade) {
       throw new HttpException("User or Upgrade not found", 404);
     }
-
     if (this.isProductLockedForUser(user, upgrade)) {
       throw new HttpException("Upgrade not unlocked", 400);
     }
 
     const userUpgrade = this.processUpgradePurchase(user, upgrade);
     user.cashAmount -= userUpgrade.price;
-    this.addProductToUser(user, upgrade);
-    this.unlockDependentUpgrades(user, upgrade);
 
+    switch (upgrade.group) {
+      case "product":
+        this.addProductToUser(user, upgrade);
+      case "gear":
+        this.addCarryingGear(user, upgrade);
+      default:
+    }
+    await this.unlockDependentUpgrades(user, upgrade);
     await user.save();
     return user;
   }
@@ -130,35 +137,5 @@ export class UpgradeService {
       }
     }
     return undefined;
-  }
-
-  findCarryingGear(id: number): Upgrade {
-    const categorty = this.upgrades.find((u) => u.category === "gangster")
-    const carryingGear = categorty.upgrades.filter((u) => u.group === "gear")
-
-    const gear = carryingGear.find((c) => c.id === id);
-    if (!gear) {
-      throw new HttpException("Gear not found", 404);
-    }
-    return gear;
-  }
-
-  async addCarryingGear(userId: number, id: number) {
-    const user = await this.userService.findOne(userId);
-    const upgrade = this.findCarryingGear(id);
-    if (user.cashAmount < upgrade.levelPrices[0]) {
-      throw new HttpException("Not enough cash", 400);
-    }
-    if (user.carryingGear.find((c) => c.title === upgrade.title)) {
-      throw new HttpException("Storage already upgraded", 400);
-    }
-    user.cashAmount -= upgrade.levelPrices[0];
-    user.carryingGear.push({
-      id: upgrade.id,
-      title: upgrade.title,
-      capacity: upgrade.value[0],
-    });
-    await user.save();
-    return user;
   }
 }

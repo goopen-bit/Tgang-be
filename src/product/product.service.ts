@@ -86,6 +86,7 @@ export class ProductService {
       const userProduct = user.products.find(
         (p) => p.name === customer.product
       );
+
       if (!userProduct || !userProduct.unlocked) {
         continue;
       }

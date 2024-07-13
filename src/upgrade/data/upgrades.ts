@@ -1,25 +1,15 @@
-import { Upgrade, UpgradesCategory } from "../upgrade.interface";
-
-export enum EUpgrade {
-  WEED,
-  COKE,
-  METH,
-  HEROIN,
-  WEED_LAB,
-  WORKOUT,
-}
-
-export enum EUpgradeCategory {
-  DEALER,
-  FARMER,
-  GANGSTER,
-}
+import {
+  EUpgradeCategory,
+  Upgrade,
+  UpgradesCategory,
+} from "../upgrade.interface";
 
 export const carryingGear: Upgrade[] = [
   {
     id: 6,
     title: "Cargo Pants",
-    description: "Pants with extra storage. Allows you to carry a few additional items.",
+    description:
+      "Pants with extra storage. Allows you to carry a few additional items.",
     level: 0,
     maxLevel: 1,
     levelPrices: [86],
@@ -32,7 +22,8 @@ export const carryingGear: Upgrade[] = [
   {
     id: 7,
     title: "Large Trenchcoat",
-    description: "A large trenchcoat with hidden pockets. Allows you to carry more items.",
+    description:
+      "A large trenchcoat with hidden pockets. Allows you to carry more items.",
     level: 0,
     maxLevel: 1,
     levelPrices: [865],
@@ -40,12 +31,13 @@ export const carryingGear: Upgrade[] = [
     image: "/assets/gear/coat.png",
     locked: false,
     group: "gear",
-    requirement: null,
+    requirement: { title: "Cargo Pants", level: 1 },
   },
   {
     id: 8,
     title: "Backpack",
-    description: "A backpack with multiple compartments. Allows you to carry even more items.",
+    description:
+      "A backpack with multiple compartments. Allows you to carry even more items.",
     level: 0,
     maxLevel: 1,
     levelPrices: [1730],
@@ -53,12 +45,13 @@ export const carryingGear: Upgrade[] = [
     image: "/assets/gear/backpack.png",
     locked: false,
     group: "gear",
-    requirement: null,
+    requirement: { title: "Large Trenchcoat", level: 1 },
   },
   {
     id: 9,
     title: "Motorcycle",
-    description: "Quick and simple transportation. Allows you to carry a lot of items.",
+    description:
+      "Quick and simple transportation. Allows you to carry a lot of items.",
     level: 0,
     maxLevel: 1,
     levelPrices: [69200],
@@ -66,7 +59,7 @@ export const carryingGear: Upgrade[] = [
     image: "/assets/gear/motorcycle.png",
     locked: false,
     group: "gear",
-    requirement: null,
+    requirement: { title: "Backpack", level: 1 },
   },
   {
     id: 10,
@@ -79,7 +72,7 @@ export const carryingGear: Upgrade[] = [
     image: "/assets/gear/van.png",
     locked: false,
     group: "gear",
-    requirement: null,
+    requirement: { title: "Motorcycle", level: 1 },
   },
   {
     id: 11,
@@ -92,7 +85,7 @@ export const carryingGear: Upgrade[] = [
     image: "/assets/gear/truck.png",
     locked: false,
     group: "gear",
-    requirement: null,
+    requirement: { title: "Van", level: 1 },
   },
   {
     id: 12,
@@ -105,11 +98,11 @@ export const carryingGear: Upgrade[] = [
     image: "/assets/gear/sedan.png",
     locked: false,
     group: "gear",
-    requirement: null,
+    requirement: { title: "Pickup Truck", level: 1 },
   },
   {
     id: 13,
-    title: "Miscle Car",
+    title: "Muscle Car",
     description: "Classic powerfull rugged transportation.",
     level: 0,
     maxLevel: 1,
@@ -118,7 +111,7 @@ export const carryingGear: Upgrade[] = [
     image: "/assets/gear/musclecar.png",
     locked: false,
     group: "gear",
-    requirement: null,
+    requirement: { title: "Sedan", level: 1 },
   },
   {
     id: 14,
@@ -131,7 +124,7 @@ export const carryingGear: Upgrade[] = [
     image: "/assets/gear/sportcar.png",
     locked: false,
     group: "gear",
-    requirement: null,
+    requirement: { title: "Muscle Car", level: 1 },
   },
   {
     id: 15,
@@ -144,7 +137,7 @@ export const carryingGear: Upgrade[] = [
     image: "/assets/gear/limo.png",
     locked: false,
     group: "gear",
-    requirement: null,
+    requirement: { title: "Sports Car", level: 1 },
   },
   {
     id: 16,
@@ -157,7 +150,7 @@ export const carryingGear: Upgrade[] = [
     image: "/assets/gear/rtruck.png",
     locked: false,
     group: "gear",
-    requirement: null,
+    requirement: { title: "Limosine", level: 1 },
   },
   {
     id: 17,
@@ -170,13 +163,13 @@ export const carryingGear: Upgrade[] = [
     image: "/assets/gear/rig.png",
     locked: false,
     group: "gear",
-    requirement: null,
+    requirement: { title: "Rugged Truck", level: 1 },
   },
 ];
 
 export const upgradesData: UpgradesCategory[] = [
   {
-    category: "dealer",
+    category: EUpgradeCategory.DEALER,
     upgrades: [
       {
         id: 0,
@@ -233,7 +226,7 @@ export const upgradesData: UpgradesCategory[] = [
     ],
   },
   {
-    category: "farmer",
+    category: EUpgradeCategory.FARMER,
     upgrades: [
       {
         id: 4,
@@ -243,7 +236,7 @@ export const upgradesData: UpgradesCategory[] = [
         maxLevel: 5,
         levelPrices: [200, 400, 600, 800, 1600, 3200],
         value: [1.1, 1.2, 1.3, 1.4, 1.42, 1.45],
-        image: "/assets/weed_lab_small.webp",
+        image: "/assets/weed_lab_2.png",
         locked: false,
         group: "production",
         requirement: null,
@@ -251,7 +244,7 @@ export const upgradesData: UpgradesCategory[] = [
     ],
   },
   {
-    category: "gangster",
+    category: EUpgradeCategory.GANGSTER,
     upgrades: [
       {
         id: 5,

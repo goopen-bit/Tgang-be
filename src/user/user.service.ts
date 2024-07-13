@@ -5,7 +5,8 @@ import { User, UserProduct } from "./user.schema";
 import { AuthTokenData } from "../config/types";
 import { EProduct } from "../product/product.const";
 import { CARRYING_CAPACITY, REFERRAL_CASH, STARTING_CASH } from "./user.const";
-import { EUpgrade, upgradesData } from "../upgrade/data/upgrades";
+import { upgradesData } from "../upgrade/data/upgrades";
+import { EUpgradeCategory, EUpgrade } from "../upgrade/upgrade.interface";
 
 @Injectable()
 export class UserService {
@@ -34,9 +35,9 @@ export class UserService {
       }
     }
 
-    const weed = upgradesData.find((e) => e.category === "dealer").upgrades[
-      EUpgrade.WEED
-    ];
+    const weed = upgradesData.find(
+      (e) => e.category === EUpgradeCategory.DEALER
+    ).upgrades[EUpgrade.WEED];
     return this.userModel.create({
       ...user,
       cashAmount: referrer?.username

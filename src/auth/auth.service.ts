@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { createHmac } from "crypto";
 import { telegramBotToken } from "../config/env";
-import { UserService } from "src/user/user.service";
+import { UserService } from "../user/user.service";
 
 @Injectable()
 export class AuthService {
@@ -10,7 +10,7 @@ export class AuthService {
 
   constructor(
     private jwtService: JwtService,
-    private userService: UserService,
+    private userService: UserService
   ) {}
 
   async login(telegramInitData: any) {

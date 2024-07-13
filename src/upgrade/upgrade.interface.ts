@@ -1,3 +1,18 @@
+export enum EUpgrade {
+  WEED,
+  COKE,
+  METH,
+  HEROIN,
+  WEED_LAB,
+  WORKOUT,
+}
+
+export enum EUpgradeCategory {
+  DEALER,
+  FARMER,
+  GANGSTER,
+}
+
 export interface Requirement {
   title: string;
   level: number;
@@ -18,6 +33,6 @@ export interface Upgrade {
 }
 
 export interface UpgradesCategory {
-  category: string;
+  category: EUpgradeCategory;
   upgrades: Upgrade[];
 }

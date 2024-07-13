@@ -1,7 +1,9 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import { Product } from "../product/product.schema";
-import { CARRYING_CAPACITY } from "./user.const";
+import { BASE_LAB_PLOT_PRICE, CARRYING_CAPACITY, LAB_CAPACITY_MULTIPLIER, LAB_PLOT_PRICE_MULTIPLIER, LAB_PRODUCTION_MULTIPLIER } from "./user.const";
+import { EProduct } from "../product/product.const";
+import { labs } from "../lab/data/labs";
 
 @Schema({ _id: false })
 class UserUpgrade {
@@ -57,6 +59,69 @@ export class UserProduct extends Product {
   unlocked: boolean;
 }
 
+@Schema({ _id: false })
+export class UserLab {
+  @Prop({ required: true })
+  product: EProduct;
+
+  @Prop({ required: true })
+  title: string;
+
+  @Prop({ required: true })
+  image: string;
+
+  @Prop({ required: true })
+  capacityLevel: number;
+
+  @Prop({ required: true })
+  productionLevel: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const lab = labs[this.product];
+      return  this.capacityLevel * lab.baseCapacity;
+    },
+  })
+  capacity?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const lab = labs[this.product];
+      return this.productionLevel * lab.baseProduction;
+    },
+  })
+  production?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const lab = labs[this.product];
+      return Math.floor(Math.pow(this.capacityLevel + 1, LAB_CAPACITY_MULTIPLIER) * lab.baseCapacityUpgradePrice);
+    },
+  })
+  upgradeCapacityPrice?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const lab = labs[this.product];
+      return Math.floor(Math.pow(this.productionLevel + 1, LAB_PRODUCTION_MULTIPLIER) * lab.baseProductionUpgradePrice);
+    },
+  })
+  upgradeProductionPrice?: number;
+}
+
+@Schema({ _id: false })
+export class LabPlot {
+  @Prop({ required: true })
+  plotId: number;
+
+  @Prop({ type: UserLab, required: false })
+  lab?: UserLab;
+}
+
 @Schema({
   toObject: {
     getters: true,
@@ -87,6 +152,9 @@ export class User extends Document {
   @Prop({ type: [CarryingGear] })
   carryingGear: CarryingGear[];
 
+  @Prop({ type: [LabPlot], default: [] })
+  labPlots: LabPlot[];
+
   @Prop({
     virtual: true,
     get: function () {
@@ -110,6 +178,14 @@ export class User extends Document {
     },
   })
   carryAmount: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      return Math.floor(Math.pow(this.labPlots.length + 1, LAB_PLOT_PRICE_MULTIPLIER) * BASE_LAB_PLOT_PRICE);
+    },
+  })
+  labPlotPrice: number;
 
   @Prop({
     virtual: true,

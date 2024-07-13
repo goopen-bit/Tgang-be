@@ -152,7 +152,7 @@ export class User extends Document {
   @Prop({ type: [CarryingGear] })
   carryingGear: CarryingGear[];
 
-  @Prop({ type: [LabPlot], default: [{ plotId: 1 }] })
+  @Prop({ type: [LabPlot], default: [{ plotId: 0 }] })
   labPlots: LabPlot[];
 
   @Prop({

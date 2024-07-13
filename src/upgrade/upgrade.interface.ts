@@ -8,9 +8,9 @@ export enum EUpgrade {
 }
 
 export enum EUpgradeCategory {
-  DEALER,
-  FARMER,
-  GANGSTER,
+  DEALER = "dealer",
+  FARMER = "farmer",
+  GANGSTER = "gangster",
 }
 
 export interface Requirement {

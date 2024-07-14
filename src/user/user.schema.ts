@@ -174,7 +174,7 @@ export class User extends Document {
   // @Prop({ type: [EProduct], required: true })
   // unlockedLabs: EProduct[];
 
-  @Prop({ type: [LabPlot], default: [{ plotId: 0 }] })
+  @Prop({ type: [LabPlot], default: [] })
   labPlots: LabPlot[];
 
   @Prop({

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
 import { LabService } from "./lab.service";
 import { Auth } from "../decorators/auth.decorator";
 import { AuthTokenData } from "../config/types";
@@ -28,10 +28,26 @@ export class LabController {
     return this.labService.buyLab(user.id, body);
   }
 
-  @Post("/collect")
+  @Put("/:plotId/capacity")
+  upgradeCapacity(
+    @GetAuthToken() user: AuthTokenData,
+    @Param("plotId") plotId: number
+  ) {
+    return this.labService.upgradeLabCapacity(user.id, plotId);
+  }
+
+  @Put("/:plotId/production")
+  upgradeProduction(
+    @GetAuthToken() user: AuthTokenData,
+    @Param("plotId") plotId: number
+  ) {
+    return this.labService.upgradeLabProduction(user.id, plotId);
+  }
+
+  @Post("/:plotId/collect")
   collectLabProduction(
     @GetAuthToken() user: AuthTokenData,
-    @Body("plotId") plotId: number
+    @Param("plotId") plotId: number
   ) {
     return this.labService.collectLabProduction(user.id, plotId);
   }

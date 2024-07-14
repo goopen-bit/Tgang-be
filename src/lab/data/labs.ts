@@ -3,7 +3,6 @@ import { Lab } from "../lab.interface";
 
 export const labs: Record<EProduct, Lab> = {
   [EProduct.WEED]: {
-    id: 1,
     title: "Weed Farm",
     description: "A place to grow your own weed.",
     labPrice: 500,
@@ -12,9 +11,9 @@ export const labs: Record<EProduct, Lab> = {
     baseProduction: 10,
     baseProductionUpgradePrice: 1200,
     image: `/assets/weed_lab_2.png`,
+    levelRequirement: 1
   },
   [EProduct.COCAINE]: {
-    id: 2,
     title: "Coke Synthesis",
     description: "A place to synthesize the finest coke.",
     labPrice: 800,
@@ -23,9 +22,9 @@ export const labs: Record<EProduct, Lab> = {
     baseProduction: 20,
     baseProductionUpgradePrice: 2000,
     image: `/assets/weed_lab_2.png`,
+    levelRequirement: 2
   },
   [EProduct.METH]: {
-    id: 3,
     title: "Meth Lab",
     description: "A place to cook the best meth.",
     labPrice: 1200,
@@ -34,8 +33,39 @@ export const labs: Record<EProduct, Lab> = {
     baseProduction: 30,
     baseProductionUpgradePrice: 2400,
     image: `/assets/weed_lab_2.png`,
+    levelRequirement: 2
   },
-  [EProduct.MDMA]: undefined,
-  [EProduct.LSD]: undefined,
-  [EProduct.HEROIN]: undefined
+  [EProduct.MDMA]: {
+    title: "Ecstasy Lab",
+    description: "Create artificial love.",
+    labPrice: 1600,
+    baseCapacity: 400,
+    baseCapacityUpgradePrice: 2400,
+    baseProduction: 40,
+    baseProductionUpgradePrice: 2800,
+    image: `/assets/weed_lab_2.png`,
+    levelRequirement: 2
+  },
+  [EProduct.LSD]: {
+    title: "Acid Lab",
+    description: "A place to create the best trips.",
+    labPrice: 2000,
+    baseCapacity: 500,
+    baseCapacityUpgradePrice: 2800,
+    baseProduction: 50,
+    baseProductionUpgradePrice: 3200,
+    image: `/assets/weed_lab_2.png`,
+    levelRequirement: 2
+  },
+  [EProduct.HEROIN]: {
+    title: "Heroin Lab",
+    description: "Where you finally catch the dragon.",
+    labPrice: 2400,
+    baseCapacity: 600,
+    baseCapacityUpgradePrice: 3200,
+    baseProduction: 60,
+    baseProductionUpgradePrice: 3600,
+    image: `/assets/weed_lab_2.png`,
+    levelRequirement: 2
+  }
 };

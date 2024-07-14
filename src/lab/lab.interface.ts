@@ -1,5 +1,4 @@
 export interface Lab {
-  id: number;
   title: string;
   description: string;
   labPrice: number;
@@ -8,4 +7,5 @@ export interface Lab {
   baseProduction: number;
   baseProductionUpgradePrice: number;
   image: string;
+  levelRequirement: number;
 }

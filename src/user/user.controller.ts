@@ -10,7 +10,7 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @Get()
-  async login(@GetAuthToken() user: AuthTokenData) {
+  login(@GetAuthToken() user: AuthTokenData) {
     return this.userService.findOne(user.id);
   }
 }

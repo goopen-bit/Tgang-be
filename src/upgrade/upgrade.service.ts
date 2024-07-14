@@ -57,7 +57,6 @@ export class UpgradeService {
   }
 
   private addCarryingGear(user: User, upgrade: Upgrade) {
-    user.cashAmount -= upgrade.levelPrices[0];
     user.carryingGear.push({
       id: upgrade.id,
       title: upgrade.title,
@@ -65,6 +64,11 @@ export class UpgradeService {
     });
     return user;
   }
+
+  // private unlockLab(user: User, upgrade: Upgrade) {
+  //   user.unlockedLabs.push(upgrade.title as EProduct);
+  //   return user;
+  // }
 
   private processUpgradePurchase(
     user: User,
@@ -112,6 +116,9 @@ export class UpgradeService {
         break;
       case "gear":
         this.addCarryingGear(user, upgrade);
+        break;
+      case "production":
+        () => {};
         break;
       default:
         () => {};

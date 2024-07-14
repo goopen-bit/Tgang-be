@@ -4,6 +4,7 @@ import { BuyLabDto } from "./dto/buy-lab.dto";
 import { labs } from "./data/labs";
 import { EProduct } from "../product/product.const";
 import { User } from "../user/user.schema";
+import { getUnixTime } from "date-fns";
 
 @Injectable()
 export class LabService {
@@ -47,6 +48,8 @@ export class LabService {
       image: lab.image,
       capacityLevel: 1,
       productionLevel: 1,
+      collectTime: new Date(),
+      leftover: 0,
     };
     await user.save();
     return user;
@@ -84,6 +87,29 @@ export class LabService {
 
     user.cashAmount -= labPlot.lab.upgradeProductionPrice;
     labPlot.lab.productionLevel++;
+    await user.save();
+    return user;
+  }
+
+  async collectLabProduction(userId: number, plotId: number) {
+    const user = await this.userService.findOne(userId);
+    const labPlot = this.getLabPlotForUpgrade(user, plotId);
+
+    const userProduct = user.products.find((product) => product.name === labPlot.lab.product);
+    const production = labPlot.lab.produced;
+    const canCollect = user.carryCapacity - user.carryAmount;
+
+    if (production > canCollect) {
+      user.carryAmount += canCollect;
+      userProduct.quantity += canCollect;
+      labPlot.lab.leftover = production - canCollect;
+    } else {
+      user.carryAmount += production;
+      userProduct.quantity += production;
+      labPlot.lab.leftover = 0;
+    }
+
+    labPlot.lab.collectTime = new Date();
     await user.save();
     return user;
   }

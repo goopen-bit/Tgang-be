@@ -4,6 +4,7 @@ import { Product } from "../product/product.schema";
 import { BASE_LAB_PLOT_PRICE, CARRYING_CAPACITY, LAB_CAPACITY_MULTIPLIER, LAB_PLOT_PRICE_MULTIPLIER, LAB_PRODUCTION_MULTIPLIER } from "./user.const";
 import { EProduct } from "../product/product.const";
 import { labs } from "../lab/data/labs";
+import { getUnixTime } from "date-fns";
 
 @Schema({ _id: false })
 class UserUpgrade {
@@ -70,11 +71,17 @@ export class UserLab {
   @Prop({ required: true })
   image: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, default: 1 })
   capacityLevel: number;
 
-  @Prop({ required: true })
+  @Prop({ required: true, default: 1 })
   productionLevel: number;
+
+  @Prop({ required: true, default: new Date() })
+  collectTime: Date;
+
+  @Prop({ required: true, default: 0 })
+  leftover: number;
 
   @Prop({
     virtual: true,
@@ -93,6 +100,18 @@ export class UserLab {
     },
   })
   production?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const now = new Date();
+      const diff = getUnixTime(now) - getUnixTime(this.collectTime);
+      const productionPerSecond = this.production / 3600;
+      const produced = Math.floor(productionPerSecond * diff + this.leftover);
+      return produced < this.capacity ? produced : this.capacity;
+    },
+  })
+  produced?: number;
 
   @Prop({
     virtual: true,
@@ -151,6 +170,9 @@ export class User extends Document {
 
   @Prop({ type: [CarryingGear] })
   carryingGear: CarryingGear[];
+
+  // @Prop({ type: [EProduct], required: true })
+  // unlockedLabs: EProduct[];
 
   @Prop({ type: [LabPlot], default: [{ plotId: 0 }] })
   labPlots: LabPlot[];

@@ -8,6 +8,7 @@ import { faker } from "@faker-js/faker";
 import { AuthTokenData } from "../config/types";
 import { UserService } from "../user/user.service";
 import { EProduct } from "../product/product.const";
+import { subHours, subMinutes } from "date-fns";
 
 describe("LabService", () => {
   let module: TestingModule;
@@ -96,7 +97,15 @@ describe("LabService", () => {
       user = { id: faker.number.int(), username: faker.internet.userName() };
       const u = await userService.findOneOrCreate(user);
       u.cashAmount = 1000000;
-      u.labPlots = [{ plotId: 1, lab: { product: EProduct.WEED, title: "Weed", image: "weed.png", capacityLevel: 1, productionLevel: 1 } }];
+      u.labPlots = [{ plotId: 1, lab: {
+        product: EProduct.WEED,
+        title: "Weed",
+        image: "weed.png",
+        capacityLevel: 1,
+        productionLevel: 1,
+        collectTime: new Date(),
+        leftover: 0
+      } }];
       await u.save();
     });
 
@@ -128,7 +137,15 @@ describe("LabService", () => {
       user = { id: faker.number.int(), username: faker.internet.userName() };
       const u = await userService.findOneOrCreate(user);
       u.cashAmount = 1000000;
-      u.labPlots = [{ plotId: 1, lab: { product: EProduct.WEED, title: "Weed", image: "weed.png", capacityLevel: 1, productionLevel: 1 } }];
+      u.labPlots = [{ plotId: 1, lab: {
+        product: EProduct.WEED,
+        title: "Weed",
+        image: "weed.png",
+        capacityLevel: 1,
+        productionLevel: 1,
+        collectTime: new Date(),
+        leftover: 0
+      } }];
       await u.save();
     });
 
@@ -151,6 +168,50 @@ describe("LabService", () => {
       u.labPlots.push({ plotId: 2 });
       await u.save();
       await expect(service.upgradeLabProduction(user.id, 2)).rejects.toThrow("Plot is empty");
+    });
+  });
+
+  describe("collectLabProduction", () => {
+    let user: AuthTokenData;
+    beforeEach(async () => {
+      user = { id: faker.number.int(), username: faker.internet.userName() };
+      const u = await userService.findOneOrCreate(user);
+      u.cashAmount = 100;
+      u.labPlots = [{ plotId: 1, lab: {
+        product: EProduct.WEED,
+        title: "Weed",
+        image: "weed.png",
+        capacityLevel: 1,
+        productionLevel: 1,
+        collectTime: subHours(new Date(), 1),
+        leftover: 0
+      } }];
+      await u.save();
+    });
+
+    it("should collect lab production", async () => {
+      await service.collectLabProduction(user.id, 1);
+      const updatedUser = await userService.findOne(user.id);
+      const lab = updatedUser.labPlots[0].lab;
+      expect(lab.leftover).toBe(0);
+      expect(lab.produced).toBe(0);
+      expect(updatedUser.carryAmount).toBe(10);
+      const product = updatedUser.products.find(p => p.name === EProduct.WEED);
+      expect(product.quantity).toBe(10);
+    });
+
+    it("should collect lab production and save leftover", async () => {
+      const u = await userService.findOne(user.id);
+      u.products.push({ name: EProduct.COCAINE, quantity: 96, unlocked: true });
+      await u.save();
+      await service.collectLabProduction(user.id, 1);
+      const updatedUser = await userService.findOne(user.id);
+      const lab = updatedUser.labPlots[0].lab;
+      expect(lab.leftover).toBe(6);
+      expect(lab.produced).toBe(6);
+      expect(updatedUser.carryAmount).toBe(100);
+      const product = updatedUser.products.find(p => p.name === EProduct.WEED);
+      expect(product.quantity).toBe(4);
     });
   });
 

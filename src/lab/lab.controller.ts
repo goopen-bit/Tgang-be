@@ -27,4 +27,12 @@ export class LabController {
   ) {
     return this.labService.buyLab(user.id, body);
   }
+
+  @Post("/collect")
+  collectLabProduction(
+    @GetAuthToken() user: AuthTokenData,
+    @Body("plotId") plotId: number
+  ) {
+    return this.labService.collectLabProduction(user.id, plotId);
+  }
 }

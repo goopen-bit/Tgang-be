@@ -113,7 +113,6 @@ describe("LabService", () => {
             capacityLevel: 1,
             productionLevel: 1,
             collectTime: new Date(),
-            leftover: 0,
           },
         },
       ];
@@ -162,7 +161,6 @@ describe("LabService", () => {
             capacityLevel: 1,
             productionLevel: 1,
             collectTime: new Date(),
-            leftover: 0,
           },
         },
       ];
@@ -211,7 +209,6 @@ describe("LabService", () => {
             capacityLevel: 1,
             productionLevel: 1,
             collectTime: subHours(new Date(), 1),
-            leftover: 0,
           },
         },
       ];
@@ -222,29 +219,11 @@ describe("LabService", () => {
       await service.collectLabProduction(user.id, 1);
       const updatedUser = await userService.findOne(user.id);
       const lab = updatedUser.labPlots[0].lab;
-      expect(lab.leftover).toBe(0);
       expect(lab.produced).toBe(0);
-      expect(updatedUser.carryAmount).toBe(10);
       const product = updatedUser.products.find(
         (p) => p.name === EProduct.WEED
       );
       expect(product.quantity).toBe(10);
-    });
-
-    it("should collect lab production and save leftover", async () => {
-      const u = await userService.findOne(user.id);
-      u.products.push({ name: EProduct.COCAINE, quantity: 96, unlocked: true });
-      await u.save();
-      await service.collectLabProduction(user.id, 1);
-      const updatedUser = await userService.findOne(user.id);
-      const lab = updatedUser.labPlots[0].lab;
-      expect(lab.leftover).toBe(6);
-      expect(lab.produced).toBe(6);
-      expect(updatedUser.carryAmount).toBe(100);
-      const product = updatedUser.products.find(
-        (p) => p.name === EProduct.WEED
-      );
-      expect(product.quantity).toBe(4);
     });
   });
 

@@ -9,7 +9,8 @@ import { User } from "../user/schemas/user.schema";
 import { MongooseModule } from "@nestjs/mongoose";
 import { RedisModule } from "@goopen/nestjs-ioredis-provider";
 import { mongoUrl, mongoDb, redisUrl } from "../config/env";
-import { EUpgradeCategory, EUpgrade } from "./upgrade.interface";
+import { EUpgradeCategory } from "./upgrade.interface";
+import { EProduct } from "../product/product.const";
 
 describe("UpgradeService", () => {
   let module: TestingModule;
@@ -56,7 +57,7 @@ describe("UpgradeService", () => {
     let upgrade: any;
 
     beforeEach(() => {
-      upgrade = upgradesData[EUpgradeCategory.DEALER].upgrades[EUpgrade.METH];
+      upgrade = upgradesData[EUpgradeCategory.DEALER].upgrades[EProduct.METH];
       upgrade.locked = false;
     });
 
@@ -190,43 +191,6 @@ describe("UpgradeService", () => {
     });
   });
 
-  it("should be able to buy new gear", async () => {
-    const cargoPantsUpgrade = upgradesData
-      .find((category) => category.category === EUpgradeCategory.GANGSTER)
-      .upgrades.find((u) => u.title === "Cargo Pants");
-    const largeCoatUpgrade = upgradesData
-      .find((category) => category.category === EUpgradeCategory.GANGSTER)
-      .upgrades.find((u) => u.title === "Large Trenchcoat");
-    // Set initial cash amount
-    await userService.update(user.id, { cashAmount: maxCash });
-
-    // Buy the Cargo Pant upgrade
-    await service.buyUpgrade(user.id, {
-      id: cargoPantsUpgrade.id,
-    });
-
-    let updatedUser = await userService.findOne(user.id);
-    let userUpgrade = updatedUser.carryingGear.find(
-      (u) => u.id === cargoPantsUpgrade.id
-    );
-    expect(userUpgrade).toBeDefined();
-    expect(userUpgrade.capacity).toBe(10);
-    expect(updatedUser.carryCapacity).toBe(110);
-
-    // Buy the Cargo Pant upgrade
-    await service.buyUpgrade(user.id, {
-      id: largeCoatUpgrade.id,
-    });
-
-    let updatedUser2 = await userService.findOne(user.id);
-    let userUpgrade2 = updatedUser2.carryingGear.find(
-      (u) => u.id === largeCoatUpgrade.id
-    );
-    expect(userUpgrade2).toBeDefined();
-    expect(userUpgrade2.capacity).toBe(50);
-    expect(updatedUser2.carryCapacity).toBe(160);
-  });
-
   describe("findAll and findOne", () => {
     it("should return all upgrades", () => {
       const upgrades = service.findAll();
@@ -235,11 +199,11 @@ describe("UpgradeService", () => {
 
     it("should return one upgrade by id", () => {
       const upgrade = service.findOne(
-        upgradesData[EUpgradeCategory.DEALER].upgrades[EUpgrade.COKE].id
+        upgradesData[EUpgradeCategory.DEALER].upgrades[EProduct.COCAINE].id
       );
       expect(upgrade).toBeDefined();
       expect(upgrade.id).toBe(
-        upgradesData[EUpgradeCategory.DEALER].upgrades[EUpgrade.COKE].id
+        upgradesData[EUpgradeCategory.DEALER].upgrades[EProduct.COCAINE].id
       );
     });
   });

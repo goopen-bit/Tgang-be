@@ -49,7 +49,6 @@ export class LabService {
       capacityLevel: 1,
       productionLevel: 1,
       collectTime: new Date(),
-      leftover: 0,
     };
     await user.save();
     return user;
@@ -99,9 +98,7 @@ export class LabService {
       (product) => product.name === labPlot.lab.product
     );
     const production = labPlot.lab.produced;
-
     userProduct.quantity += production;
-    labPlot.lab.leftover = 0;
 
     labPlot.lab.collectTime = new Date();
     await user.save();

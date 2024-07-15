@@ -27,9 +27,6 @@ export class UserLab {
   @Prop({ required: true, default: new Date() })
   collectTime: Date;
 
-  @Prop({ required: true, default: 0 })
-  leftover: number;
-
   @Prop({
     virtual: true,
     get: function () {
@@ -54,7 +51,7 @@ export class UserLab {
       const now = new Date();
       const diff = getUnixTime(now) - getUnixTime(this.collectTime);
       const productionPerSecond = this.production / 3600;
-      const produced = Math.floor(productionPerSecond * diff + this.leftover);
+      const produced = Math.floor(productionPerSecond * diff);
       return produced < this.capacity ? produced : this.capacity;
     },
   })

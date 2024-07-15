@@ -8,7 +8,7 @@ import { REFERRAL_CASH, STARTING_CASH } from "./user.const";
 import { upgradesData } from "../upgrade/data/upgrades";
 import { EUpgradeCategory } from "../upgrade/upgrade.interface";
 import { EDealerUpgrade } from "src/upgrade/data/dealerUpgrades";
-import { subHours } from "date-fns";
+//import { subHour } from "date-fns";
 
 @Injectable()
 export class UserService {
@@ -51,7 +51,7 @@ export class UserService {
     );
 
     // Set lastSell to one hour ago to get the full amount of customer when starting the game
-    const lastSell = subHours(new Date(), 1).toISOString();
+    // const lastSell = subHours(new Date(), 1).toISOString();
 
     return this.userModel.create({
       ...user,

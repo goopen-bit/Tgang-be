@@ -71,7 +71,7 @@ export const dealerUpgrades = {
       level: 0,
       maxLevel: 5,
       levelPrices: [0, 6000, 10000, 25000, 100000, 1000000],
-      value: [1000, 2000, 5000, 10000, 250000, 50000],
+      value: [3600, 2000, 5000, 10000, 250000, 50000],
       image: "/assets/hero.png",
       locked: false,
       group: "product",

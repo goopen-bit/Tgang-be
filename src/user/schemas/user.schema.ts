@@ -1,17 +1,11 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import { Product } from "../../product/product.schema";
-import {
-  BASE_LAB_PLOT_PRICE,
-  LAB_CAPACITY_MULTIPLIER,
-  LAB_PLOT_PRICE_MULTIPLIER,
-  LAB_PRODUCTION_MULTIPLIER,
-} from "../user.const";
-import { EProduct } from "../../product/product.const";
-import { labs } from "../../lab/data/labs";
+import { BASE_LAB_PLOT_PRICE, LAB_PLOT_PRICE_MULTIPLIER } from "../user.const";
 import { getUnixTime } from "date-fns";
 import { UserUpgrade } from "./userUpgrade.schema";
 import { EDealerUpgrade } from "../../upgrade/data/dealerUpgrades";
+import { UserLab } from "./userLab.shema";
 
 @Schema({ _id: false })
 export class UserProduct extends Product {
@@ -20,84 +14,6 @@ export class UserProduct extends Product {
 
   @Prop({ required: true, default: false })
   unlocked: boolean;
-}
-
-@Schema({ _id: false })
-export class UserLab {
-  @Prop({ required: true })
-  product: EProduct;
-
-  @Prop({ required: true })
-  title: string;
-
-  @Prop({ required: true })
-  image: string;
-
-  @Prop({ required: true, default: 1 })
-  capacityLevel: number;
-
-  @Prop({ required: true, default: 1 })
-  productionLevel: number;
-
-  @Prop({ required: true, default: new Date() })
-  collectTime: Date;
-
-  @Prop({ required: true, default: 0 })
-  leftover: number;
-
-  @Prop({
-    virtual: true,
-    get: function () {
-      const lab = labs[this.product];
-      return this.capacityLevel * lab.baseCapacity;
-    },
-  })
-  capacity?: number;
-
-  @Prop({
-    virtual: true,
-    get: function () {
-      const lab = labs[this.product];
-      return this.productionLevel * lab.baseProduction;
-    },
-  })
-  production?: number;
-
-  @Prop({
-    virtual: true,
-    get: function () {
-      const now = new Date();
-      const diff = getUnixTime(now) - getUnixTime(this.collectTime);
-      const productionPerSecond = this.production / 3600;
-      const produced = Math.floor(productionPerSecond * diff + this.leftover);
-      return produced < this.capacity ? produced : this.capacity;
-    },
-  })
-  produced?: number;
-
-  @Prop({
-    virtual: true,
-    get: function () {
-      const lab = labs[this.product];
-      return Math.floor(
-        Math.pow(this.capacityLevel + 1, LAB_CAPACITY_MULTIPLIER) *
-          lab.baseCapacityUpgradePrice
-      );
-    },
-  })
-  upgradeCapacityPrice?: number;
-
-  @Prop({
-    virtual: true,
-    get: function () {
-      const lab = labs[this.product];
-      return Math.floor(
-        Math.pow(this.productionLevel + 1, LAB_PRODUCTION_MULTIPLIER) *
-          lab.baseProductionUpgradePrice
-      );
-    },
-  })
-  upgradeProductionPrice?: number;
 }
 
 @Schema({ _id: false })
@@ -153,29 +69,40 @@ export class User extends Document {
   })
   labPlotPrice: number;
 
-  @Prop({ required: true, default: new Date() })
+  @Prop({ required: true, default: () => new Date().toISOString() })
   lastSell: Date;
 
   @Prop({
     virtual: true,
     get: function () {
       const now = new Date();
-      const diff = getUnixTime(now) - getUnixTime(this.lastSell);
+      const diff = getUnixTime(now) - getUnixTime(new Date(this.lastSell));
       const customerAmountUpgrade = this.upgrades.find(
         (e) => e.id === EDealerUpgrade.CUSTOMER_AMOUNT
       );
-      const currentCustomerAmount =
-        customerAmountUpgrade.value[customerAmountUpgrade.level];
-      if (diff > 3600000) {
-        return currentCustomerAmount;
+
+      if (!customerAmountUpgrade) {
+        return 0;
       }
-      return currentCustomerAmount / diff;
+
+      const customerAmountMax =
+        customerAmountUpgrade.value[customerAmountUpgrade.level];
+
+      if (diff > 3600) {
+        return Math.floor(customerAmountMax);
+      }
+
+      const newCustomers = Math.floor((diff / 3600) * customerAmountMax);
+      return Math.min(
+        this.customerAmountRemaining + newCustomers,
+        customerAmountMax
+      );
     },
   })
   customerAmount?: number;
 
   @Prop({ required: true, default: 0 })
-  amountOfSells: number;
+  customerAmountRemaining: number;
 
   @Prop({
     virtual: true,

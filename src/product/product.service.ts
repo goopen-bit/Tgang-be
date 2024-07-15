@@ -4,6 +4,7 @@ import { BuyProductDto } from "./dto/buy-product.dto";
 import { MarketService } from "../market/market.service";
 import { getUnixTime } from "date-fns";
 import { SellProductDto } from "./dto/sell-product.dto";
+import { EDealerUpgrade } from "../upgrade/data/dealerUpgrades";
 
 @Injectable()
 export class ProductService {
@@ -48,20 +49,36 @@ export class ProductService {
   ) {
     const user = await this.userService.findOne(userId);
     const market = await this.marketService.getMarket(marketId);
+    console.log(`1`);
+
     if (!user) {
       throw new HttpException("User not found", 404);
+    }
+
+    const totalCustomersSold = sellList.batch.reduce(
+      (acc, item) => acc + item.amountToSell,
+      0
+    );
+    console.log(`totalCustomersSold`);
+    console.log(totalCustomersSold);
+    console.log(`user.customerAmount`);
+    console.log(user.customerAmount);
+
+    if (totalCustomersSold > user.customerAmount) {
+      throw new HttpException(
+        "Attempt to sell more customers than available",
+        400
+      );
     }
 
     sellList.batch.forEach((item) => {
       const product = user.products.find((p) => p.name === item.product);
 
       if (!product) {
-        // @note if a batch fail here should we update a cheating indicator in the user object ?
         throw new HttpException(`Product ${item.product} not found`, 404);
       }
 
       if (product.quantity < item.amountToSell) {
-        // @note if a batch fail here should we update a cheating indicator in the user object ?
         throw new HttpException(
           `Insufficient quantity of ${item.product}`,
           400
@@ -72,9 +89,24 @@ export class ProductService {
       const marketPrice = market.products.find(
         (p) => p.name === item.product
       ).price;
-
       user.cashAmount += marketPrice * item.amountToSell;
     });
+
+    const availableCustomers = user.customerAmount;
+    console.log(`availableCustomers`);
+    console.log(availableCustomers);
+
+    if (totalCustomersSold > availableCustomers) {
+      throw new HttpException(
+        "Attempt to sell more customers than available",
+        400
+      );
+    }
+
+    user.customerAmountRemaining = availableCustomers - totalCustomersSold;
+    console.log(`user.customerAmountRemaining`);
+    console.log(user.customerAmountRemaining);
+    user.lastSell = new Date();
 
     await user.save();
     return user;

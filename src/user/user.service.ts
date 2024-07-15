@@ -8,6 +8,7 @@ import { REFERRAL_CASH, STARTING_CASH } from "./user.const";
 import { upgradesData } from "../upgrade/data/upgrades";
 import { EUpgradeCategory } from "../upgrade/upgrade.interface";
 import { EDealerUpgrade } from "src/upgrade/data/dealerUpgrades";
+import { subHours } from "date-fns";
 
 @Injectable()
 export class UserService {
@@ -35,7 +36,7 @@ export class UserService {
         await referrer.save();
       }
     }
-    console.log(EUpgradeCategory.DEALER);
+
     const dealerUpgrades = upgradesData.find(
       (e) => e.category === EUpgradeCategory.DEALER
     );
@@ -48,6 +49,9 @@ export class UserService {
     const customerNeeds = dealerUpgrades.upgrades.find(
       (u) => u.id === EDealerUpgrade.CUSTOMER_NEEDS
     );
+
+    // Set lastSell to one hour ago to get the full amount of customer when starting the game
+    const lastSell = subHours(new Date(), 1).toISOString();
 
     return this.userModel.create({
       ...user,
@@ -64,6 +68,7 @@ export class UserService {
       ],
       upgrades: [weed, customerAmount, customerNeeds],
       referredBy: referrer?.username,
+      // lastSell,
     });
   }
 

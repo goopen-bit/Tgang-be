@@ -3,7 +3,7 @@ import { faker } from "@faker-js/faker";
 import { UserService } from "./user.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { mongoUrl, mongoDb } from "../config/env";
-import { User, UserSchema } from "./user.schema";
+import { User, UserSchema } from "./schemas/user.schema";
 import { STARTING_CASH } from "./user.const";
 
 describe("UserService", () => {

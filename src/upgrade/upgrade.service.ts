@@ -3,7 +3,7 @@ import { BuyUpgradeDto } from "./dto/buy-upgrade.dto";
 import { UserService } from "../user/user.service";
 import { upgradesData } from "./data/upgrades";
 import { Upgrade, UpgradesCategory } from "./upgrade.interface";
-import { User } from "../user/user.schema";
+import { User } from "../user/schemas/user.schema";
 import { EProduct } from "../product/product.const";
 
 @Injectable()
@@ -56,15 +56,6 @@ export class UpgradeService {
     return user;
   }
 
-  private addCarryingGear(user: User, upgrade: Upgrade) {
-    user.carryingGear.push({
-      id: upgrade.id,
-      title: upgrade.title,
-      capacity: upgrade.value[0],
-    });
-    return user;
-  }
-
   // private unlockLab(user: User, upgrade: Upgrade) {
   //   user.unlockedLabs.push(upgrade.title as EProduct);
   //   return user;
@@ -113,9 +104,6 @@ export class UpgradeService {
     switch (upgrade.group) {
       case "product":
         this.addProductToUser(user, upgrade);
-        break;
-      case "gear":
-        this.addCarryingGear(user, upgrade);
         break;
       case "production":
         () => {};

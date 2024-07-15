@@ -1,12 +1,3 @@
-export enum EUpgrade {
-  WEED,
-  COKE,
-  METH,
-  HEROIN,
-  WEED_LAB,
-  WORKOUT,
-}
-
 export enum EUpgradeCategory {
   DEALER = "dealer",
   FARMER = "farmer",

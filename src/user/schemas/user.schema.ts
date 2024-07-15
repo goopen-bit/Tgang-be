@@ -1,55 +1,17 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
-import { Product } from "../product/product.schema";
-import { BASE_LAB_PLOT_PRICE, CARRYING_CAPACITY, LAB_CAPACITY_MULTIPLIER, LAB_PLOT_PRICE_MULTIPLIER, LAB_PRODUCTION_MULTIPLIER } from "./user.const";
-import { EProduct } from "../product/product.const";
-import { labs } from "../lab/data/labs";
+import { Product } from "../../product/product.schema";
+import {
+  BASE_LAB_PLOT_PRICE,
+  LAB_CAPACITY_MULTIPLIER,
+  LAB_PLOT_PRICE_MULTIPLIER,
+  LAB_PRODUCTION_MULTIPLIER,
+} from "../user.const";
+import { EProduct } from "../../product/product.const";
+import { labs } from "../../lab/data/labs";
 import { getUnixTime } from "date-fns";
-
-@Schema({ _id: false })
-class UserUpgrade {
-  @Prop({ required: true })
-  id: number;
-
-  @Prop({ required: true })
-  title: string;
-
-  @Prop({ required: true })
-  description: string;
-
-  @Prop({ required: true })
-  level: number;
-
-  @Prop({ required: true })
-  maxLevel: number;
-
-  @Prop({ required: true })
-  levelPrices: number[];
-
-  @Prop({ required: true })
-  value: number[];
-
-  @Prop({ required: true })
-  image: string;
-
-  @Prop({ required: true })
-  locked: boolean;
-
-  @Prop({ required: true })
-  group: string;
-}
-
-@Schema({ _id: false })
-class CarryingGear {
-  @Prop()
-  id: number;
-
-  @Prop()
-  title: string;
-
-  @Prop()
-  capacity: number;
-}
+import { UserUpgrade } from "./userUpgrade.schema";
+import { EDealerUpgrade } from "../../upgrade/data/dealerUpgrades";
 
 @Schema({ _id: false })
 export class UserProduct extends Product {
@@ -87,7 +49,7 @@ export class UserLab {
     virtual: true,
     get: function () {
       const lab = labs[this.product];
-      return  this.capacityLevel * lab.baseCapacity;
+      return this.capacityLevel * lab.baseCapacity;
     },
   })
   capacity?: number;
@@ -117,7 +79,10 @@ export class UserLab {
     virtual: true,
     get: function () {
       const lab = labs[this.product];
-      return Math.floor(Math.pow(this.capacityLevel + 1, LAB_CAPACITY_MULTIPLIER) * lab.baseCapacityUpgradePrice);
+      return Math.floor(
+        Math.pow(this.capacityLevel + 1, LAB_CAPACITY_MULTIPLIER) *
+          lab.baseCapacityUpgradePrice
+      );
     },
   })
   upgradeCapacityPrice?: number;
@@ -126,7 +91,10 @@ export class UserLab {
     virtual: true,
     get: function () {
       const lab = labs[this.product];
-      return Math.floor(Math.pow(this.productionLevel + 1, LAB_PRODUCTION_MULTIPLIER) * lab.baseProductionUpgradePrice);
+      return Math.floor(
+        Math.pow(this.productionLevel + 1, LAB_PRODUCTION_MULTIPLIER) *
+          lab.baseProductionUpgradePrice
+      );
     },
   })
   upgradeProductionPrice?: number;
@@ -168,9 +136,6 @@ export class User extends Document {
   @Prop({ type: [UserUpgrade], default: [] })
   upgrades: UserUpgrade[];
 
-  @Prop({ type: [CarryingGear] })
-  carryingGear: CarryingGear[];
-
   // @Prop({ type: [EProduct], required: true })
   // unlockedLabs: EProduct[];
 
@@ -180,34 +145,37 @@ export class User extends Document {
   @Prop({
     virtual: true,
     get: function () {
-      let capacity = CARRYING_CAPACITY;
-      this.carryingGear.forEach((gear) => {
-        capacity += gear.capacity;
-      });
-      return capacity;
-    },
-  })
-  carryCapacity: number;
-
-  @Prop({
-    virtual: true,
-    get: function () {
-      let amount = 0;
-      this.products.forEach((product) => {
-        amount += product.quantity;
-      });
-      return amount;
-    },
-  })
-  carryAmount: number;
-
-  @Prop({
-    virtual: true,
-    get: function () {
-      return Math.floor(Math.pow(this.labPlots.length + 1, LAB_PLOT_PRICE_MULTIPLIER) * BASE_LAB_PLOT_PRICE);
+      return Math.floor(
+        Math.pow(this.labPlots.length + 1, LAB_PLOT_PRICE_MULTIPLIER) *
+          BASE_LAB_PLOT_PRICE
+      );
     },
   })
   labPlotPrice: number;
+
+  @Prop({ required: true, default: new Date() })
+  lastSell: Date;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const now = new Date();
+      const diff = getUnixTime(now) - getUnixTime(this.lastSell);
+      const customerAmountUpgrade = this.upgrades.find(
+        (e) => e.id === EDealerUpgrade.CUSTOMER_AMOUNT
+      );
+      const currentCustomerAmount =
+        customerAmountUpgrade.value[customerAmountUpgrade.level];
+      if (diff > 3600000) {
+        return currentCustomerAmount;
+      }
+      return currentCustomerAmount / diff;
+    },
+  })
+  customerAmount?: number;
+
+  @Prop({ required: true, default: 0 })
+  amountOfSells: number;
 
   @Prop({
     virtual: true,

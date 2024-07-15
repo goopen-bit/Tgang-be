@@ -3,7 +3,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { mongoUrl, mongoDb } from "../config/env";
 import { LabService } from "./lab.service";
 import { UserModule } from "../user/user.module";
-import { User, UserSchema } from "../user/user.schema";
+import { User, UserSchema } from "../user/schemas/user.schema";
 import { faker } from "@faker-js/faker";
 import { AuthTokenData } from "../config/types";
 import { UserService } from "../user/user.service";
@@ -56,7 +56,9 @@ describe("LabService", () => {
       const u = await userService.findOne(user.id);
       u.cashAmount = 100;
       await u.save();
-      await expect(service.buyLabPlot(user.id)).rejects.toThrow("Not enough money");
+      await expect(service.buyLabPlot(user.id)).rejects.toThrow(
+        "Not enough money"
+      );
     });
   });
 
@@ -80,14 +82,18 @@ describe("LabService", () => {
 
     it("should throw error if plot is not empty", async () => {
       await service.buyLab(user.id, { labProduct: EProduct.WEED, plotId: 1 });
-      await expect(service.buyLab(user.id, { labProduct: EProduct.WEED, plotId: 1 })).rejects.toThrow("Plot is not empty");
+      await expect(
+        service.buyLab(user.id, { labProduct: EProduct.WEED, plotId: 1 })
+      ).rejects.toThrow("Plot is not empty");
     });
 
     it("should throw error if not enough money", async () => {
       const u = await userService.findOne(user.id);
       u.cashAmount = 100;
       await u.save();
-      await expect(service.buyLab(user.id, { labProduct: EProduct.WEED, plotId: 1 })).rejects.toThrow("Not enough money");
+      await expect(
+        service.buyLab(user.id, { labProduct: EProduct.WEED, plotId: 1 })
+      ).rejects.toThrow("Not enough money");
     });
   });
 
@@ -97,15 +103,20 @@ describe("LabService", () => {
       user = { id: faker.number.int(), username: faker.internet.userName() };
       const u = await userService.findOneOrCreate(user);
       u.cashAmount = 1000000;
-      u.labPlots = [{ plotId: 1, lab: {
-        product: EProduct.WEED,
-        title: "Weed",
-        image: "weed.png",
-        capacityLevel: 1,
-        productionLevel: 1,
-        collectTime: new Date(),
-        leftover: 0
-      } }];
+      u.labPlots = [
+        {
+          plotId: 1,
+          lab: {
+            product: EProduct.WEED,
+            title: "Weed",
+            image: "weed.png",
+            capacityLevel: 1,
+            productionLevel: 1,
+            collectTime: new Date(),
+            leftover: 0,
+          },
+        },
+      ];
       await u.save();
     });
 
@@ -120,14 +131,18 @@ describe("LabService", () => {
       const u = await userService.findOne(user.id);
       u.cashAmount = 100;
       await u.save();
-      await expect(service.upgradeLabCapacity(user.id, 1)).rejects.toThrow("Not enough money");
+      await expect(service.upgradeLabCapacity(user.id, 1)).rejects.toThrow(
+        "Not enough money"
+      );
     });
 
     it("should throw error if plot is empty", async () => {
       const u = await userService.findOne(user.id);
       u.labPlots.push({ plotId: 2 });
       await u.save();
-      await expect(service.upgradeLabCapacity(user.id, 2)).rejects.toThrow("Plot is empty");
+      await expect(service.upgradeLabCapacity(user.id, 2)).rejects.toThrow(
+        "Plot is empty"
+      );
     });
   });
 
@@ -137,15 +152,20 @@ describe("LabService", () => {
       user = { id: faker.number.int(), username: faker.internet.userName() };
       const u = await userService.findOneOrCreate(user);
       u.cashAmount = 1000000;
-      u.labPlots = [{ plotId: 1, lab: {
-        product: EProduct.WEED,
-        title: "Weed",
-        image: "weed.png",
-        capacityLevel: 1,
-        productionLevel: 1,
-        collectTime: new Date(),
-        leftover: 0
-      } }];
+      u.labPlots = [
+        {
+          plotId: 1,
+          lab: {
+            product: EProduct.WEED,
+            title: "Weed",
+            image: "weed.png",
+            capacityLevel: 1,
+            productionLevel: 1,
+            collectTime: new Date(),
+            leftover: 0,
+          },
+        },
+      ];
       await u.save();
     });
 
@@ -160,14 +180,18 @@ describe("LabService", () => {
       const u = await userService.findOne(user.id);
       u.cashAmount = 100;
       await u.save();
-      await expect(service.upgradeLabProduction(user.id, 1)).rejects.toThrow("Not enough money");
+      await expect(service.upgradeLabProduction(user.id, 1)).rejects.toThrow(
+        "Not enough money"
+      );
     });
 
     it("should throw error if plot is empty", async () => {
       const u = await userService.findOne(user.id);
       u.labPlots.push({ plotId: 2 });
       await u.save();
-      await expect(service.upgradeLabProduction(user.id, 2)).rejects.toThrow("Plot is empty");
+      await expect(service.upgradeLabProduction(user.id, 2)).rejects.toThrow(
+        "Plot is empty"
+      );
     });
   });
 
@@ -177,15 +201,20 @@ describe("LabService", () => {
       user = { id: faker.number.int(), username: faker.internet.userName() };
       const u = await userService.findOneOrCreate(user);
       u.cashAmount = 100;
-      u.labPlots = [{ plotId: 1, lab: {
-        product: EProduct.WEED,
-        title: "Weed",
-        image: "weed.png",
-        capacityLevel: 1,
-        productionLevel: 1,
-        collectTime: subHours(new Date(), 1),
-        leftover: 0
-      } }];
+      u.labPlots = [
+        {
+          plotId: 1,
+          lab: {
+            product: EProduct.WEED,
+            title: "Weed",
+            image: "weed.png",
+            capacityLevel: 1,
+            productionLevel: 1,
+            collectTime: subHours(new Date(), 1),
+            leftover: 0,
+          },
+        },
+      ];
       await u.save();
     });
 
@@ -196,7 +225,9 @@ describe("LabService", () => {
       expect(lab.leftover).toBe(0);
       expect(lab.produced).toBe(0);
       expect(updatedUser.carryAmount).toBe(10);
-      const product = updatedUser.products.find(p => p.name === EProduct.WEED);
+      const product = updatedUser.products.find(
+        (p) => p.name === EProduct.WEED
+      );
       expect(product.quantity).toBe(10);
     });
 
@@ -210,7 +241,9 @@ describe("LabService", () => {
       expect(lab.leftover).toBe(6);
       expect(lab.produced).toBe(6);
       expect(updatedUser.carryAmount).toBe(100);
-      const product = updatedUser.products.find(p => p.name === EProduct.WEED);
+      const product = updatedUser.products.find(
+        (p) => p.name === EProduct.WEED
+      );
       expect(product.quantity).toBe(4);
     });
   });

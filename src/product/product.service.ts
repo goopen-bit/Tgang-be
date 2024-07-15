@@ -2,8 +2,8 @@ import { HttpException, Injectable, Logger } from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { BuyProductDto } from "./dto/buy-product.dto";
 import { MarketService } from "../market/market.service";
-import { CustomerService } from "../customer/customer.service";
 import { getUnixTime } from "date-fns";
+import { SellProductDto } from "./dto/sell-product.dto";
 
 @Injectable()
 export class ProductService {
@@ -11,8 +11,7 @@ export class ProductService {
 
   constructor(
     private userService: UserService,
-    private marketService: MarketService,
-    private customerService: CustomerService
+    private marketService: MarketService
   ) {}
 
   async buyProduct(userId: number, marketId: string, params: BuyProductDto) {
@@ -31,10 +30,6 @@ export class ProductService {
       throw new HttpException("Not enough cash", 400);
     }
 
-    if (user.carryAmount + quantity > user.carryCapacity) {
-      throw new HttpException("Not enough carry capacity", 400);
-    }
-
     const userProduct = user.products.find((p) => p.name === product);
     if (userProduct && userProduct.unlocked) {
       user.cashAmount -= marketProduct.price * quantity;
@@ -46,64 +41,40 @@ export class ProductService {
     return user;
   }
 
-  async validateUserDeals(userId: number, marketId: string, deals: number[]) {
+  async sellProduct(
+    userId: number,
+    marketId: string,
+    sellList: SellProductDto
+  ) {
     const user = await this.userService.findOne(userId);
     const market = await this.marketService.getMarket(marketId);
+    if (!user) {
+      throw new HttpException("User not found", 404);
+    }
 
-    let batchIndex: number;
-    let customerBatch;
+    sellList.batch.forEach((item) => {
+      const product = user.products.find((p) => p.name === item.product);
 
-    for (const deal of deals) {
-      const currentBatchIndex =
-        this.customerService.getBatchIndexFromCustomerIndex(deal);
-      const customerBatchTimestamp =
-        this.customerService.getTimeStampFromIndex(currentBatchIndex);
-      // If the deal is olden than one hour or newer than one hour, continue
-      if (
-        getUnixTime(customerBatchTimestamp) < getUnixTime(new Date()) - 3600 ||
-        getUnixTime(customerBatchTimestamp) > getUnixTime(new Date()) + 3600
-      ) {
-        continue;
+      if (!product) {
+        // @note if a batch fail here should we update a cheating indicator in the user object ?
+        throw new HttpException(`Product ${item.product} not found`, 404);
       }
 
-      if (!customerBatch || batchIndex !== currentBatchIndex) {
-        const batchIndex =
-          this.customerService.getBatchIndexFromCustomerIndex(deal);
-        customerBatch = await this.customerService.getCustomerBatch(
-          marketId,
-          batchIndex,
-          user.id
+      if (product.quantity < item.amountToSell) {
+        // @note if a batch fail here should we update a cheating indicator in the user object ?
+        throw new HttpException(
+          `Insufficient quantity of ${item.product}`,
+          400
         );
       }
 
-      // If the deal is not found in the batch, continue
-      const customer = customerBatch.find((c) => c.customerIndex === deal);
-      if (!customer) {
-        continue;
-      }
-
-      // If the user doesn't have the product or the product is not unlocked, continue
-      const userProduct = user.products.find(
-        (p) => p.name === customer.product
-      );
-
-      if (!userProduct || !userProduct.unlocked) {
-        continue;
-      }
-
-      // If the user doesn't have enough quantity, continue
-      if (userProduct.quantity < customer.quantity) {
-        continue;
-      }
-
-      this.logger.debug(`User ${userId} has a deal with customer ${deal}`);
+      product.quantity -= item.amountToSell;
       const marketPrice = market.products.find(
-        (p) => p.name === customer.product
+        (p) => p.name === item.product
       ).price;
-      userProduct.quantity -= customer.quantity;
-      const amount = marketPrice * customer.quantity;
-      user.cashAmount += amount;
-    }
+
+      user.cashAmount += marketPrice * item.amountToSell;
+    });
 
     await user.save();
     return user;

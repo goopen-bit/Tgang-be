@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { User, UserProduct } from "./user.schema";
+import { User, UserProduct } from "./schemas/user.schema";
 import { AuthTokenData } from "../config/types";
 import { EProduct } from "../product/product.const";
-import { CARRYING_CAPACITY, REFERRAL_CASH, STARTING_CASH } from "./user.const";
+import { REFERRAL_CASH, STARTING_CASH } from "./user.const";
 import { upgradesData } from "../upgrade/data/upgrades";
-import { EUpgradeCategory, EUpgrade } from "../upgrade/upgrade.interface";
+import { EUpgradeCategory } from "../upgrade/upgrade.interface";
+import { EDealerUpgrade } from "src/upgrade/data/dealerUpgrades";
 
 @Injectable()
 export class UserService {
@@ -34,10 +35,20 @@ export class UserService {
         await referrer.save();
       }
     }
-
-    const weed = upgradesData.find(
+    console.log(EUpgradeCategory.DEALER);
+    const dealerUpgrades = upgradesData.find(
       (e) => e.category === EUpgradeCategory.DEALER
-    ).upgrades[EUpgrade.WEED];
+    );
+    const weed = dealerUpgrades.upgrades.find(
+      (u) => u.id === EDealerUpgrade.WEED
+    );
+    const customerAmount = dealerUpgrades.upgrades.find(
+      (u) => u.id === EDealerUpgrade.CUSTOMER_AMOUNT
+    );
+    const customerNeeds = dealerUpgrades.upgrades.find(
+      (u) => u.id === EDealerUpgrade.CUSTOMER_NEEDS
+    );
+
     return this.userModel.create({
       ...user,
       cashAmount: referrer?.username
@@ -51,7 +62,7 @@ export class UserService {
           unlocked: true,
         }),
       ],
-      upgrades: [{ ...weed }],
+      upgrades: [weed, customerAmount, customerNeeds],
       referredBy: referrer?.username,
     });
   }

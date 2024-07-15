@@ -5,7 +5,7 @@ import { UserService } from "../user/user.service";
 import { faker } from "@faker-js/faker";
 import { BuyUpgradeDto } from "./dto/buy-upgrade.dto";
 import { upgradesData } from "./data/upgrades";
-import { User } from "../user/user.schema";
+import { User } from "../user/schemas/user.schema";
 import { MongooseModule } from "@nestjs/mongoose";
 import { RedisModule } from "@goopen/nestjs-ioredis-provider";
 import { mongoUrl, mongoDb, redisUrl } from "../config/env";

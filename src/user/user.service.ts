@@ -1,23 +1,22 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { User, UserProduct } from "./schemas/user.schema";
-import { AuthTokenData } from "../config/types";
-import { EProduct } from "../product/product.const";
-import { REFERRAL_CASH, STARTING_CASH } from "./user.const";
-import { upgradesData } from "../upgrade/data/upgrades";
-import { EUpgradeCategory } from "../upgrade/upgrade.interface";
-import { EDealerUpgrade } from "../upgrade/data/dealerUpgrades";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User, UserProduct } from './schemas/user.schema';
+import { AuthTokenData } from '../config/types';
+import { EProduct } from '../product/product.const';
+import { REFERRAL_CASH, STARTING_CASH } from './user.const';
+import { upgradesData } from '../upgrade/data/upgrades';
+import { EDealerUpgrade } from '../upgrade/upgrade.interface';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name)
-    private userModel: Model<User>
+    private userModel: Model<User>,
   ) {}
 
   private getIdFromReferralToken(referralToken: string) {
-    return Buffer.from(referralToken, "base64").toString("utf-8");
+    return Buffer.from(referralToken, 'base64').toString('utf-8');
   }
 
   async findOneOrCreate(user: AuthTokenData, referralToken?: string) {
@@ -36,17 +35,14 @@ export class UserService {
       }
     }
 
-    const dealerUpgrades = upgradesData.find(
-      (e) => e.category === EUpgradeCategory.DEALER
+    const weed = upgradesData.dealer.upgrades.find(
+      (u) => u.id === EProduct.WEED,
     );
-    const weed = dealerUpgrades.upgrades.find(
-      (u) => u.id === EDealerUpgrade.WEED
+    const customerAmount = upgradesData.dealer.upgrades.find(
+      (u) => u.id === EDealerUpgrade.CUSTOMER_AMOUNT,
     );
-    const customerAmount = dealerUpgrades.upgrades.find(
-      (u) => u.id === EDealerUpgrade.CUSTOMER_AMOUNT
-    );
-    const customerNeeds = dealerUpgrades.upgrades.find(
-      (u) => u.id === EDealerUpgrade.CUSTOMER_NEEDS
+    const customerNeeds = upgradesData.dealer.upgrades.find(
+      (u) => u.id === EDealerUpgrade.CUSTOMER_NEEDS,
     );
 
     // Set lastSell to one hour ago to get the full amount of customer when starting the game
@@ -62,12 +58,31 @@ export class UserService {
         this.initUserProduct({
           name: EProduct.WEED,
           quantity: 0,
-          unlocked: true,
         }),
       ],
-      upgrades: [weed, customerAmount, customerNeeds],
+      productUpgrades: [
+        {
+          product: EProduct.WEED,
+          title: weed.title,
+          image: weed.image,
+          level: 0,
+        },
+      ],
+      dealerUpgrades: [
+        {
+          product: EDealerUpgrade.CUSTOMER_AMOUNT,
+          title: customerAmount.title,
+          image: customerAmount.image,
+          level: 0,
+        },
+        {
+          product: EDealerUpgrade.CUSTOMER_NEEDS,
+          title: customerNeeds.title,
+          image: customerNeeds.image,
+          level: 0,
+        },
+      ],
       referredBy: referrer?.username,
-      // lastSell,
     });
   }
 
@@ -79,7 +94,7 @@ export class UserService {
   async findOne(id: number): Promise<User> {
     const user = await this.userModel.findOne({ id }).exec();
     if (!user) {
-      throw new NotFoundException("User not found");
+      throw new NotFoundException('User not found');
     }
     return user;
   }
@@ -89,7 +104,7 @@ export class UserService {
       .findOneAndUpdate({ id: userId }, { $set: updateData }, { new: true })
       .exec();
     if (!user) {
-      throw new NotFoundException("User not found");
+      throw new NotFoundException('User not found');
     }
     return user;
   }
@@ -97,13 +112,12 @@ export class UserService {
   async delete(id: number): Promise<void> {
     const result = await this.userModel.deleteOne({ id }).exec();
     if (result.deletedCount === 0) {
-      throw new NotFoundException("User not found");
+      throw new NotFoundException('User not found');
     }
   }
 
   initUserProduct(productData: UserProduct) {
     const product = new UserProduct();
-    product.unlocked = productData.unlocked;
     product.name = productData.name;
     product.quantity = productData.quantity;
     return product;

@@ -1,10 +1,10 @@
-import { EProduct } from "../../product/product.const";
-import { Market } from "../market.interface";
+import { EProduct } from '../../product/product.const';
+import { Market } from '../market.interface';
 
 export const markets: Market[] = [
   {
-    id: "NY",
-    name: "New York",
+    id: 'NY',
+    name: 'New York',
     products: [
       {
         name: EProduct.WEED,

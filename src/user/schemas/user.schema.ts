@@ -1,19 +1,25 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
-import { Product } from "../../product/product.schema";
-import { BASE_LAB_PLOT_PRICE, LAB_PLOT_PRICE_MULTIPLIER } from "../user.const";
-import { getUnixTime } from "date-fns";
-import { UserUpgrade } from "./userUpgrade.schema";
-import { EDealerUpgrade } from "../../upgrade/data/dealerUpgrades";
-import { UserLab } from "./userLab.shema";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+import { Product } from '../../product/product.schema';
+import {
+  BASE_CUSTOMER_LIMIT,
+  BASE_LAB_PLOT_PRICE,
+  LAB_PLOT_PRICE_MULTIPLIER,
+} from '../user.const';
+import { getUnixTime } from 'date-fns';
+import {
+  UserDealerUpgrade,
+  UserProductUpgrade,
+  UserUpgrade,
+} from './userUpgrade.schema';
+import { UserLab } from './userLab.shema';
+import { EDealerUpgrade } from 'src/upgrade/upgrade.interface';
+import { dealerUpgrades } from 'src/upgrade/data/dealerUpgrades';
 
 @Schema({ _id: false })
 export class UserProduct extends Product {
   @Prop({ required: true })
   quantity: number;
-
-  @Prop({ required: true, default: false })
-  unlocked: boolean;
 }
 
 @Schema({ _id: false })
@@ -49,11 +55,11 @@ export class User extends Document {
   @Prop({ type: [UserProduct], default: [] })
   products: UserProduct[];
 
-  @Prop({ type: [UserUpgrade], default: [] })
-  upgrades: UserUpgrade[];
+  @Prop({ type: [UserProductUpgrade], default: [] })
+  productUpgrades: UserProductUpgrade[];
 
-  // @Prop({ type: [EProduct], required: true })
-  // unlockedLabs: EProduct[];
+  @Prop({ type: [UserDealerUpgrade], default: [] })
+  dealerUpgrades: UserDealerUpgrade[];
 
   @Prop({ type: [LabPlot], default: [{ plotId: 0 }] })
   labPlots: LabPlot[];
@@ -63,13 +69,13 @@ export class User extends Document {
     get: function () {
       return Math.floor(
         Math.pow(this.labPlots.length + 1, LAB_PLOT_PRICE_MULTIPLIER) *
-          BASE_LAB_PLOT_PRICE
+          BASE_LAB_PLOT_PRICE,
       );
     },
   })
   labPlotPrice: number;
 
-  @Prop({ required: true, default: () => new Date().toISOString() })
+  @Prop({ required: true, default: new Date() })
   lastSell: Date;
 
   @Prop({
@@ -77,16 +83,9 @@ export class User extends Document {
     get: function () {
       const now = new Date();
       const diff = getUnixTime(now) - getUnixTime(new Date(this.lastSell));
-      const customerAmountUpgrade = this.upgrades.find(
-        (e) => e.id === EDealerUpgrade.CUSTOMER_AMOUNT
-      );
-
-      if (!customerAmountUpgrade) {
-        return 0;
-      }
-
-      const customerAmountMax =
-        customerAmountUpgrade.value[customerAmountUpgrade.level];
+      const customerAmountUpgrade =
+        this.dealerUpgrades[EDealerUpgrade.CUSTOMER_AMOUNT];
+      const customerAmountMax = customerAmountUpgrade.amount;
 
       if (diff > 3600) {
         return Math.floor(customerAmountMax);
@@ -95,7 +94,7 @@ export class User extends Document {
       const newCustomers = Math.floor((diff / 3600) * customerAmountMax);
       return Math.min(
         this.customerAmountRemaining + newCustomers,
-        customerAmountMax
+        customerAmountMax,
       );
     },
   })
@@ -107,7 +106,7 @@ export class User extends Document {
   @Prop({
     virtual: true,
     get: function () {
-      return Buffer.from(this.id.toString()).toString("base64");
+      return Buffer.from(this.id.toString()).toString('base64');
     },
   })
   referralToken: string;

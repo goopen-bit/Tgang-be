@@ -1,7 +1,9 @@
-import { Injectable } from "@nestjs/common";
-import { UserService } from "../user/user.service";
-import { markets } from "./data/market";
-import { cloneDeep } from "lodash";
+import { Injectable } from '@nestjs/common';
+import { UserService } from '../user/user.service';
+import { markets } from './data/market';
+import { cloneDeep } from 'lodash';
+import { Market } from './market.interface';
+import { UserProductUpgrade } from '../user/schemas/userUpgrade.schema';
 
 @Injectable()
 export class MarketService {
@@ -18,19 +20,16 @@ export class MarketService {
     }
 
     // Create a deep copy of the market to avoid modifying the original data
-    const market = cloneDeep(originalMarket);
+    const market: Market = cloneDeep(originalMarket);
     const user = await this.userService.findOne(userId);
 
     market.products.forEach((product) => {
-      // @note remove reputation for now
-      // product.price = product.price * (1 - user.reputation / 100);
-      const dealerUpgrade = user.upgrades.find(
-        (upgrade) =>
-          upgrade.group === "product" && upgrade.title === product.name
-      );
-      if (dealerUpgrade) {
-        const discount = dealerUpgrade.value[dealerUpgrade.level];
-        product.price = product.price * discount;
+      const productUpgrade = user.productUpgrades[
+        product.name
+      ] as UserProductUpgrade;
+      if (productUpgrade) {
+        const discount = productUpgrade.marketDiscount;
+        product.price = Math.floor((product.price * (100 - discount)) / 100);
       }
     });
     return market;

@@ -1,11 +1,11 @@
-import { Prop, Schema } from "@nestjs/mongoose";
+import { Prop, Schema } from '@nestjs/mongoose';
 import {
   LAB_CAPACITY_MULTIPLIER,
   LAB_PRODUCTION_MULTIPLIER,
-} from "../user.const";
-import { EProduct } from "../../product/product.const";
-import { labs } from "../../lab/data/labs";
-import { getUnixTime } from "date-fns";
+} from '../user.const';
+import { EProduct } from '../../product/product.const';
+import { labs } from '../../lab/data/labs';
+import { getUnixTime } from 'date-fns';
 
 @Schema({ _id: false })
 export class UserLab {
@@ -63,7 +63,7 @@ export class UserLab {
       const lab = labs[this.product];
       return Math.floor(
         Math.pow(this.capacityLevel + 1, LAB_CAPACITY_MULTIPLIER) *
-          lab.baseCapacityUpgradePrice
+          lab.baseCapacityUpgradePrice,
       );
     },
   })
@@ -75,7 +75,7 @@ export class UserLab {
       const lab = labs[this.product];
       return Math.floor(
         Math.pow(this.productionLevel + 1, LAB_PRODUCTION_MULTIPLIER) *
-          lab.baseProductionUpgradePrice
+          lab.baseProductionUpgradePrice,
       );
     },
   })

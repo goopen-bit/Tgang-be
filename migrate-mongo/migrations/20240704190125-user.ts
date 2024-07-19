@@ -16,5 +16,5 @@ module.exports = {
 
   async down(db: Db) {
     await db.collection(DbCollections.USERS).dropIndex('id_unique_index');
-  }
+  },
 };

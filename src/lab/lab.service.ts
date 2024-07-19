@@ -1,10 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { UserService } from "../user/user.service";
-import { BuyLabDto } from "./dto/buy-lab.dto";
-import { labs } from "./data/labs";
-import { EProduct } from "../product/product.const";
-import { User } from "../user/schemas/user.schema";
-import { getUnixTime } from "date-fns";
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { UserService } from '../user/user.service';
+import { BuyLabDto } from './dto/buy-lab.dto';
+import { labs } from './data/labs';
+import { EProduct } from '../product/product.const';
+import { User } from '../user/schemas/user.schema';
+import { getUnixTime } from 'date-fns';
 
 @Injectable()
 export class LabService {
@@ -13,7 +13,7 @@ export class LabService {
   async buyLabPlot(userId: number) {
     const user = await this.userService.findOne(userId);
     if (user.cashAmount < user.labPlotPrice) {
-      throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
+      throw new HttpException('Not enough money', HttpStatus.BAD_REQUEST);
     }
     user.cashAmount -= user.labPlotPrice;
     user.labPlots.push({ plotId: user.labPlots.length + 1 });
@@ -33,12 +33,12 @@ export class LabService {
     const user = await this.userService.findOne(userId);
     const labPlot = user.labPlots.find((plot) => plot.plotId === params.plotId);
     if (labPlot.lab) {
-      throw new HttpException("Plot is not empty", HttpStatus.BAD_REQUEST);
+      throw new HttpException('Plot is not empty', HttpStatus.BAD_REQUEST);
     }
 
     const lab = this.getLab(params.labProduct);
     if (user.cashAmount < lab.labPrice) {
-      throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
+      throw new HttpException('Not enough money', HttpStatus.BAD_REQUEST);
     }
 
     user.cashAmount -= lab.labPrice;
@@ -57,7 +57,7 @@ export class LabService {
   private getLabPlotForUpgrade(user: User, plotId: number) {
     const labPlot = user.labPlots.find((plot) => plot.plotId === plotId);
     if (!labPlot.lab) {
-      throw new HttpException("Plot is empty", HttpStatus.BAD_REQUEST);
+      throw new HttpException('Plot is empty', HttpStatus.BAD_REQUEST);
     }
     return labPlot;
   }
@@ -67,7 +67,7 @@ export class LabService {
     const labPlot = this.getLabPlotForUpgrade(user, plotId);
 
     if (user.cashAmount < labPlot.lab.upgradeCapacityPrice) {
-      throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
+      throw new HttpException('Not enough money', HttpStatus.BAD_REQUEST);
     }
 
     user.cashAmount -= labPlot.lab.upgradeCapacityPrice;
@@ -81,7 +81,7 @@ export class LabService {
     const labPlot = this.getLabPlotForUpgrade(user, plotId);
 
     if (user.cashAmount < labPlot.lab.upgradeProductionPrice) {
-      throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
+      throw new HttpException('Not enough money', HttpStatus.BAD_REQUEST);
     }
 
     user.cashAmount -= labPlot.lab.upgradeProductionPrice;
@@ -95,7 +95,7 @@ export class LabService {
     const labPlot = this.getLabPlotForUpgrade(user, plotId);
 
     const userProduct = user.products.find(
-      (product) => product.name === labPlot.lab.product
+      (product) => product.name === labPlot.lab.product,
     );
     const production = labPlot.lab.produced;
     userProduct.quantity += production;

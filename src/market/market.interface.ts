@@ -1,5 +1,7 @@
+import { EProduct } from '../product/product.const';
+
 interface Product {
-  name: string;
+  name: EProduct;
   price: number;
 }
 

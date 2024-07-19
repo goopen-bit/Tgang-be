@@ -5,9 +5,7 @@ import { MarketController } from './market.controller';
 import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [
-    UserModule,
-  ],
+  imports: [UserModule],
   providers: [MarketService],
   exports: [MarketService],
   controllers: [MarketController],

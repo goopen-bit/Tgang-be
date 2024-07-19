@@ -1,12 +1,12 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { faker } from "@faker-js/faker";
-import { UserService } from "./user.service";
-import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb } from "../config/env";
-import { User, UserSchema } from "./schemas/user.schema";
-import { STARTING_CASH } from "./user.const";
+import { Test, TestingModule } from '@nestjs/testing';
+import { faker } from '@faker-js/faker';
+import { UserService } from './user.service';
+import { MongooseModule } from '@nestjs/mongoose';
+import { mongoUrl, mongoDb } from '../config/env';
+import { User, UserSchema } from './schemas/user.schema';
+import { STARTING_CASH } from './user.const';
 
-describe("UserService", () => {
+describe('UserService', () => {
   let module: TestingModule;
   let service: UserService;
 
@@ -15,7 +15,7 @@ describe("UserService", () => {
       imports: [
         MongooseModule.forRoot(mongoUrl, {
           dbName: mongoDb,
-          readPreference: "secondaryPreferred",
+          readPreference: 'secondaryPreferred',
         }),
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
       ],
@@ -25,12 +25,12 @@ describe("UserService", () => {
     service = module.get<UserService>(UserService);
   });
 
-  it("should be defined", () => {
+  it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe("findOneOrCreate", () => {
-    it("should create new user", async () => {
+  describe('findOneOrCreate', () => {
+    it('should create new user', async () => {
       const params = {
         id: faker.number.int(),
         username: faker.internet.userName(),
@@ -43,7 +43,7 @@ describe("UserService", () => {
       await service.delete(params.id);
     });
 
-    it("should create new user", async () => {
+    it('should create new user', async () => {
       const params = {
         id: faker.number.int(),
         username: faker.internet.userName(),

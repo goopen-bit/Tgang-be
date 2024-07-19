@@ -1,7 +1,11 @@
-import { IsInt, IsString } from "class-validator";
-import { EUpgradeCategory } from "../upgrade.interface";
+import { IsEnum, IsString } from 'class-validator';
+import { EDealerUpgrade, EUpgradeCategory } from '../upgrade.interface';
+import { EProduct } from 'src/product/product.const';
 
 export class BuyUpgradeDto {
-  @IsInt()
-  id: number;
+  @IsEnum(EUpgradeCategory)
+  category: EUpgradeCategory;
+
+  @IsString()
+  upgrade: EProduct | EDealerUpgrade;
 }

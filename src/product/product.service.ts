@@ -25,13 +25,13 @@ export class ProductService {
     }
 
     const marketProduct = market.products.find((p) => p.name === product);
-    if (user.cashAmount < marketProduct.price * quantity) {
+    if (user.cashAmount < marketProduct.discountPrice * quantity) {
       throw new HttpException('Not enough cash', 400);
     }
 
     const userProduct = user.products.find((p) => p.name === product);
     if (userProduct) {
-      user.cashAmount -= marketProduct.price * quantity;
+      user.cashAmount -= marketProduct.discountPrice * quantity;
       userProduct.quantity += quantity;
     } else {
       throw new HttpException('Product not unlocked', 400);

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserProduct } from './schemas/user.schema';
+import { User } from './schemas/user.schema';
 import { AuthTokenData } from '../config/types';
 import { EProduct } from '../product/product.const';
 import { REFERRAL_CASH, STARTING_CASH } from './user.const';

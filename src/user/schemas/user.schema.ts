@@ -2,24 +2,57 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Product } from '../../product/product.schema';
 import {
-  BASE_CUSTOMER_LIMIT,
   BASE_LAB_PLOT_PRICE,
   LAB_PLOT_PRICE_MULTIPLIER,
 } from '../user.const';
 import { getUnixTime } from 'date-fns';
 import {
   UserDealerUpgrade,
-  UserProductUpgrade,
-  UserUpgrade,
 } from './userUpgrade.schema';
 import { UserLab } from './userLab.shema';
-import { EDealerUpgrade } from 'src/upgrade/upgrade.interface';
-import { dealerUpgrades } from 'src/upgrade/data/dealerUpgrades';
+import { EDealerUpgrade } from '../../upgrade/upgrade.interface';
+import {
+  dealerUpgrades,
+  productUpgrades,
+} from '../../upgrade/data/dealerUpgrades';
+import { EProduct } from '../../product/product.const';
 
 @Schema({ _id: false })
 export class UserProduct extends Product {
   @Prop({ required: true })
   quantity: number;
+
+  @Prop({ required: true })
+  name: EProduct;
+
+  @Prop({ required: true })
+  image: string;
+
+  @Prop({ required: true })
+  level: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = productUpgrades[this.name];
+      return Math.floor(
+        Math.pow(this.level + 1, upgrade.upgradeMultiplier) * upgrade.basePrice,
+      );
+    },
+  })
+  upgradePrice?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = productUpgrades[this.name];
+      return (
+        (upgrade.baseDiscount + (60 - upgrade.baseDiscount)) *
+        (Math.log(this.level + 1) / Math.log(1000))
+      );
+    },
+  })
+  marketDiscount?: number;
 }
 
 @Schema({ _id: false })
@@ -55,9 +88,6 @@ export class User extends Document {
   @Prop({ type: [UserProduct], default: [] })
   products: UserProduct[];
 
-  @Prop({ type: [UserProductUpgrade], default: [] })
-  productUpgrades: UserProductUpgrade[];
-
   @Prop({ type: [UserDealerUpgrade], default: [] })
   dealerUpgrades: UserDealerUpgrade[];
 
@@ -83,8 +113,7 @@ export class User extends Document {
     get: function () {
       const now = new Date();
       const diff = getUnixTime(now) - getUnixTime(new Date(this.lastSell));
-      const customerAmountUpgrade =
-        this.dealerUpgrades[EDealerUpgrade.CUSTOMER_AMOUNT];
+      const customerAmountUpgrade = this.dealerUpgrades.find((u) => u.product === EDealerUpgrade.CUSTOMER_AMOUNT);
       const customerAmountMax = customerAmountUpgrade.amount;
 
       if (diff > 3600) {

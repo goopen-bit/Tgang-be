@@ -9,7 +9,6 @@ import {
   ProductUpgrade,
   Upgrade,
 } from './upgrade.interface';
-import { User } from '../user/schemas/user.schema';
 import { EProduct } from '../product/product.const';
 
 @Injectable()
@@ -22,24 +21,20 @@ export class UpgradeService {
 
   async buyProductUpgrade(userId: number, product: EProduct) {
     const user = await this.userService.findOne(userId);
-    const upgrade = upgradesData.dealer[product] as ProductUpgrade;
+    const upgrade = upgradesData.product[product] as ProductUpgrade;
+    let price = upgrade.basePrice;
 
     const p = user.products.find((p) => p.name === product);
     if (!p) {
-      user.products.push({ name: product, quantity: 0 });
-    }
-    const pu = user.productUpgrades.find((u) => u.title === upgrade.title);
-    let price = upgrade.basePrice;
-    if (!pu) {
-      user.productUpgrades.push({
-        product: product,
-        title: upgrade.title,
+      user.products.push({
+        name: product,
+        quantity: 0,
         image: upgrade.image,
         level: 1,
       });
     } else {
-      price = pu.upgradePrice;
-      pu.level += 1;
+      price = p.upgradePrice;
+      p.level += 1;
     }
 
     if (user.cashAmount < price) {
@@ -53,9 +48,7 @@ export class UpgradeService {
 
   async buyDealerUpgrade(userId: number, upgrade: EDealerUpgrade) {
     const user = await this.userService.findOne(userId);
-    const dealerUpgrade = upgradesData.dealer.upgrades.find(
-      (u) => u.id === upgrade,
-    ) as DealerUpgrade;
+    const dealerUpgrade = upgradesData.dealer[upgrade] as DealerUpgrade;
     const du = user.dealerUpgrades.find((u) => u.title === dealerUpgrade.title);
     let price = dealerUpgrade.basePrice;
     if (!du) {
@@ -80,6 +73,7 @@ export class UpgradeService {
   }
 
   buyUpgrade(userId: number, params: BuyUpgradeDto) {
+    console.log(params);
     switch (params.category) {
       case EUpgradeCategory.PRODUCT:
         return this.buyProductUpgrade(userId, params.upgrade as EProduct);

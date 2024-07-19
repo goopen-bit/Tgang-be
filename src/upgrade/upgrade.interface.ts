@@ -1,4 +1,4 @@
-import { EProduct } from 'src/product/product.const';
+import { EProduct } from '../product/product.const';
 
 export enum EUpgradeCategory {
   PRODUCT = 'product',
@@ -21,6 +21,7 @@ export interface DealerUpgrade {
   description: string;
   basePrice: number;
   upgradeMultiplier: number;
+  baseAmount: number;
   amountMultiplier: number;
   image: string;
   requirement: Requirement | null;
@@ -31,6 +32,7 @@ export interface ProductUpgrade {
   description: string;
   basePrice: number;
   upgradeMultiplier: number;
+  baseDiscount: number;
   image: string;
   requirement: Requirement | null;
 }

@@ -35,15 +35,9 @@ export class UserService {
       }
     }
 
-    const weed = upgradesData.dealer.upgrades.find(
-      (u) => u.id === EProduct.WEED,
-    );
-    const customerAmount = upgradesData.dealer.upgrades.find(
-      (u) => u.id === EDealerUpgrade.CUSTOMER_AMOUNT,
-    );
-    const customerNeeds = upgradesData.dealer.upgrades.find(
-      (u) => u.id === EDealerUpgrade.CUSTOMER_NEEDS,
-    );
+    const weed = upgradesData.product[EProduct.WEED];
+    const customerAmount = upgradesData.dealer[EDealerUpgrade.CUSTOMER_AMOUNT];
+    const customerNeeds = upgradesData.dealer[EDealerUpgrade.CUSTOMER_NEEDS];
 
     // Set lastSell to one hour ago to get the full amount of customer when starting the game
     // const lastSell = subHours(new Date(), 1).toISOString();
@@ -55,14 +49,9 @@ export class UserService {
         : STARTING_CASH,
       reputation: 1,
       products: [
-        this.initUserProduct({
+        {
           name: EProduct.WEED,
           quantity: 0,
-        }),
-      ],
-      productUpgrades: [
-        {
-          product: EProduct.WEED,
           title: weed.title,
           image: weed.image,
           level: 0,
@@ -114,12 +103,5 @@ export class UserService {
     if (result.deletedCount === 0) {
       throw new NotFoundException('User not found');
     }
-  }
-
-  initUserProduct(productData: UserProduct) {
-    const product = new UserProduct();
-    product.name = productData.name;
-    product.quantity = productData.quantity;
-    return product;
   }
 }

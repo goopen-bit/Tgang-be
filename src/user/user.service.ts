@@ -54,7 +54,7 @@ export class UserService {
           quantity: 0,
           title: weed.title,
           image: weed.image,
-          level: 0,
+          level: 1,
         },
       ],
       dealerUpgrades: [

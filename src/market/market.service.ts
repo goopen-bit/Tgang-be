@@ -19,6 +19,18 @@ export class MarketService {
       return events[hashInteger % events.length];
   }
 
+  getHistoricalEvents() {
+    const currentTime = Math.floor(Date.now() / 1000);
+    const eventsList = [];
+    for (let i = 0; i < 5; i++) {
+      const secondsSinceEpochStartOfHour = currentTime - (i * 3600);
+      const hash = createHash('sha256').update(secondsSinceEpochStartOfHour.toString()).digest('hex');
+      const hashInteger = parseInt(hash, 16);
+      eventsList.push(events[hashInteger % events.length]);
+    }
+    return eventsList;
+  }
+
   getMarket(id: string) {
     const originalMarket = markets.find((market) => market.id === id);
     if (!originalMarket) {

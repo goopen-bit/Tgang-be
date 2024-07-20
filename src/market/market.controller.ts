@@ -9,6 +9,11 @@ import { GetAuthToken } from '../decorators/get-auth-token.decorator';
 export class MarketController {
   constructor(private marketService: MarketService) {}
 
+  @Get(':marketId/events')
+  getEvents() {
+    return this.marketService.getHistoricalEvents();
+  }
+
   @Get(':marketId')
   getMarket(
     @GetAuthToken() user: AuthTokenData,

@@ -9,9 +9,9 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
   [EDealerUpgrade.CUSTOMER_AMOUNT]: {
     title: 'Customer Amount',
     description: 'Increase the number of customer per hour',
-    basePrice: 3600,
+    basePrice: 4000,
     upgradeMultiplier: 2,
-    baseAmount: 1000,
+    baseAmount: 3600,
     amountMultiplier: 100,
     image: '/assets/hero.png',
     requirement: null,

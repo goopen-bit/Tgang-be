@@ -1,16 +1,11 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import {
-  BASE_LAB_PLOT_PRICE,
-  LAB_PLOT_PRICE_MULTIPLIER,
-} from '../user.const';
-import { getUnixTime } from 'date-fns';
-import {
-  UserDealerUpgrade,
-} from './userUpgrade.schema';
-import { UserLab } from './userLab.shema';
-import { EDealerUpgrade } from '../../upgrade/upgrade.interface';
-import { UserProduct } from './userProduct.schema';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
+import { BASE_LAB_PLOT_PRICE, LAB_PLOT_PRICE_MULTIPLIER } from "../user.const";
+import { getUnixTime } from "date-fns";
+import { UserDealerUpgrade } from "./userUpgrade.schema";
+import { UserLab } from "./userLab.shema";
+import { EDealerUpgrade } from "../../upgrade/upgrade.interface";
+import { UserProduct } from "./userProduct.schema";
 
 @Schema({ _id: false })
 export class LabPlot {
@@ -56,7 +51,7 @@ export class User extends Document {
     get: function () {
       return Math.floor(
         Math.pow(this.labPlots.length + 1, LAB_PLOT_PRICE_MULTIPLIER) *
-          BASE_LAB_PLOT_PRICE,
+          BASE_LAB_PLOT_PRICE
       );
     },
   })
@@ -70,7 +65,9 @@ export class User extends Document {
     get: function () {
       const now = new Date();
       const diff = getUnixTime(now) - getUnixTime(new Date(this.lastSell));
-      const customerAmountUpgrade = this.dealerUpgrades.find((u) => u.product === EDealerUpgrade.CUSTOMER_AMOUNT);
+      const customerAmountUpgrade = this.dealerUpgrades.find(
+        (u) => u.product === EDealerUpgrade.CUSTOMER_AMOUNT
+      );
       const customerAmountMax = customerAmountUpgrade.amount;
 
       if (diff > 3600) {
@@ -80,7 +77,7 @@ export class User extends Document {
       const newCustomers = Math.floor((diff / 3600) * customerAmountMax);
       return Math.min(
         this.customerAmountRemaining + newCustomers,
-        customerAmountMax,
+        customerAmountMax
       );
     },
   })
@@ -92,7 +89,7 @@ export class User extends Document {
   @Prop({
     virtual: true,
     get: function () {
-      return Buffer.from(this.id.toString()).toString('base64');
+      return Buffer.from(this.id.toString()).toString("base64");
     },
   })
   referralToken: string;
@@ -102,6 +99,12 @@ export class User extends Document {
 
   @Prop({ type: [String], default: [] })
   referredUsers: string[];
+
+  @Prop({ required: true, default: 0 })
+  robberyStrike: number;
+
+  @Prop()
+  lastRobbery?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

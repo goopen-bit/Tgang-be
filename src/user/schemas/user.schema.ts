@@ -142,9 +142,12 @@ export class User extends Document {
       const shippingDelayUpgrade = this.shippingUpgrades.find(
         (u) => u.product === EShippingUpgrade.SHIPPING_TIME
       );
-      let shippingDelay = shippingDelayUpgrade.amount;
-      if (!shippingDelayUpgrade) {
-        shippingDelay = shippingUpgrades[EShippingUpgrade.SHIPPING_TIME];
+      
+      let shippingDelay = 0;
+      if (shippingDelayUpgrade) {
+        shippingDelayUpgrade.amount;
+      } else {
+        shippingDelay = shippingUpgrades[EShippingUpgrade.SHIPPING_TIME].baseAmount;
       }
 
       return addSeconds(this.lastShipment, shippingDelay);

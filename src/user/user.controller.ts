@@ -14,7 +14,7 @@ export class UserController {
     return this.userService.findOne(user.id);
   }
 
-  @Get()
+  @Get("/claimDailyReward")
   dailyRobbery(@GetAuthToken() user: AuthTokenData) {
     return this.userService.dailyRobbery(user.id);
   }

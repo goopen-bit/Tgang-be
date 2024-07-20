@@ -34,7 +34,7 @@ export class UserShippingUpgrade {
       if (this.product === EShippingUpgrade.SHIPPING_TIME) {
         return Math.floor(upgrade.baseAmount * Math.pow(upgrade.amountMultiplier, -this.level));
       } else {
-        return Math.floor(upgrade.baseAmount + this.level * upgrade.amountMultiplier);
+        return Math.floor(upgrade.baseAmount + this.level * upgrade.amountMultiplier - 1);
       };
     },
   })

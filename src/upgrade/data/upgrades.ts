@@ -6,6 +6,7 @@ import {
 } from '../upgrade.interface';
 import { dealerUpgrades, productUpgrades } from './dealerUpgrades';
 import { gangsterUpgrades } from './gangsterUpgrades';
+import { shippingUpgrades } from './shippingUpgrades';
 
 export const upgradesData: Record<
   EUpgradeCategory,
@@ -13,5 +14,6 @@ export const upgradesData: Record<
 > = {
   [EUpgradeCategory.PRODUCT]: productUpgrades,
   [EUpgradeCategory.DEALER]: dealerUpgrades,
+  [EUpgradeCategory.SHIPPING]: shippingUpgrades,
   [EUpgradeCategory.GANGSTER]: gangsterUpgrades,
 };

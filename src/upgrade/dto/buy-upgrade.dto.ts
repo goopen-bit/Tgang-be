@@ -1,5 +1,5 @@
 import { IsEnum, IsString } from 'class-validator';
-import { EDealerUpgrade, EUpgradeCategory } from '../upgrade.interface';
+import { EDealerUpgrade, EShippingUpgrade, EUpgradeCategory } from '../upgrade.interface';
 import { EProduct } from '../../product/product.const';
 
 export class BuyUpgradeDto {
@@ -7,5 +7,5 @@ export class BuyUpgradeDto {
   category: EUpgradeCategory;
 
   @IsString()
-  upgrade: EProduct | EDealerUpgrade;
+  upgrade: EProduct | EDealerUpgrade | EShippingUpgrade;
 }

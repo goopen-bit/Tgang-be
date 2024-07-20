@@ -5,8 +5,10 @@ import { upgradesData } from './data/upgrades';
 import {
   DealerUpgrade,
   EDealerUpgrade,
+  EShippingUpgrade,
   EUpgradeCategory,
   ProductUpgrade,
+  ShippingUpgrade,
   Upgrade,
 } from './upgrade.interface';
 import { EProduct } from '../product/product.const';
@@ -72,13 +74,40 @@ export class UpgradeService {
     return user;
   }
 
+  async buyShippingUpgrade(userId: number, upgrade: EShippingUpgrade) {
+    const user = await this.userService.findOne(userId);
+    const shippingUpgrade = upgradesData.shipping[upgrade] as ShippingUpgrade;
+    const su = user.shippingUpgrades.find((u) => u.product === upgrade);
+    let price = shippingUpgrade.basePrice;
+    if (!su) {
+      user.shippingUpgrades.push({
+        product: upgrade,
+        title: shippingUpgrade.title,
+        image: shippingUpgrade.image,
+        level: 1,
+      });
+    } else {
+      price = su.upgradePrice;
+      su.level += 1;
+    }
+
+    if (user.cashAmount < price) {
+      throw new HttpException('Not enough cash', 400);
+    }
+    user.cashAmount -= price;
+
+    await user.save();
+    return user;
+  }
+
   buyUpgrade(userId: number, params: BuyUpgradeDto) {
-    console.log(params);
     switch (params.category) {
       case EUpgradeCategory.PRODUCT:
         return this.buyProductUpgrade(userId, params.upgrade as EProduct);
       case EUpgradeCategory.DEALER:
         return this.buyDealerUpgrade(userId, params.upgrade as EDealerUpgrade);
+      case EUpgradeCategory.SHIPPING:
+        return this.buyShippingUpgrade(userId, params.upgrade as EShippingUpgrade);
       default:
         throw new HttpException('Invalid upgrade category', 400);
     }

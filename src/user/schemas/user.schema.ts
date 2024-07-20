@@ -1,11 +1,13 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import { BASE_LAB_PLOT_PRICE, LAB_PLOT_PRICE_MULTIPLIER } from "../user.const";
-import { getUnixTime } from "date-fns";
-import { UserDealerUpgrade } from "./userUpgrade.schema";
+import { addSeconds, getUnixTime } from "date-fns";
+import { UserDealerUpgrade } from "./userDealerUpgrade.schema";
 import { UserLab } from "./userLab.shema";
-import { EDealerUpgrade } from "../../upgrade/upgrade.interface";
+import { EDealerUpgrade, EShippingUpgrade } from "../../upgrade/upgrade.interface";
 import { UserProduct } from "./userProduct.schema";
+import { UserShippingUpgrade } from "./userShippingUpgrade.schema";
+import { shippingUpgrades } from "src/upgrade/data/shippingUpgrades";
 
 @Schema({ _id: false })
 export class LabPlot {
@@ -42,6 +44,9 @@ export class User extends Document {
 
   @Prop({ type: [UserDealerUpgrade], default: [] })
   dealerUpgrades: UserDealerUpgrade[];
+
+  @Prop({ type: [UserShippingUpgrade], default: [] })
+  shippingUpgrades: UserShippingUpgrade[];
 
   @Prop({ type: [LabPlot], default: [{ plotId: 0 }] })
   labPlots: LabPlot[];
@@ -105,6 +110,29 @@ export class User extends Document {
 
   @Prop()
   lastRobbery?: Date;
+
+  @Prop()
+  lastShipment?: Date;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      if (!this.lastShipment) {
+        return new Date();
+      }
+
+      const shippingDelayUpgrade = this.shippingUpgrades.find(
+        (u) => u.product === EShippingUpgrade.SHIPPING_TIME
+      );
+      let shippingDelay = shippingDelayUpgrade.amount;
+      if (!shippingDelayUpgrade) {
+        shippingDelay = shippingUpgrades[EShippingUpgrade.SHIPPING_TIME];
+      }
+      
+      return addSeconds(this.lastShipment, shippingDelay);
+    },
+  })
+  nextShipment?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

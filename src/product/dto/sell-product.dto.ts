@@ -1,8 +1,9 @@
-import { IsString, IsNumber, Min, ArrayNotEmpty } from 'class-validator';
+import { IsNumber, Min, ArrayNotEmpty, IsEnum } from 'class-validator';
+import { EProduct } from '../product.const';
 
 export class SellProductItemDto {
-  @IsString()
-  product: string;
+  @IsEnum(EProduct)
+  product: EProduct;
 
   @IsNumber()
   @Min(1)

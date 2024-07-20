@@ -11,6 +11,7 @@ import { MarketModule } from './market/market.module';
 import { ProductModule } from './product/product.module';
 import { UpgradeModule } from './upgrade/upgrade.module';
 import { LabModule } from './lab/lab.module';
+import { ShippingModule } from './shipping/shipping.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { LabModule } from './lab/lab.module';
     ProductModule,
     UpgradeModule,
     LabModule,
+    ShippingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

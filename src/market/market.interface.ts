@@ -4,6 +4,7 @@ interface Product {
   name: EProduct;
   price: number;
   discountPrice?: number;
+  previousPrice?: number;
 }
 
 export interface Market {

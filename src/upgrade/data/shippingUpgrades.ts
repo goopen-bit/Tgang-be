@@ -16,7 +16,7 @@ export const shippingUpgrades: Record<EShippingUpgrade, ShippingUpgrade> = {
     description: 'Increase the amount of containers you can ship',
     basePrice: 5000,
     upgradeMultiplier: 2,
-    baseAmount: 1,
+    baseAmount: 0,
     amountMultiplier: 1,
     image: '/assets/hero.png',
     requirement: null,

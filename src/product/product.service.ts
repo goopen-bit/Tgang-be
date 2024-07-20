@@ -1,8 +1,8 @@
-import { HttpException, Injectable, Logger } from '@nestjs/common';
-import { UserService } from '../user/user.service';
-import { BuyProductDto } from './dto/buy-product.dto';
-import { MarketService } from '../market/market.service';
-import { SellProductDto } from './dto/sell-product.dto';
+import { HttpException, Injectable, Logger } from "@nestjs/common";
+import { UserService } from "../user/user.service";
+import { BuyProductDto } from "./dto/buy-product.dto";
+import { MarketService } from "../market/market.service";
+import { SellProductDto } from "./dto/sell-product.dto";
 
 @Injectable()
 export class ProductService {
@@ -10,7 +10,7 @@ export class ProductService {
 
   constructor(
     private userService: UserService,
-    private marketService: MarketService,
+    private marketService: MarketService
   ) {}
 
   async buyProduct(userId: number, marketId: string, params: BuyProductDto) {
@@ -18,15 +18,15 @@ export class ProductService {
     const user = await this.userService.findOne(userId);
     const market = await this.marketService.getMarketWithReputation(
       marketId,
-      userId,
+      userId
     );
     if (!user || !market) {
-      throw new HttpException('User or market not found', 404);
+      throw new HttpException("User or market not found", 404);
     }
 
     const marketProduct = market.products.find((p) => p.name === product);
     if (user.cashAmount < marketProduct.discountPrice * quantity) {
-      throw new HttpException('Not enough cash', 400);
+      throw new HttpException("Not enough cash", 400);
     }
 
     const userProduct = user.products.find((p) => p.name === product);
@@ -34,7 +34,7 @@ export class ProductService {
       user.cashAmount -= marketProduct.discountPrice * quantity;
       userProduct.quantity += quantity;
     } else {
-      throw new HttpException('Product not unlocked', 400);
+      throw new HttpException("Product not unlocked", 400);
     }
     await user.save();
     return user;
@@ -43,32 +43,28 @@ export class ProductService {
   async sellProduct(
     userId: number,
     marketId: string,
-    sellList: SellProductDto,
+    sellList: SellProductDto
   ) {
     const user = await this.userService.findOne(userId);
     const market = await this.marketService.getMarket(marketId);
     console.log(`1`);
 
     if (!user) {
-      throw new HttpException('User not found', 404);
+      throw new HttpException("User not found", 404);
     }
 
     const totalCustomersSold = sellList.batch.reduce(
       (acc, item) => acc + item.amountToSell,
-      0,
+      0
     );
-    console.log(`totalCustomersSold`);
-    console.log(totalCustomersSold);
-    console.log(`user.customerAmount`);
-    console.log(user.customerAmount);
 
     if (totalCustomersSold > user.customerAmount) {
       throw new HttpException(
-        'Attempt to sell more customers than available',
-        400,
+        "Attempt to sell more customers than available",
+        400
       );
     }
-
+    let reputation = 0;
     sellList.batch.forEach((item) => {
       const product = user.products.find((p) => p.name === item.product);
 
@@ -79,25 +75,24 @@ export class ProductService {
       if (product.quantity < item.amountToSell) {
         throw new HttpException(
           `Insufficient quantity of ${item.product}`,
-          400,
+          400
         );
       }
 
       product.quantity -= item.amountToSell;
+      reputation += item.amountToSell;
       const marketPrice = market.products.find(
-        (p) => p.name === item.product,
+        (p) => p.name === item.product
       ).price;
       user.cashAmount += marketPrice * item.amountToSell;
     });
 
     const availableCustomers = user.customerAmount;
-    console.log(`availableCustomers`);
-    console.log(availableCustomers);
 
     if (totalCustomersSold > availableCustomers) {
       throw new HttpException(
-        'Attempt to sell more customers than available',
-        400,
+        "Attempt to sell more customers than available",
+        400
       );
     }
 
@@ -105,7 +100,7 @@ export class ProductService {
     console.log(`user.customerAmountRemaining`);
     console.log(user.customerAmountRemaining);
     user.lastSell = new Date();
-
+    user.reputation += reputation;
     await user.save();
     return user;
   }

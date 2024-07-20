@@ -4,10 +4,15 @@ import { BASE_LAB_PLOT_PRICE, LAB_PLOT_PRICE_MULTIPLIER } from "../user.const";
 import { addSeconds, getUnixTime } from "date-fns";
 import { UserDealerUpgrade } from "./userDealerUpgrade.schema";
 import { UserLab } from "./userLab.shema";
-import { EDealerUpgrade, EShippingUpgrade } from "../../upgrade/upgrade.interface";
+import {
+  EDealerUpgrade,
+  EShippingUpgrade,
+} from "../../upgrade/upgrade.interface";
 import { UserProduct } from "./userProduct.schema";
 import { UserShippingUpgrade } from "./userShippingUpgrade.schema";
 import { shippingUpgrades } from "src/upgrade/data/shippingUpgrades";
+import { reputationLevels } from "../data/reputationLevel";
+import { IReputationLevel } from "../user.interface";
 
 @Schema({ _id: false })
 export class LabPlot {
@@ -35,6 +40,19 @@ export class User extends Document {
 
   @Prop({ required: true })
   reputation: number;
+
+  @Prop({
+    type: Object,
+    virtual: true,
+    get: function (this: User) {
+      return reputationLevels.find(
+        (level) =>
+          this.reputation >= level.minReputation &&
+          this.reputation <= level.maxReputation
+      );
+    },
+  })
+  userLevel: IReputationLevel;
 
   @Prop({ required: true })
   cashAmount: number;
@@ -128,7 +146,7 @@ export class User extends Document {
       if (!shippingDelayUpgrade) {
         shippingDelay = shippingUpgrades[EShippingUpgrade.SHIPPING_TIME];
       }
-      
+
       return addSeconds(this.lastShipment, shippingDelay);
     },
   })

@@ -2,8 +2,8 @@ import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { SellProductDto } from '../product/dto/sell-product.dto';
 import { UserService } from '../user/user.service';
 import { MarketService } from '../market/market.service';
-import { SHIPPING_CONTAINER_CAPACITY } from 'src/user/user.const';
-import { EShippingUpgrade } from 'src/upgrade/upgrade.interface';
+import { SHIPPING_CONTAINER_CAPACITY } from '../user/user.const';
+import { EShippingUpgrade } from '../upgrade/upgrade.interface';
 
 @Injectable()
 export class ShippingService {

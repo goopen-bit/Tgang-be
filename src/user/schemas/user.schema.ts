@@ -10,7 +10,7 @@ import {
 } from "../../upgrade/upgrade.interface";
 import { UserProduct } from "./userProduct.schema";
 import { UserShippingUpgrade } from "./userShippingUpgrade.schema";
-import { shippingUpgrades } from "src/upgrade/data/shippingUpgrades";
+import { shippingUpgrades } from "../../upgrade/data/shippingUpgrades";
 import { reputationLevels } from "../data/reputationLevel";
 import { IReputationLevel } from "../user.interface";
 

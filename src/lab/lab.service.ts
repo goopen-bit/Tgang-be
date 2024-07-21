@@ -4,7 +4,7 @@ import { BuyLabDto } from './dto/buy-lab.dto';
 import { labs } from './data/labs';
 import { EProduct } from '../product/product.const';
 import { User } from '../user/schemas/user.schema';
-import { getUnixTime } from 'date-fns';
+import { productUpgrades } from '../upgrade/data/dealerUpgrades';
 
 @Injectable()
 export class LabService {
@@ -29,8 +29,18 @@ export class LabService {
     return labs[labProduct];
   }
 
+  checkLabRequirements(user: User, labProduct: EProduct) {
+    const lab = this.getLab(labProduct);
+    const userProduct = user.products.find((product) => product.name === labProduct);
+    if (!userProduct || userProduct.level < lab.levelRequirement) {
+      throw new HttpException('Product level is too low', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   async buyLab(userId: number, params: BuyLabDto) {
     const user = await this.userService.findOne(userId);
+    this.checkLabRequirements(user, params.labProduct);
+
     const labPlot = user.labPlots.find((plot) => plot.plotId === params.plotId);
     if (labPlot.lab) {
       throw new HttpException('Plot is not empty', HttpStatus.BAD_REQUEST);

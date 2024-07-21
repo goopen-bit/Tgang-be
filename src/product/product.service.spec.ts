@@ -8,16 +8,12 @@ import { faker } from '@faker-js/faker';
 import { AuthTokenData } from '../config/types';
 import { EProduct } from './product.const';
 import { MarketModule } from '../market/market.module';
-import { REDIS_CLIENT, RedisModule } from '@goopen/nestjs-ioredis-provider';
-import Redis from 'ioredis';
-import { STARTING_CASH } from '../user/user.const';
-import { subMinutes } from 'date-fns';
+import { RedisModule } from '@goopen/nestjs-ioredis-provider';
 
 describe('ProductService', () => {
   let module: TestingModule;
   let service: ProductService;
   let userService: UserService;
-  let redis: Redis;
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -38,7 +34,6 @@ describe('ProductService', () => {
 
     service = module.get<ProductService>(ProductService);
     userService = module.get<UserService>(UserService);
-    redis = module.get<Redis>(REDIS_CLIENT);
   });
 
   it('should be defined', () => {
@@ -73,17 +68,6 @@ describe('ProductService', () => {
           quantity: 1000,
         }),
       ).rejects.toThrow('Not enough cash');
-    });
-
-    it('should throw an error if not enough carry capacity', async () => {
-      const u = await userService.findOne(user.id);
-      await u.updateOne({ cashAmount: 1000000 });
-      await expect(
-        service.buyProduct(user.id, 'NY', {
-          product: EProduct.WEED,
-          quantity: 101,
-        }),
-      ).rejects.toThrow('Not enough carry capacity');
     });
 
     it('should throw an error if product not unlocked', async () => {

@@ -12,6 +12,9 @@ import {
   Upgrade,
 } from './upgrade.interface';
 import { EProduct } from '../product/product.const';
+import { productUpgrades } from './data/dealerUpgrades';
+import { User } from '../user/schemas/user.schema';
+import { shippingUpgrades } from './data/shippingUpgrades';
 
 @Injectable()
 export class UpgradeService {
@@ -21,9 +24,22 @@ export class UpgradeService {
     return upgradesData;
   }
 
+  checkProductRequirements(user: User, upgrade: ProductUpgrade) {
+    const { requirement } = upgrade;
+    if (!requirement) {
+      return;
+    }
+
+    const userProduct = user.products.find((p) => p.name === requirement.product);
+    if (!userProduct || userProduct.level < requirement.level) {
+      throw new HttpException('Upgrade not unlocked', 400);
+    }
+  }
+
   async buyProductUpgrade(userId: number, product: EProduct) {
     const user = await this.userService.findOne(userId);
-    const upgrade = upgradesData.product[product] as ProductUpgrade;
+    const upgrade = productUpgrades[product];
+    this.checkProductRequirements(user, upgrade);
     let price = upgrade.basePrice;
 
     const p = user.products.find((p) => p.name === product);
@@ -74,9 +90,23 @@ export class UpgradeService {
     return user;
   }
 
+  checkShippingRequirements(user: User, upgrade: EShippingUpgrade) {
+    if (upgrade === EShippingUpgrade.SHIPPING_CONTAINERS) {
+      // Shipping containers scale with user referrals
+      const referrals = user.referredUsers.length;
+
+      const shippingUpgrade = user.shippingUpgrades.find((u) => u.product === upgrade);
+      if (shippingUpgrade && shippingUpgrade.level - 1 >= referrals) {
+        throw new HttpException(`Invite ${shippingUpgrade.level} users to unlock next level`, 400);
+      }
+    }
+  }
+
   async buyShippingUpgrade(userId: number, upgrade: EShippingUpgrade) {
     const user = await this.userService.findOne(userId);
-    const shippingUpgrade = upgradesData.shipping[upgrade] as ShippingUpgrade;
+    this.checkShippingRequirements(user, upgrade);
+
+    const shippingUpgrade = shippingUpgrades[upgrade];
     const su = user.shippingUpgrades.find((u) => u.product === upgrade);
     let price = shippingUpgrade.basePrice;
     if (!su) {

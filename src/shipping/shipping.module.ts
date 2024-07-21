@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ShippingService } from './shipping.service';
 import { ShippingController } from './shipping.controller';
 import { UserModule } from '../user/user.module';
-import { MarketModule } from 'src/market/market.module';
+import { MarketModule } from '../market/market.module';
 
 @Module({
   imports: [

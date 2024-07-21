@@ -1,20 +1,20 @@
-import { EProduct } from '../product/product.const';
+import { EProduct } from "../product/product.const";
 
 export enum EUpgradeCategory {
-  PRODUCT = 'product',
-  DEALER = 'dealer',
-  SHIPPING = 'shipping',
-  GANGSTER = 'gangster', // TODO: Implement gangster upgrades
+  PRODUCT = "product",
+  DEALER = "dealer",
+  SHIPPING = "shipping",
+  GANGSTER = "gangster", // TODO: Implement gangster upgrades
 }
 
 export enum EDealerUpgrade {
-  CUSTOMER_AMOUNT = 'customer_amount',
-  CUSTOMER_NEEDS = 'customer_needs',
+  CUSTOMER_AMOUNT = "customer_amount",
+  CUSTOMER_NEEDS = "customer_needs",
 }
 
 export enum EShippingUpgrade {
-  SHIPPING_TIME = 'shipping_time',
-  SHIPPING_CONTAINERS = 'shipping_containers',
+  SHIPPING_TIME = "shipping_time",
+  SHIPPING_CONTAINERS = "shipping_containers",
 }
 
 export interface Requirement {
@@ -30,7 +30,7 @@ export interface ShippingUpgrade {
   baseAmount: number;
   amountMultiplier: number;
   image: string;
-  requirement: Requirement | null;
+  requirements: Requirement[] | null;
 }
 
 export interface DealerUpgrade {
@@ -41,7 +41,7 @@ export interface DealerUpgrade {
   baseAmount: number;
   amountMultiplier: number;
   image: string;
-  requirement: Requirement | null;
+  requirements: Requirement[] | null;
 }
 
 export interface ProductUpgrade {
@@ -51,7 +51,7 @@ export interface ProductUpgrade {
   upgradeMultiplier: number;
   baseDiscount: number;
   image: string;
-  requirement: Requirement | null;
+  requirements: Requirement[] | null;
 }
 
 export interface Upgrade {

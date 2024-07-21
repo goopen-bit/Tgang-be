@@ -8,6 +8,7 @@ import {
   EShippingUpgrade,
   EUpgradeCategory,
   ProductUpgrade,
+  Requirement,
   ShippingUpgrade,
   Upgrade,
 } from './upgrade.interface';
@@ -25,15 +26,17 @@ export class UpgradeService {
   }
 
   checkProductRequirements(user: User, upgrade: ProductUpgrade) {
-    const { requirement } = upgrade;
-    if (!requirement) {
+    const { requirements } = upgrade;
+    if (!requirements) {
       return;
     }
 
-    const userProduct = user.products.find((p) => p.name === requirement.product);
-    if (!userProduct || userProduct.level < requirement.level) {
-      throw new HttpException('Upgrade not unlocked', 400);
-    }
+    requirements.forEach((requirement) => {
+      const userProduct = user.products.find((p) => p.name === requirement.product);
+      if (!userProduct || userProduct.level < requirement.level) {
+        throw new HttpException('Upgrade not unlocked', 400);
+      }
+    });
   }
 
   async buyProductUpgrade(userId: number, product: EProduct) {

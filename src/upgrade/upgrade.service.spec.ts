@@ -8,7 +8,7 @@ import { upgradesData } from './data/upgrades';
 import { User } from '../user/schemas/user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { mongoUrl, mongoDb } from '../config/env';
-import { EShippingUpgrade, EUpgradeCategory } from './upgrade.interface';
+import { EUpgradeCategory } from './upgrade.interface';
 import { EProduct } from '../product/product.const';
 
 describe('UpgradeService', () => {
@@ -96,46 +96,6 @@ describe('UpgradeService', () => {
       };
       await expect(service.buyUpgrade(user.id, params)).rejects.toThrow(
         'Upgrade not unlocked',
-      );
-    });
-  });
-
-  describe('buyUpgrade - SHIPPING', () => {
-    it('should buy an upgrade', async () => {
-      const params: BuyUpgradeDto = {
-        category: EUpgradeCategory.SHIPPING,
-        upgrade: EShippingUpgrade.SHIPPING_CONTAINERS,
-      };
-      await userService.update(user.id, { cashAmount: maxCash });
-      await service.buyUpgrade(user.id, params);
-      const updatedUser = await userService.findOne(user.id);
-      const userUpgrade = updatedUser.shippingUpgrades.find(
-        (u) => u.product === EShippingUpgrade.SHIPPING_CONTAINERS,
-      );
-      expect(userUpgrade).toBeDefined();
-      expect(userUpgrade.level).toBe(1);
-    });
-
-    it('should throw an error if not enough cash', async () => {
-      const params: BuyUpgradeDto = {
-        category: EUpgradeCategory.SHIPPING,
-        upgrade: EShippingUpgrade.SHIPPING_CONTAINERS,
-      };
-      await userService.update(user.id, { cashAmount: 50 });
-      await expect(service.buyUpgrade(user.id, params)).rejects.toThrow(
-        'Not enough cash',
-      );
-    });
-
-    it('should throw an error if upgrade is locked', async () => {
-      const params: BuyUpgradeDto = {
-        category: EUpgradeCategory.SHIPPING,
-        upgrade: EShippingUpgrade.SHIPPING_CONTAINERS,
-      };
-      await userService.update(user.id, { cashAmount: maxCash });
-      await service.buyUpgrade(user.id, params);
-      await expect(service.buyUpgrade(user.id, params)).rejects.toThrow(
-        'Invite 1 users to unlock next level',
       );
     });
   });

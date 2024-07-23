@@ -1,6 +1,12 @@
-import { EProduct } from '../product/product.const';
+import { EProduct } from "../product/product.const";
 
-interface Product {
+export interface Event {
+  product: EProduct;
+  description: string;
+  effect: number;
+}
+
+export interface Product {
   name: EProduct;
   price: number;
   discountPrice?: number;
@@ -12,10 +18,4 @@ export interface Market {
   name: string;
   products: Product[];
   event?: Event;
-}
-
-export interface Event {
-  product: EProduct;
-  description: string;
-  effect: number;
 }

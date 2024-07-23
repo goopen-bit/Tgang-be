@@ -1,16 +1,10 @@
 export enum EProduct {
-  WEED = 'Weed',
-  COCAINE = 'Coke',
-  MDMA = 'MDMA',
-  METH = 'Meth',
-  LSD = 'LSD',
-  HEROIN = 'Heroin',
-  // KETAMINE = "ketamine",
-  // MUSHROOMS = "Mushrooms",
-  // PCP = "PCP",
-  // DMT = "DMT",
-  // AMPHETAMINE = "Amphetamine",
-  // HASHISH = "Hashish",
+  WEED = "Weed",
+  COCAINE = "Coke",
+  MDMA = "MDMA",
+  METH = "Meth",
+  LSD = "LSD",
+  HEROIN = "Heroin",
 }
 
 export enum EProductWeight {

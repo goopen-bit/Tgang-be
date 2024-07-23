@@ -3,7 +3,6 @@ import { EProduct } from "../product/product.const";
 export enum EUpgradeCategory {
   PRODUCT = "product",
   DEALER = "dealer",
-  SHIPPING = "shipping",
   GANGSTER = "gangster", // TODO: Implement gangster upgrades
 }
 
@@ -57,6 +56,5 @@ export interface ProductUpgrade {
 export interface Upgrade {
   [EUpgradeCategory.PRODUCT]: Record<EProduct, ProductUpgrade>;
   [EUpgradeCategory.DEALER]: Record<EDealerUpgrade, DealerUpgrade>;
-  [EUpgradeCategory.SHIPPING]: Record<EShippingUpgrade, ShippingUpgrade>;
   [EUpgradeCategory.GANGSTER]: Record<any, any>;
 }

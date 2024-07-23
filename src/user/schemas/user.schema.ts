@@ -1,16 +1,14 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import { BASE_LAB_PLOT_PRICE, LAB_PLOT_PRICE_MULTIPLIER } from "../user.const";
-import { addSeconds, getUnixTime } from "date-fns";
+import { getUnixTime } from "date-fns";
 import { UserDealerUpgrade } from "./userDealerUpgrade.schema";
 import { UserLab } from "./userLab.shema";
 import {
   EDealerUpgrade,
-  EShippingUpgrade,
 } from "../../upgrade/upgrade.interface";
 import { UserProduct } from "./userProduct.schema";
-import { UserShippingUpgrade } from "./userShippingUpgrade.schema";
-import { shippingUpgrades } from "../../upgrade/data/shippingUpgrades";
+import { UserShipping } from "./userShipping.schema";
 import { reputationLevels } from "../data/reputationLevel";
 import { IReputationLevel } from "../user.interface";
 
@@ -63,8 +61,8 @@ export class User extends Document {
   @Prop({ type: [UserDealerUpgrade], default: [] })
   dealerUpgrades: UserDealerUpgrade[];
 
-  @Prop({ type: [UserShippingUpgrade], default: [] })
-  shippingUpgrades: UserShippingUpgrade[];
+  @Prop({ type: [UserShipping], default: [] })
+  shipping: UserShipping[];
 
   @Prop({ type: [LabPlot], default: [{ plotId: 0 }] })
   labPlots: LabPlot[];
@@ -128,32 +126,6 @@ export class User extends Document {
 
   @Prop()
   lastRobbery?: Date;
-
-  @Prop()
-  lastShipment?: Date;
-
-  @Prop({
-    virtual: true,
-    get: function () {
-      if (!this.lastShipment) {
-        return new Date();
-      }
-
-      const shippingDelayUpgrade = this.shippingUpgrades.find(
-        (u) => u.product === EShippingUpgrade.SHIPPING_TIME
-      );
-      
-      let shippingDelay = 0;
-      if (shippingDelayUpgrade) {
-        shippingDelayUpgrade.amount;
-      } else {
-        shippingDelay = shippingUpgrades[EShippingUpgrade.SHIPPING_TIME].baseAmount;
-      }
-
-      return addSeconds(this.lastShipment, shippingDelay);
-    },
-  })
-  nextShipment?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

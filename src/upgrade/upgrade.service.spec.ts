@@ -100,46 +100,6 @@ describe('UpgradeService', () => {
     });
   });
 
-  describe('buyUpgrade - SHIPPING', () => {
-    it('should buy an upgrade', async () => {
-      const params: BuyUpgradeDto = {
-        category: EUpgradeCategory.SHIPPING,
-        upgrade: EShippingUpgrade.SHIPPING_CONTAINERS,
-      };
-      await userService.update(user.id, { cashAmount: maxCash });
-      await service.buyUpgrade(user.id, params);
-      const updatedUser = await userService.findOne(user.id);
-      const userUpgrade = updatedUser.shippingUpgrades.find(
-        (u) => u.product === EShippingUpgrade.SHIPPING_CONTAINERS,
-      );
-      expect(userUpgrade).toBeDefined();
-      expect(userUpgrade.level).toBe(1);
-    });
-
-    it('should throw an error if not enough cash', async () => {
-      const params: BuyUpgradeDto = {
-        category: EUpgradeCategory.SHIPPING,
-        upgrade: EShippingUpgrade.SHIPPING_CONTAINERS,
-      };
-      await userService.update(user.id, { cashAmount: 50 });
-      await expect(service.buyUpgrade(user.id, params)).rejects.toThrow(
-        'Not enough cash',
-      );
-    });
-
-    it('should throw an error if upgrade is locked', async () => {
-      const params: BuyUpgradeDto = {
-        category: EUpgradeCategory.SHIPPING,
-        upgrade: EShippingUpgrade.SHIPPING_CONTAINERS,
-      };
-      await userService.update(user.id, { cashAmount: maxCash });
-      await service.buyUpgrade(user.id, params);
-      await expect(service.buyUpgrade(user.id, params)).rejects.toThrow(
-        'Invite 1 users to unlock next level',
-      );
-    });
-  });
-
   describe('findAll', () => {
     it('should return all upgrades', () => {
       const upgrades = service.findAll();

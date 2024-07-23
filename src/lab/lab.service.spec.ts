@@ -8,7 +8,7 @@ import { faker } from '@faker-js/faker';
 import { AuthTokenData } from '../config/types';
 import { UserService } from '../user/user.service';
 import { EProduct } from '../product/product.const';
-import { subHours, subMinutes } from 'date-fns';
+import { subHours } from 'date-fns';
 
 describe('LabService', () => {
   let module: TestingModule;

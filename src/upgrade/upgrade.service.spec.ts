@@ -8,7 +8,7 @@ import { upgradesData } from './data/upgrades';
 import { User } from '../user/schemas/user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { mongoUrl, mongoDb } from '../config/env';
-import { EShippingUpgrade, EUpgradeCategory } from './upgrade.interface';
+import { EUpgradeCategory } from './upgrade.interface';
 import { EProduct } from '../product/product.const';
 
 describe('UpgradeService', () => {

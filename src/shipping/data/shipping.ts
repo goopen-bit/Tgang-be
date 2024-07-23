@@ -1,89 +1,89 @@
-import { EShipping } from "../shipping.const";
-import { Shipping } from "../shipping.interface";
+import { EShippingMethod } from "../shipping.const";
+import { ShippingMethod } from "../shipping.interface";
 
-export const shipping: Record<EShipping, Shipping> = {
-  [EShipping.ENVELOPE]: {
+export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
+  [EShippingMethod.ENVELOPE]: {
     title: 'Envelope',
     description: 'Send your goods in an envelope.',
     basePrice: 100,
     baseCapacityUpgradePrice: 100,
     baseCapacity: 10,
-    baseShippingTimeUpgradePrice: 100,
-    baseShippingTime: 60 * 60 * 24,
+    basShippingTimeUpgradePrice: 100,
+    basShippingTime: 60 * 60 * 24,
     image: 'https://via.placeholder.com/150',
     requirement: null,
   },
-  [EShipping.PACKAGE]: {
+  [EShippingMethod.PACKAGE]: {
     title: 'Package',
     description: 'Send your goods in a package.',
     basePrice: 500,
     baseCapacityUpgradePrice: 500,
     baseCapacity: 50,
-    baseShippingTimeUpgradePrice: 500,
-    baseShippingTime: 60 * 60 * 24,
+    basShippingTimeUpgradePrice: 500,
+    basShippingTime: 60 * 60 * 24,
     image: 'https://via.placeholder.com/150',
     requirement: null,
   },
-  [EShipping.PALLET]: {
+  [EShippingMethod.PALLET]: {
     title: 'Pallet',
     description: 'Send your goods in a pallet.',
     basePrice: 2500,
     baseCapacityUpgradePrice: 2500,
     baseCapacity: 500,
-    baseShippingTimeUpgradePrice: 2500,
-    baseShippingTime: 60 * 60 * 24,
+    basShippingTimeUpgradePrice: 2500,
+    basShippingTime: 60 * 60 * 24,
     image: 'https://via.placeholder.com/150',
     requirement: {
       level: 10,
     },
   },
-  [EShipping.TRUCK]: {
+  [EShippingMethod.TRUCK]: {
     title: 'Truck',
     description: 'Send your goods in a truck.',
     basePrice: 5000,
     baseCapacityUpgradePrice: 10000,
     baseCapacity: 5000,
-    baseShippingTimeUpgradePrice: 10000,
-    baseShippingTime: 60 * 60 * 24,
+    basShippingTimeUpgradePrice: 10000,
+    basShippingTime: 60 * 60 * 24,
     image: 'https://via.placeholder.com/150',
     requirement: {
       level: 15,
     },
   },
-  [EShipping.CONTAINER]: {
+  [EShippingMethod.CONTAINER]: {
     title: 'Container',
     description: 'Send your goods in a container.',
     basePrice: 10000,
     baseCapacityUpgradePrice: 1000000,
     baseCapacity: 1000000,
-    baseShippingTimeUpgradePrice: 1000000,
-    baseShippingTime: 60 * 60 * 48,
+    basShippingTimeUpgradePrice: 1000000,
+    basShippingTime: 60 * 60 * 48,
     image: 'https://via.placeholder.com/150',
     requirement: {
       level: 20,
     },
   },
-  [EShipping.PLANE]: {
+  [EShippingMethod.PLANE]: {
     title: 'Plane',
     description: 'Send your goods in a plane.',
     basePrice: 5000,
     baseCapacityUpgradePrice: 10000,
     baseCapacity: 1000,
-    baseShippingTimeUpgradePrice: 10000,
-    baseShippingTime: 60 * 60 * 6,
+    basShippingTimeUpgradePrice: 10000,
+    basShippingTime: 60 * 60 * 6,
     image: 'https://via.placeholder.com/150',
     requirement: {
       level: 25,
     },
   },
-  [EShipping.ROCKET]: {
+  [EShippingMethod.ROCKET]: {
     title: 'Rocket',
     description: 'Send your goods in a plane.',
     basePrice: 1000000,
     baseCapacityUpgradePrice: 1000000,
     baseCapacity: 500,
-    baseShippingTimeUpgradePrice: 10000,
-    baseShippingTime: 60 * 60 * 2,
+    basShippingTimeUpgradePrice: 10000,
+    basShippingTime: 60 * 60 * 2,
     image: 'https://via.placeholder.com/150',
     requirement: {
       level: 25,

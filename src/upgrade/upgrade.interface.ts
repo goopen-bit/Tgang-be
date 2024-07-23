@@ -11,25 +11,9 @@ export enum EDealerUpgrade {
   CUSTOMER_NEEDS = "customer_needs",
 }
 
-export enum EShippingUpgrade {
-  SHIPPING_TIME = "shipping_time",
-  SHIPPING_CONTAINERS = "shipping_containers",
-}
-
 export interface Requirement {
   product: EProduct;
   level: number;
-}
-
-export interface ShippingUpgrade {
-  title: string;
-  description: string;
-  basePrice: number;
-  upgradeMultiplier: number;
-  baseAmount: number;
-  amountMultiplier: number;
-  image: string;
-  requirements: Requirement[] | null;
 }
 
 export interface DealerUpgrade {

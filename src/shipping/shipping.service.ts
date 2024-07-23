@@ -2,9 +2,10 @@ import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { MarketService } from '../market/market.service';
 import { ShipProductDto } from './dto/ship-product.dto';
-import { EShipping } from './shipping.const';
-import { shipping } from './data/shipping';
-import { Shipping } from './shipping.interface';
+import { EShippingMethod } from './shipping.const';
+import { shippingMethods } from './data/shipping';
+import { ShippingMethod } from './shipping.interface';
+import { User } from '../user/schemas/user.schema';
 
 @Injectable()
 export class ShippingService {
@@ -15,8 +16,8 @@ export class ShippingService {
     private marketService: MarketService,
   ) {}
 
-  checkShippingRequirements(user: User, upgrade: EShipping) {
-    // if (upgrade === EShippingUpgrade.SHIPPING_CONTAINERS) {
+  checkShippingRequirements(user: User, upgrade: EShippingMethod) {
+    // if (upgrade === EShippingMethodUpgrade.SHIPPING_CONTAINERS) {
     //   // Shipping containers scale with user referrals
     //   const referrals = user.referredUsers.length;
 
@@ -27,7 +28,7 @@ export class ShippingService {
     // }
   }
 
-  async buyShippingUpgrade(userId: number, upgrade: EShipping) {
+  async buyShippingUpgrade(userId: number, upgrade: EShippingMethod) {
     this.logger.debug(`User ${userId} is buying shipping upgrade ${upgrade}`);
 
     const user = await this.userService.findOne(userId);
@@ -38,7 +39,7 @@ export class ShippingService {
       throw new HttpException('Upgrade already bought', 400);
     }
 
-    const shippingUpgrade = shipping[upgrade] as Shipping;
+    const shippingUpgrade = shippingMethods[upgrade] as ShippingMethod;
     if (user.cashAmount < shippingUpgrade.basePrice) {
       throw new HttpException('Not enough cash', 400);
     }
@@ -55,7 +56,7 @@ export class ShippingService {
     return user;
   }
 
-  async upgradeShippingCapacity(userId: number, upgrade: EShipping) {
+  async upgradShippingCapacity(userId: number, upgrade: EShippingMethod) {
     this.logger.debug(`User ${userId} is upgrading shipping capacity ${upgrade}`);
 
     const user = await this.userService.findOne(userId);
@@ -74,7 +75,7 @@ export class ShippingService {
     return user;
   }
 
-  async upgradeShippingTime(userId: number, upgrade: EShipping) {
+  async upgradShippingTime(userId: number, upgrade: EShippingMethod) {
     this.logger.debug(`User ${userId} is upgrading shipping time ${upgrade}`);
 
     const user = await this.userService.findOne(userId);
@@ -94,7 +95,7 @@ export class ShippingService {
   }
 
   async shipProduct(userId: number, marketId: string, ship: ShipProductDto) {
-    this.logger.debug(`User ${userId} is shipping products ${JSON.stringify(batch)}`);
+    this.logger.debug(`User ${userId} is shipping products ${JSON.stringify(ship.product)}`);
 
     const user = await this.userService.findOne(userId);
     const method = user.shipping.find((s) => s.method === ship.shippingMethod);
@@ -114,7 +115,7 @@ export class ShippingService {
     }
 
     const market = await this.marketService.getMarket(marketId);
-    const marketProduct = market.products.find((p) => p.name === b.product);
+    const marketProduct = market.products.find((p) => p.name === ship.product);
     const product = user.products.find((p) => p.name === ship.product);
     if (product.quantity < ship.amount) {
       this.logger.error(`Not enough quantity of product ${ship.product}`);

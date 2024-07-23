@@ -1,4 +1,4 @@
-export enum EShipping {
+export enum EShippingMethod {
   ENVELOPE = 'Envelope',
   PACKAGE = 'Package',
   PALLET = 'Pallet',

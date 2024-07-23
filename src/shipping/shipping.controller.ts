@@ -4,7 +4,7 @@ import { AuthTokenData } from '../config/types';
 import { GetAuthToken } from '../decorators/get-auth-token.decorator';
 import { Auth } from '../decorators/auth.decorator';
 import { ShipProductDto } from './dto/ship-product.dto';
-import { EShipping } from './shipping.const';
+import { EShippingMethod } from './shipping.const';
 import { IsEnum } from 'class-validator';
 
 @Auth()
@@ -15,7 +15,7 @@ export class ShippingController {
   @Post('/:method/buy')
   buy(
     @GetAuthToken() user: AuthTokenData,
-    @Param('method') method: EShipping
+    @Param('method') method: EShippingMethod
   ) {
     return this.shippingService.buyShippingUpgrade(user.id, method);
   }
@@ -23,17 +23,17 @@ export class ShippingController {
   @Put('/:method/capacity')
   upgradeCapacity(
     @GetAuthToken() user: AuthTokenData,
-    @Param('method') method: EShipping,
+    @Param('method') method: EShippingMethod,
   ) {
-    return this.shippingService.upgradeShippingCapacity(user.id, method);
+    return this.shippingService.upgradShippingCapacity(user.id, method);
   }
 
   @Put('/:method/shipping-time')
   upgradeProduction(
     @GetAuthToken() user: AuthTokenData,
-    @Param('method') method: EShipping,
+    @Param('method') method: EShippingMethod,
   ) {
-    return this.shippingService.upgradeShippingTime(user.id, method);
+    return this.shippingService.upgradShippingTime(user.id, method);
   }
 
   @Post(':marketId/ship')

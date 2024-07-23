@@ -3,7 +3,7 @@ import { addSeconds } from 'date-fns';
 import { shippingMethods } from '../../shipping/data/shipping';
 import { EShippingMethod } from '../../shipping/shipping.const';
 import { SHIPPING_CAPACITY_PRICE_MULTIPLIER, SHIPPING_TIME_MULTIPLIER, SHIPPING_TIME_PRICE_MULTIPLIER } from '../user.const';
-import { ShippingMethod } from '../../shipping/shipping.interface';
+import { Requirement, ShippingMethod } from '../../shipping/shipping.interface';
 
 @Schema({ _id: false })
 export class UserShipping {
@@ -76,4 +76,24 @@ export class UserShipping {
     },
   })
   nextShipment?: Date;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const ship = shippingMethods[this.method] as ShippingMethod;
+      if (!ship.requirement) {
+        return null;
+      }
+      if (ship.requirement.type === 'fixed') {
+        return {
+          referredUsers: ship.requirement.referredUsers,
+        };
+      } else if (ship.requirement.type === 'linear') {
+        return {
+          referredUsers: this.capacityLevel * ship.requirement.referredUsers,
+        };
+      }
+    },
+  })
+  requirement?: Requirement | null;
 }

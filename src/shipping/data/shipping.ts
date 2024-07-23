@@ -33,9 +33,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     basShippingTimeUpgradePrice: 2500,
     basShippingTime: 60 * 60 * 24,
     image: 'https://via.placeholder.com/150',
-    requirement: {
-      level: 10,
-    },
+    requirement: null,
   },
   [EShippingMethod.TRUCK]: {
     title: 'Truck',
@@ -46,9 +44,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     basShippingTimeUpgradePrice: 10000,
     basShippingTime: 60 * 60 * 24,
     image: 'https://via.placeholder.com/150',
-    requirement: {
-      level: 15,
-    },
+    requirement: null,
   },
   [EShippingMethod.CONTAINER]: {
     title: 'Container',
@@ -60,7 +56,8 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     basShippingTime: 60 * 60 * 48,
     image: 'https://via.placeholder.com/150',
     requirement: {
-      level: 20,
+      referredUsers: 2,
+      type: 'fixed',
     },
   },
   [EShippingMethod.PLANE]: {
@@ -73,7 +70,8 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     basShippingTime: 60 * 60 * 6,
     image: 'https://via.placeholder.com/150',
     requirement: {
-      level: 25,
+      referredUsers: 2,
+      type: 'linear',
     },
   },
   [EShippingMethod.ROCKET]: {
@@ -86,7 +84,8 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     basShippingTime: 60 * 60 * 2,
     image: 'https://via.placeholder.com/150',
     requirement: {
-      level: 25,
+      referredUsers: 5,
+      type: 'linear',
     },
   },
 };

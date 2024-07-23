@@ -7,5 +7,12 @@ export interface ShippingMethod {
   basShippingTimeUpgradePrice: number;
   basShippingTime: number;
   image: string;
-  requirement: any;
+  requirement: Requirement | null;
+}
+
+export type UpgradeRequirementType = 'fixed' | 'linear';
+
+export interface Requirement {
+  referredUsers: number;
+  type: UpgradeRequirementType;
 }

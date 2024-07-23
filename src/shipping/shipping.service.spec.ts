@@ -65,6 +65,15 @@ describe('ShippingService', () => {
         'Upgrade already bought',
       );
     });
+
+    it('should throw error if not enough referred users', async () => {
+      const u = await userService.findOne(user.id);
+      u.referredUsers = [];
+      await u.save();
+      await expect(service.buyShippingUpgrade(user.id, EShippingMethod.PLANE)).rejects.toThrow(
+        'Invite 2 users to upgrade',
+      );
+    });
   });
 
   describe('upgradEShippingMethodCapacity', () => {
@@ -92,6 +101,15 @@ describe('ShippingService', () => {
         'Upgrade not bought',
       );
     });
+
+    it('should throw error if not enough referred users', async () => {
+      const u = await userService.findOne(user.id);
+      u.referredUsers = [];
+      await u.save();
+      await expect(service.upgradShippingCapacity(user.id, EShippingMethod.PLANE)).rejects.toThrow(
+        'Invite 2 users to upgrade',
+      );
+    });
   });
 
   describe('upgradShippingTime', () => {
@@ -117,6 +135,15 @@ describe('ShippingService', () => {
     it('should throw error if upgrade not bought', async () => {
       await expect(service.upgradShippingTime(user.id, EShippingMethod.ENVELOPE)).rejects.toThrow(
         'Upgrade not bought',
+      );
+    });
+
+    it('should throw error if not enough referred users', async () => {
+      const u = await userService.findOne(user.id);
+      u.referredUsers = [];
+      await u.save();
+      await expect(service.upgradShippingTime(user.id, EShippingMethod.PLANE)).rejects.toThrow(
+        'Invite 2 users to upgrade',
       );
     });
   });

@@ -3,7 +3,7 @@ import { ShippingMethod } from "../shipping.interface";
 
 export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
   [EShippingMethod.ENVELOPE]: {
-    title: 'Envelope',
+    title: EShippingMethod.ENVELOPE,
     description: 'Send your goods in an envelope.',
     basePrice: 100,
     baseCapacityUpgradePrice: 100,
@@ -14,7 +14,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     requirement: null,
   },
   [EShippingMethod.PACKAGE]: {
-    title: 'Package',
+    title: EShippingMethod.PACKAGE,
     description: 'Send your goods in a package.',
     basePrice: 500,
     baseCapacityUpgradePrice: 500,
@@ -25,7 +25,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     requirement: null,
   },
   [EShippingMethod.PALLET]: {
-    title: 'Pallet',
+    title: EShippingMethod.PALLET,
     description: 'Send your goods in a pallet.',
     basePrice: 2500,
     baseCapacityUpgradePrice: 2500,
@@ -36,7 +36,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     requirement: null,
   },
   [EShippingMethod.TRUCK]: {
-    title: 'Truck',
+    title: EShippingMethod.TRUCK,
     description: 'Send your goods in a truck.',
     basePrice: 5000,
     baseCapacityUpgradePrice: 10000,
@@ -47,7 +47,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     requirement: null,
   },
   [EShippingMethod.CONTAINER]: {
-    title: 'Container',
+    title: EShippingMethod.CONTAINER,
     description: 'Send your goods in a container.',
     basePrice: 10000,
     baseCapacityUpgradePrice: 1000000,
@@ -61,7 +61,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     },
   },
   [EShippingMethod.PLANE]: {
-    title: 'Plane',
+    title: EShippingMethod.PLANE,
     description: 'Send your goods in a plane.',
     basePrice: 5000,
     baseCapacityUpgradePrice: 10000,
@@ -75,7 +75,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     },
   },
   [EShippingMethod.ROCKET]: {
-    title: 'Rocket',
+    title: EShippingMethod.ROCKET,
     description: 'Send your goods in a plane.',
     basePrice: 1000000,
     baseCapacityUpgradePrice: 1000000,

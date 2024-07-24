@@ -16,6 +16,10 @@ export class ShippingService {
     private marketService: MarketService,
   ) {}
 
+  getShippingMethods() {
+    return shippingMethods;
+  }
+
   checkShippingRequirements(user: User, upgrade: EShippingMethod) {
     const shippingUpgrade = shippingMethods[upgrade] as ShippingMethod;
     if (!shippingUpgrade.requirement) {

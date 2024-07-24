@@ -32,7 +32,7 @@ export class ShippingController {
     return this.shippingService.upgradShippingCapacity(user.id, method);
   }
 
-  @Put('/:method/shipping-time')
+  @Put('/:method/time')
   upgradeProduction(
     @GetAuthToken() user: AuthTokenData,
     @Param('method') method: EShippingMethod,

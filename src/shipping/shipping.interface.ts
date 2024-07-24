@@ -1,5 +1,7 @@
+import { EShippingMethod } from "./shipping.const";
+
 export interface ShippingMethod {
-  title: string;
+  title: EShippingMethod;
   description: string;
   basePrice: number;
   baseCapacityUpgradePrice: number;

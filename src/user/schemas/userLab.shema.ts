@@ -15,8 +15,14 @@ export class UserLab {
   @Prop({ required: true })
   title: string;
 
-  @Prop({ required: true })
-  image: string;
+  @Prop({
+    virtual: true,
+    get: function () {
+      const lab = labs[this.product];
+      return lab.image;
+    },
+  })
+  image?: string;
 
   @Prop({ required: true, default: 1 })
   capacityLevel: number;

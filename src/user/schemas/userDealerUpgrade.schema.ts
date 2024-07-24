@@ -10,8 +10,14 @@ export class UserDealerUpgrade {
   @Prop({ required: true })
   title: string;
 
-  @Prop({ required: true })
-  image: string;
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = dealerUpgrades[this.product];
+      return upgrade.image;
+    },
+  })
+  image?: string;
 
   @Prop({ required: true })
   level: number;

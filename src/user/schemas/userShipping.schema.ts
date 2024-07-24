@@ -17,8 +17,14 @@ export class UserShipping {
   @Prop({ required: true })
   title: string;
 
-  @Prop({ required: true })
-  image: string;
+  @Prop({
+    virtual: true,
+    get: function () {
+      const product = shippingMethods[this.name];
+      return product.image;
+    },
+  })
+  image?: string;
 
   @Prop({ required: true, default: 1 })
   capacityLevel: number;

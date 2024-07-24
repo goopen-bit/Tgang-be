@@ -10,8 +10,14 @@ export class UserProduct {
   @Prop({ required: true })
   quantity: number;
 
-  @Prop({ required: true })
-  image: string;
+  @Prop({
+    virtual: true,
+    get: function () {
+      const product = productUpgrades[this.name];
+      return product.image;
+    },
+  })
+  image?: string;
 
   @Prop({ required: true })
   level: number;

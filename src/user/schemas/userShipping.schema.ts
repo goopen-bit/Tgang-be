@@ -20,7 +20,7 @@ export class UserShipping {
   @Prop({
     virtual: true,
     get: function () {
-      const product = shippingMethods[this.name];
+      const product = shippingMethods[this.method];
       return product.image;
     },
   })

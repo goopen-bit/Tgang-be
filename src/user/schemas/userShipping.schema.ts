@@ -1,9 +1,13 @@
-import { Prop, Schema } from '@nestjs/mongoose';
-import { addSeconds } from 'date-fns';
-import { shippingMethods } from '../../shipping/data/shipping';
-import { EShippingMethod } from '../../shipping/shipping.const';
-import { SHIPPING_CAPACITY_PRICE_MULTIPLIER, SHIPPING_TIME_MULTIPLIER, SHIPPING_TIME_PRICE_MULTIPLIER } from '../user.const';
-import { Requirement, ShippingMethod } from '../../shipping/shipping.interface';
+import { Prop, Schema } from "@nestjs/mongoose";
+import { addSeconds } from "date-fns";
+import { shippingMethods } from "../../shipping/data/shipping";
+import { EShippingMethod } from "../../shipping/shipping.const";
+import {
+  SHIPPING_CAPACITY_PRICE_MULTIPLIER,
+  SHIPPING_TIME_MULTIPLIER,
+  SHIPPING_TIME_PRICE_MULTIPLIER,
+} from "../user.const";
+import { Requirement, ShippingMethod } from "../../shipping/shipping.interface";
 
 @Schema({ _id: false })
 export class UserShipping {
@@ -35,7 +39,10 @@ export class UserShipping {
     virtual: true,
     get: function () {
       const ship = shippingMethods[this.method] as ShippingMethod;
-      return Math.floor(ship.basShippingTime * Math.pow(SHIPPING_TIME_MULTIPLIER, -(this.level - 1)));
+      return Math.floor(
+        ship.basShippingTime *
+          Math.pow(SHIPPING_TIME_MULTIPLIER, -(this.level - 1))
+      );
     },
   })
   shippingTime?: number;
@@ -45,7 +52,8 @@ export class UserShipping {
     get: function () {
       const ship = shippingMethods[this.method] as ShippingMethod;
       return Math.floor(
-        Math.pow(this.capacityLevel + 1, SHIPPING_CAPACITY_PRICE_MULTIPLIER) * ship.baseCapacityUpgradePrice,
+        Math.pow(this.capacityLevel + 1, SHIPPING_CAPACITY_PRICE_MULTIPLIER) *
+          ship.baseCapacityUpgradePrice
       );
     },
   })
@@ -56,7 +64,8 @@ export class UserShipping {
     get: function () {
       const ship = shippingMethods[this.method] as ShippingMethod;
       return Math.floor(
-        Math.pow(this.shippingTimeLevel + 1, SHIPPING_TIME_PRICE_MULTIPLIER) * ship.basShippingTimeUpgradePrice,
+        Math.pow(this.shippingTimeLevel + 1, SHIPPING_TIME_PRICE_MULTIPLIER) *
+          ship.basShippingTimeUpgradePrice
       );
     },
   })
@@ -78,22 +87,23 @@ export class UserShipping {
   nextShipment?: Date;
 
   @Prop({
+    type: Object,
     virtual: true,
     get: function () {
       const ship = shippingMethods[this.method] as ShippingMethod;
       if (!ship.requirement) {
         return null;
       }
-      if (ship.requirement.type === 'fixed') {
+      if (ship.requirement.type === "fixed") {
         return {
           referredUsers: ship.requirement.referredUsers,
         };
-      } else if (ship.requirement.type === 'linear') {
+      } else if (ship.requirement.type === "linear") {
         return {
           referredUsers: this.capacityLevel * ship.requirement.referredUsers,
         };
       }
     },
   })
-  requirement?: Requirement | null;
+  requirement?: Requirement;
 }

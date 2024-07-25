@@ -13,7 +13,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     services:
-      mongodb:
+      mongo:
         image: mongo:latest
         ports:
           - 27017:27017
@@ -28,7 +28,7 @@ jobs:
       env:
         NODE_ENV: test
         API_PORT: 3000
-        TELEGRAM_BOT_TOKEN: 132:AABBCC
+        TELEGRAM_BOT_TOKEN: "132:AABBCC"
         JWT_SECRET: 123
-        MONGO_URL: mongodb://mongodb:27017
+        MONGO_URL: "mongodb://mongo:27017"
         MONGO_DB: tgang

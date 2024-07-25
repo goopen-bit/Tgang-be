@@ -4,7 +4,7 @@ export enum EProduct {
   MDMA = "MDMA",
   METH = "Meth",
   LSD = "LSD",
-  HEROIN = "Heroin",
+  MUSHROOM = "Mushroom",
 }
 
 export enum EProductWeight {
@@ -13,7 +13,7 @@ export enum EProductWeight {
   MDMA = 1,
   METH = 1,
   LSD = 1,
-  HEROIN = 1,
+  MUSHROOM = 1,
   // KETAMINE = 1,
   // MUSHROOMS = 1,
   // PCP = 1,

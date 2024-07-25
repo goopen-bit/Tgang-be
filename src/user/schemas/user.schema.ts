@@ -68,6 +68,7 @@ export class User extends Document {
         return userUpgrade || {
           product: key,
           title: du.title,
+          description: du.description,
           image: du.image,
           level: 0,
           upgradePrice: du.basePrice,

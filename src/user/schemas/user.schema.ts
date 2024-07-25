@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
-import { BASE_LAB_PLOT_PRICE, LAB_PLOT_PRICE_MULTIPLIER } from "../user.const";
+import { BASE_CUSTOMER_LIMIT, BASE_CUSTOMER_NEEDS, BASE_LAB_PLOT_PRICE, LAB_PLOT_PRICE_MULTIPLIER } from "../user.const";
 import { getUnixTime } from "date-fns";
 import { UserDealerUpgrade } from "./userDealerUpgrade.schema";
 import { UserLab } from "./userLab.shema";
@@ -11,6 +11,7 @@ import { UserProduct } from "./userProduct.schema";
 import { UserShipping } from "./userShipping.schema";
 import { reputationLevels } from "../data/reputationLevel";
 import { IReputationLevel } from "../user.interface";
+import { dealerUpgrades } from "src/upgrade/data/dealerUpgrades";
 
 @Schema({ _id: false })
 export class LabPlot {
@@ -58,7 +59,23 @@ export class User extends Document {
   @Prop({ type: [UserProduct], default: [] })
   products: UserProduct[];
 
-  @Prop({ type: [UserDealerUpgrade], default: [] })
+  @Prop({
+    type: [UserDealerUpgrade],
+    default: [],
+    set: function (upgrades: UserDealerUpgrade[]) {
+      return Object.entries(dealerUpgrades).map(([key, du]) => {
+        const userUpgrade = upgrades.find((u) => u.product === key);
+        return userUpgrade || {
+          product: key,
+          title: du.title,
+          image: du.image,
+          level: 0,
+          upgradePrice: du.basePrice,
+          amount: 0,
+        };
+      });
+    },
+  })
   dealerUpgrades: UserDealerUpgrade[];
 
   @Prop({ type: [UserShipping], default: [] })
@@ -86,14 +103,49 @@ export class User extends Document {
     get: function () {
       const now = new Date();
       const diff = getUnixTime(now) - getUnixTime(new Date(this.lastSell));
-      const customerAmountUpgrade = this.dealerUpgrades.find(
-        (u) => u.product === EDealerUpgrade.CUSTOMER_AMOUNT
+      const productQuality = this.dealerUpgrades.find(
+        (u) => u.product === EDealerUpgrade.PRODUCT_QUALITY
       );
-      const customerAmountMax = customerAmountUpgrade.amount;
+      const luxuryPackaging = this.dealerUpgrades.find(
+        (u) => u.product === EDealerUpgrade.LUXURY_PACKAGING
+      );
+      const highValueCustomers = this.dealerUpgrades.find(
+        (u) => u.product === EDealerUpgrade.HIGH_VALUE_CUSTOMERS
+      );
 
-      if (diff > 3600) {
-        return Math.floor(customerAmountMax);
-      }
+      const customerAmountMax = BASE_CUSTOMER_NEEDS +
+        (productQuality?.amount || 0) +
+        (luxuryPackaging?.amount || 0) +
+        (highValueCustomers?.amount || 0);
+
+      const newCustomers = Math.floor((diff / 3600) * customerAmountMax);
+      return Math.min(
+        this.customerAmountRemaining + newCustomers,
+        customerAmountMax
+      );
+    },
+  })
+  customerNeeds?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const now = new Date();
+      const diff = getUnixTime(now) - getUnixTime(new Date(this.lastSell));
+      const socialMediaCampaign = this.dealerUpgrades.find(
+        (u) => u.product === EDealerUpgrade.SOCIAL_MEDIA_CAMPAGIN
+      );
+      const streetPromotionTeam = this.dealerUpgrades.find(
+        (u) => u.product === EDealerUpgrade.STREET_PROMOTION_TEAM
+      );
+      const clubPartnership = this.dealerUpgrades.find(
+        (u) => u.product === EDealerUpgrade.CLUB_PARTNERSHIP
+      );
+
+      const customerAmountMax = BASE_CUSTOMER_LIMIT +
+        (socialMediaCampaign?.amount || 0) +
+        (streetPromotionTeam?.amount || 0) +
+        (clubPartnership?.amount || 0);
 
       const newCustomers = Math.floor((diff / 3600) * customerAmountMax);
       return Math.min(

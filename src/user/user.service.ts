@@ -40,9 +40,6 @@ export class UserService {
     }
 
     const weed = upgradesData.product[EProduct.WEED];
-    const customerAmount = upgradesData.dealer[EDealerUpgrade.CUSTOMER_AMOUNT];
-    const customerNeeds = upgradesData.dealer[EDealerUpgrade.CUSTOMER_NEEDS];
-
     // Set lastSell to one hour ago to get the full amount of customer when starting the game
     // const lastSell = subHours(new Date(), 1).toISOString();
 
@@ -59,20 +56,6 @@ export class UserService {
           title: weed.title,
           image: weed.image,
           level: 1,
-        },
-      ],
-      dealerUpgrades: [
-        {
-          product: EDealerUpgrade.CUSTOMER_AMOUNT,
-          title: customerAmount.title,
-          image: customerAmount.image,
-          level: 0,
-        },
-        {
-          product: EDealerUpgrade.CUSTOMER_NEEDS,
-          title: customerNeeds.title,
-          image: customerNeeds.image,
-          level: 0,
         },
       ],
       referredBy: referrer?.username,

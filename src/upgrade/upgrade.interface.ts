@@ -7,8 +7,12 @@ export enum EUpgradeCategory {
 }
 
 export enum EDealerUpgrade {
-  CUSTOMER_AMOUNT = "customer_amount",
-  CUSTOMER_NEEDS = "customer_needs",
+  SOCIAL_MEDIA_CAMPAGIN = "social_media_campaign",
+  STREET_PROMOTION_TEAM = "street_promotion_team",
+  CLUB_PARTNERSHIP = "club_partnership",
+  PRODUCT_QUALITY = "product_quality",
+  LUXURY_PACKAGING = "luxury_packaging",
+  HIGH_VALUE_CUSTOMERS = "high_value_customers",
 }
 
 export interface Requirement {
@@ -21,7 +25,6 @@ export interface DealerUpgrade {
   description: string;
   basePrice: number;
   upgradeMultiplier: number;
-  baseAmount: number;
   amountMultiplier: number;
   image: string;
   requirements: Requirement[] | null;

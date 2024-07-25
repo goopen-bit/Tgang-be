@@ -14,8 +14,23 @@ export class UserShipping {
   @Prop({ required: true })
   method: EShippingMethod;
 
-  @Prop({ required: true })
-  title: string;
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = shippingMethods[this.method];
+      return upgrade.title;
+    },
+  })
+  title?: string;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = shippingMethods[this.method];
+      return upgrade.description;
+    },
+  })
+  description?: string;
 
   @Prop({
     virtual: true,

@@ -7,8 +7,23 @@ export class UserDealerUpgrade {
   @Prop({ required: true })
   product: EDealerUpgrade;
 
-  @Prop({ required: true })
-  title: string;
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = dealerUpgrades[this.product];
+      return upgrade.title;
+    },
+  })
+  title?: string;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = dealerUpgrades[this.product];
+      return upgrade.description;
+    },
+  })
+  description?: string;
 
   @Prop({
     virtual: true,

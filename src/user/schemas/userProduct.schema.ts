@@ -9,6 +9,24 @@ export class UserProduct {
 
   @Prop({ required: true })
   quantity: number;
+  
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = productUpgrades[this.name];
+      return upgrade.title;
+    },
+  })
+  title?: string;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = productUpgrades[this.name];
+      return upgrade.description;
+    },
+  })
+  description?: string;
 
   @Prop({
     virtual: true,

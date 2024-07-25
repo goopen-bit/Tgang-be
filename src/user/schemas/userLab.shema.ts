@@ -12,8 +12,23 @@ export class UserLab {
   @Prop({ required: true })
   product: EProduct;
 
-  @Prop({ required: true })
-  title: string;
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = labs[this.product];
+      return upgrade.title;
+    },
+  })
+  title?: string;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = labs[this.product];
+      return upgrade.description;
+    },
+  })
+  description?: string;
 
   @Prop({
     virtual: true,

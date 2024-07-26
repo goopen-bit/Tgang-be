@@ -107,8 +107,6 @@ export class User extends Document {
   @Prop({
     virtual: true,
     get: function () {
-      const now = new Date();
-      const diff = getUnixTime(now) - getUnixTime(new Date(this.lastSell));
       const productQuality = this.dealerUpgrades.find(
         (u) => u.product === EDealerUpgrade.PRODUCT_QUALITY
       );
@@ -119,17 +117,10 @@ export class User extends Document {
         (u) => u.product === EDealerUpgrade.HIGH_VALUE_CUSTOMERS
       );
 
-      const customerAmountMax =
-        BASE_CUSTOMER_NEEDS +
+      return BASE_CUSTOMER_NEEDS +
         (productQuality?.amount || 0) +
         (luxuryPackaging?.amount || 0) +
         (highValueCustomers?.amount || 0);
-
-      const newCustomers = Math.floor((diff / 3600) * customerAmountMax);
-      return Math.min(
-        this.customerAmountRemaining + newCustomers,
-        customerAmountMax
-      );
     },
   })
   customerNeeds?: number;

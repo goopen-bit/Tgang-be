@@ -47,7 +47,6 @@ export class ProductService {
   ) {
     const user = await this.userService.findOne(userId);
     const market = await this.marketService.getMarket(marketId);
-    console.log(`1`);
 
     if (!user) {
       throw new HttpException("User not found", 404);
@@ -58,7 +57,7 @@ export class ProductService {
       0
     );
 
-    if (totalCustomersSold > user.customerAmount) {
+    if (totalCustomersSold > user.customerAmount * user.customerNeeds) {
       throw new HttpException(
         "Attempt to sell more customers than available",
         400
@@ -97,8 +96,6 @@ export class ProductService {
     }
 
     user.customerAmountRemaining = availableCustomers - totalCustomersSold;
-    console.log(`user.customerAmountRemaining`);
-    console.log(user.customerAmountRemaining);
     user.lastSell = new Date();
     user.reputation += reputation;
     await user.save();

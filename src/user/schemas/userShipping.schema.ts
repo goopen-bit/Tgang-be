@@ -61,8 +61,8 @@ export class UserShipping {
     get: function () {
       const ship = shippingMethods[this.method] as ShippingMethod;
       return Math.floor(
-        ship.basShippingTime *
-          Math.pow(SHIPPING_TIME_MULTIPLIER, -(this.level - 1))
+        ship.baseShippingTime *
+          Math.pow(SHIPPING_TIME_MULTIPLIER, -(this.shippingTimeLevel - 1))
       );
     },
   })
@@ -86,7 +86,7 @@ export class UserShipping {
       const ship = shippingMethods[this.method] as ShippingMethod;
       return Math.floor(
         Math.pow(this.shippingTimeLevel + 1, SHIPPING_TIME_PRICE_MULTIPLIER) *
-          ship.basShippingTimeUpgradePrice
+          ship.baseShippingTimeUpgradePrice
       );
     },
   })

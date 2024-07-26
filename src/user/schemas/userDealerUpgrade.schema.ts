@@ -56,4 +56,13 @@ export class UserDealerUpgrade {
     },
   })
   amount?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = dealerUpgrades[this.product] as DealerUpgrade;
+      return  (this.level + 1) * upgrade.amountMultiplier;
+    },
+  })
+  upgradeAmount?: number;
 }

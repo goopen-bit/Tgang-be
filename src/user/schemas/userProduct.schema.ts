@@ -62,4 +62,16 @@ export class UserProduct {
     },
   })
   marketDiscount?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = productUpgrades[this.name];
+      return (
+        (upgrade.baseDiscount + (60 - upgrade.baseDiscount)) *
+        (Math.log(this.level + 2) / Math.log(1000))
+      );
+    },
+  })
+  upgradeMarketDiscount?: number;
 }

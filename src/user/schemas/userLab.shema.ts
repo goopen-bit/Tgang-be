@@ -94,6 +94,15 @@ export class UserLab {
     virtual: true,
     get: function () {
       const lab = labs[this.product];
+      return (this.capacityLevel + 1) * lab.baseCapacity;
+    },
+  })
+  upgradeCapacity?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const lab = labs[this.product];
       return Math.floor(
         Math.pow(this.productionLevel + 1, LAB_PRODUCTION_MULTIPLIER) *
           lab.baseProductionUpgradePrice,
@@ -101,4 +110,13 @@ export class UserLab {
     },
   })
   upgradeProductionPrice?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const lab = labs[this.product];
+      return (this.productionLevel + 1) * lab.baseProduction;
+    },
+  })
+  upgradeProduction?: number;
 }

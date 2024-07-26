@@ -45,6 +45,7 @@ export class ProductService {
     marketId: string,
     sellList: SellProductDto
   ) {
+    this.logger.debug(`Selling products for user ${userId} - ${sellList}`);
     const user = await this.userService.findOne(userId);
     const market = await this.marketService.getMarket(marketId);
 
@@ -58,6 +59,11 @@ export class ProductService {
     );
 
     if (totalCustomersSold > user.customerAmount * user.customerNeeds) {
+      this.logger.debug(
+        `Attempt to sell more customers than available: ${totalCustomersSold} > ${
+          user.customerAmount * user.customerNeeds
+        }`
+      );
       throw new HttpException(
         "Attempt to sell more customers than available",
         400
@@ -89,6 +95,9 @@ export class ProductService {
     const availableCustomers = user.customerAmount;
 
     if (totalCustomersSold > availableCustomers) {
+      this.logger.debug(
+        `Attempt to sell more customers than available: ${totalCustomersSold} > ${availableCustomers}`
+      );
       throw new HttpException(
         "Attempt to sell more customers than available",
         400

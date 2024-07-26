@@ -109,7 +109,7 @@ export class User extends Document {
     get: function () {
       const productQuality = this.dealerUpgrades.find(
         (u) => u.product === EDealerUpgrade.PRODUCT_QUALITY
-      );
+      ) as UserDealerUpgrade;
       const luxuryPackaging = this.dealerUpgrades.find(
         (u) => u.product === EDealerUpgrade.LUXURY_PACKAGING
       );
@@ -117,10 +117,11 @@ export class User extends Document {
         (u) => u.product === EDealerUpgrade.HIGH_VALUE_CUSTOMERS
       );
 
-      return BASE_CUSTOMER_NEEDS +
+      const needs = BASE_CUSTOMER_NEEDS +
         (productQuality?.amount || 0) +
         (luxuryPackaging?.amount || 0) +
         (highValueCustomers?.amount || 0);
+      return needs;
     },
   })
   customerNeeds?: number;
@@ -128,8 +129,6 @@ export class User extends Document {
   @Prop({
     virtual: true,
     get: function () {
-      const now = new Date();
-      const diff = getUnixTime(now) - getUnixTime(new Date(this.lastSell));
       const socialMediaCampaign = this.dealerUpgrades.find(
         (u) => u.product === EDealerUpgrade.SOCIAL_MEDIA_CAMPAGIN
       );
@@ -145,39 +144,26 @@ export class User extends Document {
         (socialMediaCampaign?.amount || 0) +
         (streetPromotionTeam?.amount || 0) +
         (clubPartnership?.amount || 0);
-
-      const newCustomers = Math.floor((diff / 3600) * customerAmountMax);
-      return Math.min(
-        this.customerAmountRemaining + newCustomers,
-        customerAmountMax
-      );
-    },
-  })
-  customerAmount?: number;
-
-  @Prop({
-    virtual: true,
-    get: function () {
-      const socialMediaCampaign = this.dealerUpgrades.find(
-        (u) => u.product === EDealerUpgrade.SOCIAL_MEDIA_CAMPAGIN
-      );
-      const streetPromotionTeam = this.dealerUpgrades.find(
-        (u) => u.product === EDealerUpgrade.STREET_PROMOTION_TEAM
-      );
-      const clubPartnership = this.dealerUpgrades.find(
-        (u) => u.product === EDealerUpgrade.CLUB_PARTNERSHIP
-      );
-
-      const customerAmountMax =
-        BASE_CUSTOMER_LIMIT +
-        (socialMediaCampaign?.amount || 0) +
-        (streetPromotionTeam?.amount || 0) +
-        (clubPartnership?.amount || 0);
-
       return customerAmountMax;
     },
   })
   customerAmountMax?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const now = new Date();
+      const diff = getUnixTime(now) - getUnixTime(new Date(this.lastSell));
+
+      const newCustomers = Math.floor((diff / 3600) * this.customerAmountMax);
+
+      return Math.min(
+        this.customerAmountRemaining + newCustomers,
+        this.customerAmountMax
+      );
+    },
+  })
+  customerAmount?: number;
 
   @Prop({ required: true, default: 0 })
   customerAmountRemaining: number;

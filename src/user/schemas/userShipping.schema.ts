@@ -87,7 +87,7 @@ export class UserShipping {
       return (this.capacityLevel + 1) * ship.baseCapacity;
     },
   })
-  UpgradeCapacity?: number;
+  upgradeCapacity?: number;
 
   @Prop({
     virtual: true,

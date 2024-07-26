@@ -1,12 +1,15 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
-import { BASE_CUSTOMER_LIMIT, BASE_CUSTOMER_NEEDS, BASE_LAB_PLOT_PRICE, LAB_PLOT_PRICE_MULTIPLIER } from "../user.const";
+import {
+  BASE_CUSTOMER_LIMIT,
+  BASE_CUSTOMER_NEEDS,
+  BASE_LAB_PLOT_PRICE,
+  LAB_PLOT_PRICE_MULTIPLIER,
+} from "../user.const";
 import { getUnixTime } from "date-fns";
 import { UserDealerUpgrade } from "./userDealerUpgrade.schema";
 import { UserLab } from "./userLab.shema";
-import {
-  EDealerUpgrade,
-} from "../../upgrade/upgrade.interface";
+import { EDealerUpgrade } from "../../upgrade/upgrade.interface";
 import { UserProduct } from "./userProduct.schema";
 import { UserShipping } from "./userShipping.schema";
 import { reputationLevels } from "../data/reputationLevel";
@@ -65,15 +68,17 @@ export class User extends Document {
     set: function (upgrades: UserDealerUpgrade[]) {
       return Object.entries(dealerUpgrades).map(([key, du]) => {
         const userUpgrade = upgrades.find((u) => u.product === key);
-        return userUpgrade || {
-          product: key,
-          title: du.title,
-          description: du.description,
-          image: du.image,
-          level: 0,
-          upgradePrice: du.basePrice,
-          amount: 0,
-        };
+        return (
+          userUpgrade || {
+            product: key,
+            title: du.title,
+            description: du.description,
+            image: du.image,
+            level: 0,
+            upgradePrice: du.basePrice,
+            amount: 0,
+          }
+        );
       });
     },
   })
@@ -114,7 +119,8 @@ export class User extends Document {
         (u) => u.product === EDealerUpgrade.HIGH_VALUE_CUSTOMERS
       );
 
-      const customerAmountMax = BASE_CUSTOMER_NEEDS +
+      const customerAmountMax =
+        BASE_CUSTOMER_NEEDS +
         (productQuality?.amount || 0) +
         (luxuryPackaging?.amount || 0) +
         (highValueCustomers?.amount || 0);
@@ -143,7 +149,8 @@ export class User extends Document {
         (u) => u.product === EDealerUpgrade.CLUB_PARTNERSHIP
       );
 
-      const customerAmountMax = BASE_CUSTOMER_LIMIT +
+      const customerAmountMax =
+        BASE_CUSTOMER_LIMIT +
         (socialMediaCampaign?.amount || 0) +
         (streetPromotionTeam?.amount || 0) +
         (clubPartnership?.amount || 0);
@@ -156,6 +163,30 @@ export class User extends Document {
     },
   })
   customerAmount?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const socialMediaCampaign = this.dealerUpgrades.find(
+        (u) => u.product === EDealerUpgrade.SOCIAL_MEDIA_CAMPAGIN
+      );
+      const streetPromotionTeam = this.dealerUpgrades.find(
+        (u) => u.product === EDealerUpgrade.STREET_PROMOTION_TEAM
+      );
+      const clubPartnership = this.dealerUpgrades.find(
+        (u) => u.product === EDealerUpgrade.CLUB_PARTNERSHIP
+      );
+
+      const customerAmountMax =
+        BASE_CUSTOMER_LIMIT +
+        (socialMediaCampaign?.amount || 0) +
+        (streetPromotionTeam?.amount || 0) +
+        (clubPartnership?.amount || 0);
+
+      return customerAmountMax;
+    },
+  })
+  customerAmountMax?: number;
 
   @Prop({ required: true, default: 0 })
   customerAmountRemaining: number;

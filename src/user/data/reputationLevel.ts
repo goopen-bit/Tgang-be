@@ -1,65 +1,63 @@
-// reputationLevels.ts
-
 import { IReputationLevel } from "../user.interface";
 
 export const reputationLevels: IReputationLevel[] = [
   {
     level: 1,
     minReputation: 0,
-    maxReputation: 9999,
+    maxReputation: 1000,
     title: "Street Hustler",
   },
   {
     level: 2,
-    minReputation: 10000,
-    maxReputation: 19999,
+    minReputation: 1001,
+    maxReputation: 5000,
     title: "Thug",
   },
   {
     level: 3,
-    minReputation: 20000,
-    maxReputation: 29999,
+    minReputation: 5001,
+    maxReputation: 20000,
     title: "Gang Member",
   },
   {
     level: 4,
-    minReputation: 30000,
-    maxReputation: 39999,
+    minReputation: 20001,
+    maxReputation: 50000,
     title: "Enforcer",
   },
   {
     level: 5,
-    minReputation: 40000,
-    maxReputation: 49999,
+    minReputation: 50001,
+    maxReputation: 1000000,
     title: "Lieutenant",
   },
   {
     level: 6,
-    minReputation: 50000,
-    maxReputation: 59999,
+    minReputation: 1000001,
+    maxReputation: 2000000,
     title: "Underboss",
   },
   {
     level: 7,
-    minReputation: 60000,
-    maxReputation: 69999,
+    minReputation: 2000001,
+    maxReputation: 5000000,
     title: "Capo",
   },
   {
     level: 8,
-    minReputation: 70000,
-    maxReputation: 79999,
+    minReputation: 5000001,
+    maxReputation: 10000000,
     title: "Consigliere",
   },
   {
     level: 9,
-    minReputation: 80000,
-    maxReputation: 89999,
+    minReputation: 10000001,
+    maxReputation: 50000000,
     title: "Boss",
   },
   {
     level: 10,
-    minReputation: 90000,
+    minReputation: 50000000,
     maxReputation: Number.MAX_VALUE,
     title: "Don",
   },

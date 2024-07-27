@@ -7,7 +7,7 @@ export class SellProductItemDto {
 
   @IsNumber()
   @Min(1)
-  amountToSell: number;
+  customers: number;
 }
 
 export class SellProductDto {

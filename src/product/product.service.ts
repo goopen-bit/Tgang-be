@@ -45,7 +45,7 @@ export class ProductService {
     marketId: string,
     sellList: SellProductDto
   ) {
-    this.logger.debug(`Selling products for user ${userId} - ${sellList}`);
+    this.logger.debug(`Selling products for user ${userId}`);
     const user = await this.userService.findOne(userId);
     const market = await this.marketService.getMarket(marketId);
 
@@ -54,15 +54,13 @@ export class ProductService {
     }
 
     const totalCustomersSold = sellList.batch.reduce(
-      (acc, item) => acc + item.amountToSell,
+      (acc, item) => acc + item.customers,
       0
     );
 
-    if (totalCustomersSold > user.customerAmount * user.customerNeeds) {
+    if (totalCustomersSold > user.customerAmount) {
       this.logger.debug(
-        `Attempt to sell more customers than available: ${totalCustomersSold} > ${
-          user.customerAmount * user.customerNeeds
-        }`
+        `Attempt to sell more customers than available: ${totalCustomersSold} > ${user.customerAmount}`
       );
       throw new HttpException(
         "Attempt to sell more customers than available",
@@ -72,39 +70,28 @@ export class ProductService {
     let reputation = 0;
     sellList.batch.forEach((item) => {
       const product = user.products.find((p) => p.name === item.product);
+      const amountToSell = item.customers * user.customerNeeds;
 
       if (!product) {
         throw new HttpException(`Product ${item.product} not found`, 404);
       }
 
-      if (product.quantity < item.amountToSell) {
+      if (product.quantity < amountToSell) {
         throw new HttpException(
           `Insufficient quantity of ${item.product}`,
           400
         );
       }
 
-      product.quantity -= item.amountToSell;
-      reputation += item.amountToSell;
+      product.quantity -= amountToSell;
+      reputation += amountToSell;
       const marketPrice = market.products.find(
         (p) => p.name === item.product
       ).price;
-      user.cashAmount += marketPrice * item.amountToSell;
+      user.cashAmount += marketPrice * amountToSell;
     });
 
-    const availableCustomers = user.customerAmount;
-
-    if (totalCustomersSold > availableCustomers) {
-      this.logger.debug(
-        `Attempt to sell more customers than available: ${totalCustomersSold} > ${availableCustomers}`
-      );
-      throw new HttpException(
-        "Attempt to sell more customers than available",
-        400
-      );
-    }
-
-    user.customerAmountRemaining = availableCustomers - totalCustomersSold;
+    user.customerAmountRemaining = user.customerAmount - totalCustomersSold;
     user.lastSell = new Date();
     user.reputation += reputation;
     await user.save();

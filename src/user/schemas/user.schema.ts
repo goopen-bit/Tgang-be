@@ -14,7 +14,7 @@ import { UserProduct } from "./userProduct.schema";
 import { UserShipping } from "./userShipping.schema";
 import { reputationLevels } from "../data/reputationLevel";
 import { IReputationLevel } from "../user.interface";
-import { dealerUpgrades } from "src/upgrade/data/dealerUpgrades";
+import { dealerUpgrades } from "../../upgrade/data/dealerUpgrades";
 
 @Schema({ _id: false })
 export class LabPlot {
@@ -117,7 +117,8 @@ export class User extends Document {
         (u) => u.product === EDealerUpgrade.HIGH_VALUE_CUSTOMERS
       );
 
-      const needs = BASE_CUSTOMER_NEEDS +
+      const needs =
+        BASE_CUSTOMER_NEEDS +
         (productQuality?.amount || 0) +
         (luxuryPackaging?.amount || 0) +
         (highValueCustomers?.amount || 0);

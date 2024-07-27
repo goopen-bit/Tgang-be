@@ -10,7 +10,6 @@ import {
   STARTING_CASH,
 } from "./user.const";
 import { upgradesData } from "../upgrade/data/upgrades";
-import { EDealerUpgrade } from "../upgrade/upgrade.interface";
 
 @Injectable()
 export class UserService {

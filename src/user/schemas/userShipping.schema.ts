@@ -84,6 +84,15 @@ export class UserShipping {
     virtual: true,
     get: function () {
       const ship = shippingMethods[this.method] as ShippingMethod;
+      return (this.capacityLevel + 1) * ship.baseCapacity;
+    },
+  })
+  upgradeCapacity?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const ship = shippingMethods[this.method] as ShippingMethod;
       return Math.floor(
         Math.pow(this.shippingTimeLevel + 1, SHIPPING_TIME_PRICE_MULTIPLIER) *
           ship.baseShippingTimeUpgradePrice
@@ -91,6 +100,18 @@ export class UserShipping {
     },
   })
   upgradeShippingTimePrice?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const ship = shippingMethods[this.method] as ShippingMethod;
+      return Math.floor(
+        ship.baseShippingTime *
+          Math.pow(SHIPPING_TIME_MULTIPLIER, -(this.shippingTimeLevel))
+      );
+    },
+  })
+  upgradeShippingTime?: number;
 
   @Prop()
   lastShipment?: Date;

@@ -77,6 +77,7 @@ export class User extends Document {
             level: 0,
             upgradePrice: du.basePrice,
             amount: 0,
+            upgradeAmount: du.amountMultiplier,
           }
         );
       });

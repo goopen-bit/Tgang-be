@@ -155,7 +155,6 @@ export class User extends Document {
     get: function () {
       const now = new Date();
       const diff = getUnixTime(now) - getUnixTime(new Date(this.lastSell));
-
       const newCustomers = Math.floor((diff / 3600) * this.customerAmountMax);
 
       return Math.min(

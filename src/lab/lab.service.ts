@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { BuyLabDto } from './dto/buy-lab.dto';
 import { labs } from './data/labs';
-import { EProduct } from '../product/product.const';
+import { EProduct } from '../market/market.const';
 import { User } from '../user/schemas/user.schema';
 import { productUpgrades } from '../upgrade/data/dealerUpgrades';
 

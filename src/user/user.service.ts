@@ -3,7 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { User } from "./schemas/user.schema";
 import { AuthTokenData } from "../config/types";
-import { EProduct } from "../product/product.const";
+import { EProduct } from "../market/market.const";
 import {
   REFERRAL_CASH,
   ROBBERY_AMOUNT_PER_DAILY_STRIKE,

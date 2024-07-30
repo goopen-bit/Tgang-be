@@ -9,7 +9,7 @@ import {
   ProductUpgrade,
   Upgrade,
 } from './upgrade.interface';
-import { EProduct } from '../product/product.const';
+import { EProduct } from '../market/market.const';
 import { productUpgrades } from './data/dealerUpgrades';
 import { User } from '../user/schemas/user.schema';
 

@@ -1,4 +1,4 @@
-import { EProduct } from "../../product/product.const";
+import { EProduct } from "../../market/market.const";
 import { Lab } from "../lab.interface";
 
 export const labs: Record<EProduct, Lab> = {

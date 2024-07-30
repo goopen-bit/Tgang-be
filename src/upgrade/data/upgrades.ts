@@ -1,4 +1,4 @@
-import { EProduct } from '../../product/product.const';
+import { EProduct } from '../../market/market.const';
 import {
   DealerUpgrade,
   EDealerUpgrade,

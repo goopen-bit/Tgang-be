@@ -1,13 +1,16 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, Injectable, Logger } from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { markets } from "./data/market";
 import { events } from "./data/event";
 import { cloneDeep } from "lodash";
 import { createHash } from "crypto";
 import { Market } from "./market.interface";
+import { BuyProductDto } from "./dto/buy-product.dto";
+import { SellProductDto } from "./dto/sell-product.dto";
 
 @Injectable()
 export class MarketService {
+  private readonly logger = new Logger(this.constructor.name);
   constructor(private userService: UserService) {}
 
   getHistoricalEvents() {
@@ -101,5 +104,90 @@ export class MarketService {
       }
     });
     return market;
+  }
+
+  async buyProduct(userId: number, marketId: string, params: BuyProductDto) {
+    const { product, quantity } = params;
+    const user = await this.userService.findOne(userId);
+    const market = await this.getMarketWithReputation(
+      marketId,
+      userId
+    );
+    if (!user || !market) {
+      throw new HttpException("User or market not found", 404);
+    }
+
+    const marketProduct = market.products.find((p) => p.name === product);
+    if (user.cashAmount < marketProduct.discountPrice * quantity) {
+      throw new HttpException("Not enough cash", 400);
+    }
+
+    const userProduct = user.products.find((p) => p.name === product);
+    if (userProduct) {
+      user.cashAmount -= marketProduct.discountPrice * quantity;
+      userProduct.quantity += quantity;
+    } else {
+      throw new HttpException("Product not unlocked", 400);
+    }
+    await user.save();
+    return user;
+  }
+
+  async sellProduct(
+    userId: number,
+    marketId: string,
+    sellList: SellProductDto
+  ) {
+    this.logger.debug(`Selling products for user ${userId}`);
+    const user = await this.userService.findOne(userId);
+    const market = await this.getMarket(marketId);
+
+    if (!user) {
+      throw new HttpException("User not found", 404);
+    }
+
+    const totalCustomersSold = sellList.batch.reduce(
+      (acc, item) => acc + item.customers,
+      0
+    );
+
+    if (totalCustomersSold > user.customerAmount) {
+      this.logger.debug(
+        `Attempt to sell more customers than available: ${totalCustomersSold} > ${user.customerAmount}`
+      );
+      throw new HttpException(
+        "Attempt to sell more customers than available",
+        400
+      );
+    }
+    let reputation = 0;
+    sellList.batch.forEach((item) => {
+      const product = user.products.find((p) => p.name === item.product);
+      const amountToSell = item.customers * user.customerNeeds;
+
+      if (!product) {
+        throw new HttpException(`Product ${item.product} not found`, 404);
+      }
+
+      if (product.quantity < amountToSell) {
+        throw new HttpException(
+          `Insufficient quantity of ${item.product}`,
+          400
+        );
+      }
+
+      product.quantity -= amountToSell;
+      reputation += amountToSell;
+      const marketPrice = market.products.find(
+        (p) => p.name === item.product
+      ).price;
+      user.cashAmount += marketPrice * amountToSell;
+    });
+
+    user.customerAmountRemaining = user.customerAmount - totalCustomersSold;
+    user.lastSell = new Date();
+    user.reputation += reputation;
+    await user.save();
+    return user;
   }
 }

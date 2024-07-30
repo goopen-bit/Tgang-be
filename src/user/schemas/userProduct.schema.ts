@@ -1,6 +1,6 @@
 import { Prop, Schema } from '@nestjs/mongoose';
 import { productUpgrades } from '../../upgrade/data/dealerUpgrades';
-import { EProduct } from '../../product/product.const';
+import { EProduct } from '../../market/market.const';
 
 @Schema({ _id: false })
 export class UserProduct {

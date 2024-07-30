@@ -9,7 +9,7 @@ import { User } from "../user/schemas/user.schema";
 import { MongooseModule } from "@nestjs/mongoose";
 import { mongoUrl, mongoDb } from "../config/env";
 import { EUpgradeCategory } from "./upgrade.interface";
-import { EProduct } from "../product/product.const";
+import { EProduct } from "../market/market.const";
 
 describe("UpgradeService", () => {
   let module: TestingModule;

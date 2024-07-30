@@ -3,7 +3,7 @@ import {
   LAB_CAPACITY_MULTIPLIER,
   LAB_PRODUCTION_MULTIPLIER,
 } from '../user.const';
-import { EProduct } from '../../product/product.const';
+import { EProduct } from '../../market/market.const';
 import { labs } from '../../lab/data/labs';
 import { getUnixTime } from 'date-fns';
 

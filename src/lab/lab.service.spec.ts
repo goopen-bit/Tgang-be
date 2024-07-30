@@ -7,7 +7,7 @@ import { User, UserSchema } from '../user/schemas/user.schema';
 import { faker } from '@faker-js/faker';
 import { AuthTokenData } from '../config/types';
 import { UserService } from '../user/user.service';
-import { EProduct } from '../product/product.const';
+import { EProduct } from '../market/market.const';
 import { subHours } from 'date-fns';
 
 describe('LabService', () => {

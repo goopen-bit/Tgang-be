@@ -1,5 +1,5 @@
 import { IsNumber, Min, ArrayNotEmpty, IsEnum } from 'class-validator';
-import { EProduct } from '../product.const';
+import { EProduct } from '../market.const';
 
 export class SellProductItemDto {
   @IsEnum(EProduct)

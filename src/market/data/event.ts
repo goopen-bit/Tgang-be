@@ -1,4 +1,4 @@
-import { EProduct } from "../../product/product.const";
+import { EProduct } from "../market.const";
 import { Event } from "../market.interface";
 
 export const events: Event[] = [

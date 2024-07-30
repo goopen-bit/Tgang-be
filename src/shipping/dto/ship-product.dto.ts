@@ -1,6 +1,6 @@
 import { IsNumber, Min, IsEnum } from 'class-validator';
 import { EShippingMethod } from '../shipping.const';
-import { EProduct } from '../../product/product.const';
+import { EProduct } from '../../market/market.const';
 
 export class ShipProductDto {
   @IsEnum(EShippingMethod)

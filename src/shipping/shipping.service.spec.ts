@@ -4,7 +4,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { mongoUrl, mongoDb } from "../config/env";
 import { MarketModule } from "../market/market.module";
 import { UserModule } from "../user/user.module";
-import { AuthTokenData } from "src/config/types";
+import { AuthTokenData } from "../config/types";
 import { faker } from "@faker-js/faker";
 import { UserService } from "../user/user.service";
 import { EShippingMethod } from "./shipping.const";

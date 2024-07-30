@@ -177,6 +177,7 @@ export class ShippingService {
     product.quantity -= ship.amount;
     user.cashAmount += marketProduct.price * ship.amount;
     method.lastShipment = new Date();
+    user.reputation += ship.amount;
 
     await user.save();
     return user;

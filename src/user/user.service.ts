@@ -39,8 +39,6 @@ export class UserService {
     }
 
     const weed = upgradesData.product[EProduct.WEED];
-    // Set lastSell to one hour ago to get the full amount of customer when starting the game
-    // const lastSell = subHours(new Date(), 1).toISOString();
 
     return this.userModel.create({
       ...user,

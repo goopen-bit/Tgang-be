@@ -102,7 +102,7 @@ export class User extends Document {
   })
   labPlotPrice: number;
 
-  @Prop({ required: true, default: new Date() })
+  @Prop({ required: true, default: new Date(0) })
   lastSell: Date;
 
   @Prop({

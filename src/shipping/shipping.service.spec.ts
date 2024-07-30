@@ -1,13 +1,14 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ShippingService } from "./shipping.service";
 import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb } from "../config/env";
+import { mongoUrl, mongoDb, redisUrl } from "../config/env";
 import { MarketModule } from "../market/market.module";
 import { UserModule } from "../user/user.module";
 import { AuthTokenData } from "../config/types";
 import { faker } from "@faker-js/faker";
 import { UserService } from "../user/user.service";
 import { EShippingMethod } from "./shipping.const";
+import { RedisModule } from "@goopen/nestjs-ioredis-provider";
 
 describe("ShippingService", () => {
   let service: ShippingService;
@@ -19,6 +20,10 @@ describe("ShippingService", () => {
         MongooseModule.forRoot(mongoUrl, {
           dbName: mongoDb,
           readPreference: "secondaryPreferred",
+        }),
+        RedisModule.register({
+          url: redisUrl,
+          isGlobal: true,
         }),
         UserModule,
         MarketModule,

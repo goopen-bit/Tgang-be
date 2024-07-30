@@ -5,7 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from '../user/user.module';
-import { mongoUrl, mongoDb } from '../config/env';
+import { mongoUrl, mongoDb, redisUrl } from '../config/env';
 
 describe('AuthService', () => {
   let service: AuthService;

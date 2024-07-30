@@ -14,6 +14,7 @@ export class HealthController {
   check() {
     return this.health.check([
       this.service.pingMongodb(),
+      this.service.pingRedis(),
     ]);
   }
 }

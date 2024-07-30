@@ -7,9 +7,10 @@ import { BuyUpgradeDto } from "./dto/buy-upgrade.dto";
 import { upgradesData } from "./data/upgrades";
 import { User } from "../user/schemas/user.schema";
 import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb } from "../config/env";
+import { mongoUrl, mongoDb, redisUrl } from "../config/env";
 import { EUpgradeCategory } from "./upgrade.interface";
 import { EProduct } from "../market/market.const";
+import { RedisModule } from "@goopen/nestjs-ioredis-provider";
 
 describe("UpgradeService", () => {
   let module: TestingModule;
@@ -24,6 +25,10 @@ describe("UpgradeService", () => {
         MongooseModule.forRoot(mongoUrl, {
           dbName: mongoDb,
           readPreference: "secondaryPreferred",
+        }),
+        RedisModule.register({
+          url: redisUrl,
+          isGlobal: true,
         }),
         UserModule,
       ],

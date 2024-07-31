@@ -5,16 +5,15 @@ module.exports = {
   async up(db: Db) {
     await db.collection(DbCollections.USERS).createIndex(
       {
-        id: 1,
+        reputation: 1,
       },
       {
-        name: 'id_unique_index',
-        unique: true,
+        name: 'reputation_index',
       },
     );
   },
 
   async down(db: Db) {
-    await db.collection(DbCollections.USERS).dropIndex('id_unique_index');
+    await db.collection(DbCollections.USERS).dropIndex('reputation_index');
   },
 };

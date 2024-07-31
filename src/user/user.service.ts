@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { User } from "./schemas/user.schema";
@@ -10,12 +10,19 @@ import {
   STARTING_CASH,
 } from "./user.const";
 import { upgradesData } from "../upgrade/data/upgrades";
+import { Cron } from "@nestjs/schedule";
+import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
+import Redis from "ioredis";
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(this.constructor.name);
+
   constructor(
     @InjectModel(User.name)
-    private userModel: Model<User>
+    private userModel: Model<User>,
+
+    @InjectRedis() private readonly redisClient: Redis
   ) {}
 
   private getIdFromReferralToken(referralToken: string) {
@@ -122,5 +129,38 @@ export class UserService {
     if (result.deletedCount === 0) {
       throw new NotFoundException("User not found");
     }
+  }
+
+  @Cron('0 * * * *')
+  async updateLeaderboard() {
+    // Loop through the documents by batches of 1000
+    let skip = 0;
+    while (true) {
+      const users = await this.userModel
+        .find()
+        .skip(skip)
+        .limit(1000)
+        .exec();
+
+      if (users.length === 0) {
+        break;
+      }
+
+      const board = [];
+      users.forEach((user) => {
+        board.push(user.reputation, user.id);
+      });
+
+      await this.redisClient.zadd("leaderboard", ...board);
+
+      skip += 1000;
+    }
+      
+  }
+
+  async getLeatherboard(username: string) {
+    // const top = await this.redisClient.zrevrange("leaderboard", 0, 9, "WITHSCORES");
+    // const rank = await this.redisClient.zrank("leaderboard", username, "WITHSCORE");
+    // return { rank: rank + 1, score };
   }
 }

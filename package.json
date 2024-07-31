@@ -1,8 +1,8 @@
 {
-  "name": "cartel-game",
+  "name": "cartel-game-api",
   "private": true,
   "version": "1.0.0",
-  "description": "Telegram Cartel Game",
+  "description": "Telegram Cartel Game API",
   "license": "MIT",
   "scripts": {
     "build": "nest build",

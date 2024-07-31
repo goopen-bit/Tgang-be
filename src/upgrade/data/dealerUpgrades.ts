@@ -35,7 +35,8 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
   },
   [EDealerUpgrade.PRODUCT_QUALITY]: {
     title: "Increase Product Quality",
-    description: "Invest in better materials to increase the quality of your product.",
+    description:
+      "Invest in better materials to increase the quality of your product.",
     basePrice: 4000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
@@ -44,7 +45,8 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
   },
   [EDealerUpgrade.LUXURY_PACKAGING]: {
     title: "Luxury Packaging",
-    description: "Improve packaging to make the product look more appealing and high-end.",
+    description:
+      "Improve packaging to make the product look more appealing and high-end.",
     basePrice: 6000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
@@ -53,7 +55,8 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
   },
   [EDealerUpgrade.HIGH_VALUE_CUSTOMERS]: {
     title: "Target High-Value Customers",
-    description: "Focus on attracting wealthier customers who buy in larger quantities.",
+    description:
+      "Focus on attracting wealthier customers who buy in larger quantities.",
     basePrice: 8000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
@@ -69,7 +72,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     basePrice: 500,
     upgradeMultiplier: 2,
     baseDiscount: 10,
-    image: `/assets/labs/weed_lab.png`,
+    image: `/assets/product/weed.webp`,
     requirements: null,
   },
   [EProduct.COCAINE]: {
@@ -78,7 +81,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     basePrice: 800,
     upgradeMultiplier: 2,
     baseDiscount: 12,
-    image: `/assets/labs/coke_lab.png`,
+    image: `/assets/product/coke.webp`,
     requirements: [{ product: EProduct.WEED, level: 5 }],
   },
   [EProduct.METH]: {
@@ -87,7 +90,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     basePrice: 1200,
     upgradeMultiplier: 2,
     baseDiscount: 15,
-    image: `/assets/labs/meth_lab.png`,
+    image: `/assets/product/meth.png`,
     requirements: [{ product: EProduct.COCAINE, level: 5 }],
   },
   [EProduct.MDMA]: {
@@ -96,7 +99,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     basePrice: 1600,
     upgradeMultiplier: 2,
     baseDiscount: 18,
-    image: `/assets/labs/mdma_lab.png`,
+    image: `/assets/product/mdma.webp`,
     requirements: [{ product: EProduct.METH, level: 5 }],
   },
   [EProduct.LSD]: {
@@ -105,7 +108,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     basePrice: 2000,
     upgradeMultiplier: 2,
     baseDiscount: 20,
-    image: `/assets/labs/lsd_lab.png`,
+    image: `/assets/product/lsd.webp`,
     requirements: [{ product: EProduct.MDMA, level: 5 }],
   },
   [EProduct.MUSHROOM]: {
@@ -114,7 +117,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     basePrice: 2400,
     upgradeMultiplier: 2,
     baseDiscount: 22,
-    image: `/assets/labs/mushroom_lab.png`,
+    image: `/assets/product/mushroom.webp`,
     requirements: [{ product: EProduct.LSD, level: 5 }],
   },
 };

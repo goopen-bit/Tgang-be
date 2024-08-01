@@ -1,4 +1,4 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Post } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { Auth } from "../decorators/auth.decorator";
 import { AuthTokenData } from "../config/types";
@@ -14,8 +14,13 @@ export class UserController {
     return this.userService.findOne(user.id);
   }
 
-  @Get("/claimDailyReward")
+  @Post("/robbery")
   dailyRobbery(@GetAuthToken() user: AuthTokenData) {
     return this.userService.dailyRobbery(user.id);
+  }
+
+  @Get("/leaderboard")
+  leaderboard() {
+    return this.userService.getLeaderboard();
   }
 }

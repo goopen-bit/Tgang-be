@@ -123,4 +123,31 @@ export class UserService {
       throw new NotFoundException("User not found");
     }
   }
+
+  async getLeaderboard() {
+    return this.userModel
+      .aggregate([
+        {
+          $sort: { reputation: -1 },
+        },
+        {
+          $limit: 100,
+        },
+        {
+          $setWindowFields: {
+            sortBy: { reputation: -1 },
+            output: {
+              rank: { $rank: {} }
+            }
+          }
+        },
+        {
+          $project: {
+            username: 1,
+            reputation: 1,
+            rank: 1,
+          },
+        },
+      ]);
+  }
 }

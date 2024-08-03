@@ -10,12 +10,20 @@ import { MarketModule } from './market/market.module';
 import { UpgradeModule } from './upgrade/upgrade.module';
 import { LabModule } from './lab/lab.module';
 import { ShippingModule } from './shipping/shipping.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
     MongooseModule.forRoot(mongoUrl, {
       dbName: mongoDb,
       readPreference: 'secondaryPreferred',
+    }),
+    AnalyticsModule.register({
+      mixpanelToken: 'token',
+      isGlobal: true,
+      config: {
+        geolocate: false,
+      }
     }),
     HealthModule,
     AuthModule,

@@ -1,8 +1,8 @@
 export enum EProduct {
   WEED = "Weed",
   MUSHROOM = "Mushroom",
-  LSD = "LSD",
-  MDMA = "MDMA",
+  LSD = "Acid",
+  MDMA = "Ecstasy",
   METH = "Meth",
   COCAINE = "Coke",
 }

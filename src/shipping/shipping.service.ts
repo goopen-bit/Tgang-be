@@ -82,6 +82,7 @@ export class ShippingService {
       throw new HttpException("Not enough cash", 400);
     }
 
+    user.cashAmount -= shippingUpgrade.basePrice;
     user.shipping.push({
       method: upgrade,
       title: shippingUpgrade.title,
@@ -89,7 +90,6 @@ export class ShippingService {
       capacityLevel: 1,
       shippingTimeLevel: 1,
     });
-    user.cashAmount -= shippingUpgrade.basePrice;
     await user.save();
     return user;
   }
@@ -111,8 +111,8 @@ export class ShippingService {
       throw new HttpException("Not enough cash", 400);
     }
 
-    userShipping.capacityLevel += 1;
     user.cashAmount -= userShipping.upgradeCapacityPrice;
+    userShipping.capacityLevel += 1;
     await user.save();
     return user;
   }
@@ -132,8 +132,8 @@ export class ShippingService {
       throw new HttpException("Not enough cash", 400);
     }
 
-    userShipping.shippingTimeLevel += 1;
     user.cashAmount -= userShipping.upgradeShippingTimePrice;
+    userShipping.shippingTimeLevel += 1;
     await user.save();
     return user;
   }

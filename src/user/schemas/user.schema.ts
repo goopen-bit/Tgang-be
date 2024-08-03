@@ -105,28 +105,28 @@ export class User extends Document {
   @Prop({ required: true, default: new Date(0) })
   lastSell: Date;
 
-  @Prop({
-    virtual: true,
-    get: function () {
-      const productQuality = this.dealerUpgrades.find(
-        (u) => u.product === EDealerUpgrade.PRODUCT_QUALITY
-      ) as UserDealerUpgrade;
-      const luxuryPackaging = this.dealerUpgrades.find(
-        (u) => u.product === EDealerUpgrade.LUXURY_PACKAGING
-      );
-      const highValueCustomers = this.dealerUpgrades.find(
-        (u) => u.product === EDealerUpgrade.HIGH_VALUE_CUSTOMERS
-      );
+  // @Prop({
+  //   virtual: true,
+  //   get: function () {
+  //     const productQuality = this.dealerUpgrades.find(
+  //       (u) => u.product === EDealerUpgrade.PRODUCT_QUALITY
+  //     ) as UserDealerUpgrade;
+  //     const luxuryPackaging = this.dealerUpgrades.find(
+  //       (u) => u.product === EDealerUpgrade.LUXURY_PACKAGING
+  //     );
+  //     const highValueCustomers = this.dealerUpgrades.find(
+  //       (u) => u.product === EDealerUpgrade.HIGH_VALUE_CUSTOMERS
+  //     );
 
-      const needs =
-        BASE_CUSTOMER_NEEDS +
-        (productQuality?.amount || 0) +
-        (luxuryPackaging?.amount || 0) +
-        (highValueCustomers?.amount || 0);
-      return needs;
-    },
-  })
-  customerNeeds?: number;
+  //     const needs =
+  //       BASE_CUSTOMER_NEEDS +
+  //       (productQuality?.amount || 0) +
+  //       (luxuryPackaging?.amount || 0) +
+  //       (highValueCustomers?.amount || 0);
+  //     return needs;
+  //   },
+  // })
+  // customerNeeds?: number;
 
   @Prop({
     virtual: true,

@@ -163,7 +163,10 @@ export class MarketService {
     let reputation = 0;
     sellList.batch.forEach((item) => {
       const product = user.products.find((p) => p.name === item.product);
-      const amountToSell = item.customers * user.customerNeeds;
+      const dealerUpgrade = user.dealerUpgrades.find((u) => u.product === item.product);
+      const quality = dealerUpgrade ? dealerUpgrade.level + 1 : 1;
+
+      const amountToSell = item.customers * quality;
 
       if (!product) {
         throw new HttpException(`Product ${item.product} not found`, 404);

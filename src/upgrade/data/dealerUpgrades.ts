@@ -7,6 +7,7 @@ import {
 
 export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
   [EDealerUpgrade.SOCIAL_MEDIA_CAMPAGIN]: {
+    product: null,
     title: "Social Media Campaign",
     description: "Leverage social media to attract more customers.",
     basePrice: 4000,
@@ -16,6 +17,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     requirements: null,
   },
   [EDealerUpgrade.STREET_PROMOTION_TEAM]: {
+    product: null,
     title: "Street Promotion Team",
     description: "Hire a team to promote your product on the streets.",
     basePrice: 6000,
@@ -25,6 +27,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     requirements: null,
   },
   [EDealerUpgrade.CLUB_PARTNERSHIP]: {
+    product: null,
     title: "Partnership with Clubs",
     description: "Partner with local clubs and bars to promote your product.",
     basePrice: 8000,
@@ -33,35 +36,95 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     image: "/assets/dealer/club_partnership.webp",
     requirements: null,
   },
-  [EDealerUpgrade.PRODUCT_QUALITY]: {
-    title: "Increase Product Quality",
-    description:
-      "Invest in better materials to increase the quality of your product.",
+  // [EDealerUpgrade.PRODUCT_QUALITY]: {
+  //   title: "Increase Product Quality",
+  //   description:
+  //     "Invest in better materials to increase the quality of your product.",
+  //   basePrice: 4000,
+  //   upgradeMultiplier: 2,
+  //   amountMultiplier: 1,
+  //   image: "/assets/dealer/product_quality.webp",
+  //   requirements: null,
+  // },
+  // [EDealerUpgrade.LUXURY_PACKAGING]: {
+  //   title: "Luxury Packaging",
+  //   description:
+  //     "Improve packaging to make the product look more appealing and high-end.",
+  //   basePrice: 6000,
+  //   upgradeMultiplier: 2,
+  //   amountMultiplier: 1,
+  //   image: "/assets/dealer/luxury_packaging.webp",
+  //   requirements: null,
+  // },
+  // [EDealerUpgrade.HIGH_VALUE_CUSTOMERS]: {
+  //   title: "Target High-Value Customers",
+  //   description:
+  //     "Focus on attracting wealthier customers who buy in larger quantities.",
+  //   basePrice: 8000,
+  //   upgradeMultiplier: 2,
+  //   amountMultiplier: 1,
+  //   image: "/assets/dealer/high_value_customers.webp",
+  //   requirements: null,
+  // },
+  [EDealerUpgrade.COMBO_PACKS]: {
+    product: EProduct.WEED,
+    title: "Combo Packs",
+    description: "Sell weed in combo packs that encourage larger purchases.",
     basePrice: 4000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
-    image: "/assets/dealer/product_quality.webp",
+    image: "/assets/product/seedling.svg",
     requirements: null,
   },
-  [EDealerUpgrade.LUXURY_PACKAGING]: {
-    title: "Luxury Packaging",
-    description:
-      "Improve packaging to make the product look more appealing and high-end.",
-    basePrice: 6000,
+  [EDealerUpgrade.HIGH_END_PACKAGING]: {
+    product: EProduct.COCAINE,
+    title: "High-End Packaging",
+    description: "Offer luxurious packaging that encourages larger buys.",
+    basePrice: 4000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
-    image: "/assets/dealer/luxury_packaging.webp",
-    requirements: null,
+    image: "/assets/product/salt.svg",
+    requirements: [{ product: EProduct.COCAINE, level: 1 }],
   },
-  [EDealerUpgrade.HIGH_VALUE_CUSTOMERS]: {
-    title: "Target High-Value Customers",
-    description:
-      "Focus on attracting wealthier customers who buy in larger quantities.",
-    basePrice: 8000,
+  [EDealerUpgrade.PARTY_PACKS]: {
+    product: EProduct.MDMA,
+    title: "Party Packs",
+    description: "Sell larger quantities for festivals and parties.",
+    basePrice: 4000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
-    image: "/assets/dealer/high_value_customers.webp",
-    requirements: null,
+    image: "/assets/product/pill.svg",
+    requirements: [{ product: EProduct.MDMA, level: 1 }],
+  },
+  [EDealerUpgrade.HIGH_DOSE_PACKAGES]: {
+    product: EProduct.METH,
+    title: "High-Dose Packages",
+    description: "Offer packages with higher doses for frequent users.",
+    basePrice: 4000,
+    upgradeMultiplier: 2,
+    amountMultiplier: 1,
+    image: "/assets/product/gem.svg",
+    requirements: [{ product: EProduct.METH, level: 1 }],
+  },
+  [EDealerUpgrade.FESTIVAL_BLOTTERS]: {
+    product: EProduct.LSD,
+    title: "Festival Blotters",
+    description: "Offer blotters designed for festivals, encouraging larger purchases.",
+    basePrice: 4000,
+    upgradeMultiplier: 2,
+    amountMultiplier: 1,
+    image: "/assets/product/testtube.svg",
+    requirements: [{ product: EProduct.LSD, level: 1 }],
+  },
+  [EDealerUpgrade.BULK_BAGS]: {
+    product: EProduct.MUSHROOM,
+    title: "Bulk Bags",
+    description: "Provide larger bags for bulk purchases.",
+    basePrice: 4000,
+    upgradeMultiplier: 2,
+    amountMultiplier: 1,
+    image: "/assets/product/mushroom.svg",
+    requirements: [{ product: EProduct.MUSHROOM, level: 1 }],
   },
 };
 

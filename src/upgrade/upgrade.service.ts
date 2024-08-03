@@ -70,7 +70,7 @@ export class UpgradeService {
     let price = dealerUpgrade.basePrice;
     if (!du) {
       user.dealerUpgrades.push({
-        product: upgrade,
+        upgrade: upgrade,
         title: dealerUpgrade.title,
         image: dealerUpgrade.image,
         level: 1,

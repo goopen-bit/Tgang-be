@@ -10,9 +10,15 @@ export enum EDealerUpgrade {
   SOCIAL_MEDIA_CAMPAGIN = "social_media_campaign",
   STREET_PROMOTION_TEAM = "street_promotion_team",
   CLUB_PARTNERSHIP = "club_partnership",
-  PRODUCT_QUALITY = "product_quality",
-  LUXURY_PACKAGING = "luxury_packaging",
-  HIGH_VALUE_CUSTOMERS = "high_value_customers",
+  // PRODUCT_QUALITY = "product_quality",
+  // LUXURY_PACKAGING = "luxury_packaging",
+  // HIGH_VALUE_CUSTOMERS = "high_value_customers",
+  COMBO_PACKS = "combo_packs",
+  HIGH_END_PACKAGING = "high_end_packaging",
+  PARTY_PACKS = "party_packs",
+  HIGH_DOSE_PACKAGES = "high_dose_packages",
+  FESTIVAL_BLOTTERS = "festival_blotters",
+  BULK_BAGS = "bulk_bags",
 }
 
 export interface Requirement {
@@ -21,6 +27,7 @@ export interface Requirement {
 }
 
 export interface DealerUpgrade {
+  product: EProduct | null;
   title: string;
   description: string;
   basePrice: number;

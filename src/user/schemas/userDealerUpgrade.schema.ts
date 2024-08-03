@@ -1,16 +1,26 @@
 import { Prop, Schema } from '@nestjs/mongoose';
 import { dealerUpgrades } from '../../upgrade/data/dealerUpgrades';
 import { DealerUpgrade, EDealerUpgrade } from '../../upgrade/upgrade.interface';
+import { EProduct } from '../../market/market.const';
 
 @Schema({ _id: false })
 export class UserDealerUpgrade {
   @Prop({ required: true })
-  product: EDealerUpgrade;
+  upgrade: EDealerUpgrade;
 
   @Prop({
     virtual: true,
     get: function () {
-      const upgrade = dealerUpgrades[this.product];
+      const upgrade = dealerUpgrades[this.upgrade];
+      return upgrade.product;
+    },
+  })
+  product?: EProduct;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const upgrade = dealerUpgrades[this.upgrade];
       return upgrade.title;
     },
   })
@@ -19,7 +29,7 @@ export class UserDealerUpgrade {
   @Prop({
     virtual: true,
     get: function () {
-      const upgrade = dealerUpgrades[this.product];
+      const upgrade = dealerUpgrades[this.upgrade];
       return upgrade.description;
     },
   })
@@ -28,7 +38,7 @@ export class UserDealerUpgrade {
   @Prop({
     virtual: true,
     get: function () {
-      const upgrade = dealerUpgrades[this.product];
+      const upgrade = dealerUpgrades[this.upgrade];
       return upgrade.image;
     },
   })
@@ -40,7 +50,7 @@ export class UserDealerUpgrade {
   @Prop({
     virtual: true,
     get: function () {
-      const upgrade = dealerUpgrades[this.product] as DealerUpgrade;;
+      const upgrade = dealerUpgrades[this.upgrade] as DealerUpgrade;;
       return Math.floor(
         Math.pow(this.level + 1, upgrade.upgradeMultiplier) * upgrade.basePrice,
       );
@@ -51,7 +61,7 @@ export class UserDealerUpgrade {
   @Prop({
     virtual: true,
     get: function () {
-      const upgrade = dealerUpgrades[this.product] as DealerUpgrade;
+      const upgrade = dealerUpgrades[this.upgrade] as DealerUpgrade;
       return  this.level * upgrade.amountMultiplier;
     },
   })
@@ -60,7 +70,7 @@ export class UserDealerUpgrade {
   @Prop({
     virtual: true,
     get: function () {
-      const upgrade = dealerUpgrades[this.product] as DealerUpgrade;
+      const upgrade = dealerUpgrades[this.upgrade] as DealerUpgrade;
       return  (this.level + 1) * upgrade.amountMultiplier;
     },
   })

@@ -21,9 +21,6 @@ import { AnalyticsModule } from './analytics/analytics.module';
     AnalyticsModule.register({
       mixpanelToken: mixpanelToken,
       isGlobal: true,
-      config: {
-        geolocate: false,
-      }
     }),
     HealthModule,
     AuthModule,

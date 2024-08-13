@@ -40,7 +40,7 @@ describe('LabService', () => {
     let user: AuthTokenData;
     beforeEach(async () => {
       user = { id: faker.number.int(), username: faker.internet.userName() };
-      const u = await userService.findOneOrCreate(user);
+      const u = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 1000000;
       await u.save();
     });
@@ -66,7 +66,7 @@ describe('LabService', () => {
     let user: AuthTokenData;
     beforeEach(async () => {
       user = { id: faker.number.int(), username: faker.internet.userName() };
-      const u = await userService.findOneOrCreate(user);
+      const u = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 1000000;
       u.labPlots = [{ plotId: 1 }];
       await u.save();
@@ -101,7 +101,7 @@ describe('LabService', () => {
     let user: AuthTokenData;
     beforeEach(async () => {
       user = { id: faker.number.int(), username: faker.internet.userName() };
-      const u = await userService.findOneOrCreate(user);
+      const u = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 1000000;
       u.labPlots = [
         {
@@ -149,7 +149,7 @@ describe('LabService', () => {
     let user: AuthTokenData;
     beforeEach(async () => {
       user = { id: faker.number.int(), username: faker.internet.userName() };
-      const u = await userService.findOneOrCreate(user);
+      const u = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 1000000;
       u.labPlots = [
         {
@@ -197,7 +197,7 @@ describe('LabService', () => {
     let user: AuthTokenData;
     beforeEach(async () => {
       user = { id: faker.number.int(), username: faker.internet.userName() };
-      const u = await userService.findOneOrCreate(user);
+      const u = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 100;
       u.labPlots = [
         {

@@ -44,7 +44,7 @@ describe('MarketService', () => {
     let user: AuthTokenData;
     beforeEach(async () => {
       user = { id: faker.number.int(), username: faker.internet.userName() };
-      await userService.findOneOrCreate(user);
+      await userService.findOneOrCreate(user, faker.internet.ip());
     });
 
     it('should buy a product', async () => {

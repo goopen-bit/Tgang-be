@@ -13,7 +13,7 @@ export class AuthService {
     private userService: UserService,
   ) {}
 
-  async login(telegramInitData: any) {
+  async login(telegramInitData: any, ip: string) {
     this.logger.debug(telegramInitData);
 
     const initData = new URLSearchParams(telegramInitData);
@@ -42,6 +42,7 @@ export class AuthService {
         id: user.id,
         username: user.username,
       },
+      ip,
       initData.get('start_param'),
     );
     return {

@@ -4,11 +4,15 @@ import { BuyLabDto } from './dto/buy-lab.dto';
 import { labs } from './data/labs';
 import { EProduct } from '../market/market.const';
 import { User } from '../user/schemas/user.schema';
-import { productUpgrades } from '../upgrade/data/dealerUpgrades';
+import { Mixpanel } from 'mixpanel';
+import { InjectMixpanel } from '../analytics/injectMixpanel.decorator';
 
 @Injectable()
 export class LabService {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    @InjectMixpanel() private readonly mixpanel: Mixpanel,
+  ) {}
 
   async buyLabPlot(userId: number) {
     const user = await this.userService.findOne(userId);
@@ -17,7 +21,9 @@ export class LabService {
     }
     user.cashAmount -= user.labPlotPrice;
     user.labPlots.push({ plotId: user.labPlots.length + 1 });
+
     await user.save();
+    this.mixpanel.people.increment(user.id.toString(), 'lab_plots', 1);
     return user;
   }
 
@@ -61,6 +67,11 @@ export class LabService {
       collectTime: new Date(),
     };
     await user.save();
+
+    this.mixpanel.track('Lab Bought', {
+      distinct_id: user.id,
+      lab: params.labProduct,
+    });
     return user;
   }
 
@@ -83,6 +94,13 @@ export class LabService {
     user.cashAmount -= labPlot.lab.upgradeCapacityPrice;
     labPlot.lab.capacityLevel++;
     await user.save();
+
+    this.mixpanel.track('Lab Capacity Upgraded', {
+      distinct_id: user.id,
+      product: labPlot.lab.product,
+      plot: plotId,
+      capacity: labPlot.lab.capacityLevel,
+    });
     return user;
   }
 
@@ -96,6 +114,13 @@ export class LabService {
 
     user.cashAmount -= labPlot.lab.upgradeProductionPrice;
     labPlot.lab.productionLevel++;
+
+    this.mixpanel.track('Lab Production Upgraded', {
+      distinct_id: user.id,
+      product: labPlot.lab.product,
+      plot: plotId,
+      production: labPlot.lab.productionLevel,
+    });
     await user.save();
     return user;
   }
@@ -112,6 +137,13 @@ export class LabService {
 
     labPlot.lab.collectTime = new Date();
     await user.save();
+
+    this.mixpanel.track('Lab Production Collected', {
+      distinct_id: user.id,
+      product: labPlot.lab.product,
+      plot: plotId,
+      production,
+    });
     return user;
   }
 }

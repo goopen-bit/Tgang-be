@@ -35,7 +35,7 @@ describe("UserService", () => {
         id: faker.number.int(),
         username: faker.internet.userName(),
       };
-      const res = await service.findOneOrCreate(params);
+      const res = await service.findOneOrCreate(params, faker.internet.ip());
       expect(res.id).toBe(params.id);
       expect(res.username).toBe(params.username);
       expect(res.cashAmount).toBe(STARTING_CASH);
@@ -48,12 +48,12 @@ describe("UserService", () => {
         id: faker.number.int(),
         username: faker.internet.userName(),
       };
-      const user = await service.findOneOrCreate(params);
+      const user = await service.findOneOrCreate(params, faker.internet.ip());
       await user.updateOne({
         $inc: { cashAmount: faker.number.int({ min: 10, max: 100 }) },
       });
 
-      const res = await service.findOneOrCreate(params);
+      const res = await service.findOneOrCreate(params, faker.internet.ip());
       expect(res.id).toBe(params.id);
       expect(res.username).toBe(params.username);
       expect(res.cashAmount).toBeGreaterThan(STARTING_CASH);
@@ -70,7 +70,7 @@ describe("UserService", () => {
       user = await service.findOneOrCreate({
         id: faker.number.int(),
         username: faker.internet.userName(),
-      } as User);
+      } as User, faker.internet.ip());
     });
     afterEach(async () => {
       await service.delete(user.id);

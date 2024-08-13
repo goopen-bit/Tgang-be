@@ -6,6 +6,8 @@ import { EShippingMethod } from "./shipping.const";
 import { shippingMethods } from "./data/shipping";
 import { ShippingMethod } from "./shipping.interface";
 import { User } from "../user/schemas/user.schema";
+import { Mixpanel } from "mixpanel";
+import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 
 @Injectable()
 export class ShippingService {
@@ -13,7 +15,8 @@ export class ShippingService {
 
   constructor(
     private userService: UserService,
-    private marketService: MarketService
+    private marketService: MarketService,
+    @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
   getShippingMethods() {
@@ -91,6 +94,10 @@ export class ShippingService {
       shippingTimeLevel: 1,
     });
     await user.save();
+    this.mixpanel.track("Shipping Upgrade Bought", {
+      distinct_id: user.id,
+      upgrade,
+    });
     return user;
   }
 
@@ -114,6 +121,11 @@ export class ShippingService {
     user.cashAmount -= userShipping.upgradeCapacityPrice;
     userShipping.capacityLevel += 1;
     await user.save();
+    this.mixpanel.track("Shipping Capacity Upgraded", {
+      distinct_id: user.id,
+      upgrade,
+      capacity: userShipping.capacityLevel,
+    });
     return user;
   }
 
@@ -135,6 +147,11 @@ export class ShippingService {
     user.cashAmount -= userShipping.upgradeShippingTimePrice;
     userShipping.shippingTimeLevel += 1;
     await user.save();
+    this.mixpanel.track("Shipping Time Upgraded", {
+      distinct_id: user.id,
+      upgrade,
+      time: userShipping.shippingTimeLevel,
+    });
     return user;
   }
 
@@ -180,6 +197,12 @@ export class ShippingService {
     user.reputation += ship.amount;
 
     await user.save();
+    this.mixpanel.track("Product Shipped", {
+      distinct_id: user.id,
+      product: ship.product,
+      amount: ship.amount,
+      shippingMethod: ship.shippingMethod,
+    });
     return user;
   }
 }

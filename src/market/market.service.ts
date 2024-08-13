@@ -7,11 +7,16 @@ import { createHash } from "crypto";
 import { Market } from "./market.interface";
 import { BuyProductDto } from "./dto/buy-product.dto";
 import { SellProductDto } from "./dto/sell-product.dto";
+import { Mixpanel } from "mixpanel";
+import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 
 @Injectable()
 export class MarketService {
   private readonly logger = new Logger(this.constructor.name);
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    @InjectMixpanel() private readonly mixpanel: Mixpanel,
+  ) {}
 
   getHistoricalEvents() {
     const currentTime = Math.floor(Date.now() / 1000);
@@ -130,6 +135,11 @@ export class MarketService {
       throw new HttpException("Product not unlocked", 400);
     }
     await user.save();
+    this.mixpanel.track("Product Bought", {
+      distinct_id: user.id,
+      product,
+      quantity,
+    });
     return user;
   }
 
@@ -191,6 +201,11 @@ export class MarketService {
     user.lastSell = new Date();
     user.reputation += reputation;
     await user.save();
+    this.mixpanel.track("Product Sold", {
+      distinct_id: user.id,
+      products: sellList.batch,
+      reputation,
+    });
     return user;
   }
 }

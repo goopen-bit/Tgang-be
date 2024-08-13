@@ -1,0 +1,4 @@
+export const ANALYTICS_CLIENT = Symbol('ANALYTICS_CLIENT');
+export const ANALYTICS_MODULE_OPTIONS = Symbol(
+  'ANALYTICS_MODULE_OPTIONS',
+);

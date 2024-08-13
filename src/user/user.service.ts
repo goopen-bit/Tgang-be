@@ -75,7 +75,7 @@ export class UserService {
     return this.userModel.findOne({ id });
   }
 
-  async dailyRobbery(id: number, ip?: string) {
+  async dailyRobbery(id: number) {
     const user = await this.findOne(id);
     const date = new Date();
     const now = date.getTime();
@@ -112,7 +112,6 @@ export class UserService {
       distinct_id: user.id,
       reward_amount: rewardAmount,
       robbery_strike: user.robberyStrike,
-      $ip: ip,
     });
     return user;
   }

@@ -16,11 +16,8 @@ export class UserController {
   }
 
   @Post("/robbery")
-  dailyRobbery(
-    @GetAuthToken() user: AuthTokenData,
-    @Ip() ip: string,
-  ) {
-    return this.userService.dailyRobbery(user.id, ip);
+  dailyRobbery(@GetAuthToken() user: AuthTokenData) {
+    return this.userService.dailyRobbery(user.id);
   }
 
   @Get("/leaderboard")

@@ -39,7 +39,7 @@ describe("UpgradeService", () => {
     user = await userService.findOneOrCreate({
       id: faker.number.int(),
       username: faker.internet.userName(),
-    } as User);
+    } as User, faker.internet.ip());
   });
 
   it("should be defined", () => {

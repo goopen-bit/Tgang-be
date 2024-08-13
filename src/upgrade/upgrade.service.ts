@@ -12,10 +12,15 @@ import {
 import { EProduct } from '../market/market.const';
 import { productUpgrades } from './data/dealerUpgrades';
 import { User } from '../user/schemas/user.schema';
+import { Mixpanel } from 'mixpanel';
+import { InjectMixpanel } from '../analytics/injectMixpanel.decorator';
 
 @Injectable()
 export class UpgradeService {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    @InjectMixpanel() private readonly mixpanel: Mixpanel,
+  ) {}
 
   findAll(): Upgrade {
     return upgradesData;
@@ -60,6 +65,7 @@ export class UpgradeService {
     user.cashAmount -= price;
 
     await user.save();
+    this.mixpanel.people.increment(user.id.toString(), product, 1);
     return user;
   }
 
@@ -86,6 +92,7 @@ export class UpgradeService {
     user.cashAmount -= price;
 
     await user.save();
+    this.mixpanel.people.increment(user.id.toString(), upgrade, 1);
     return user;
   }
 

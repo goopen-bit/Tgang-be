@@ -10,23 +10,33 @@ import {
   STARTING_CASH,
 } from "./user.const";
 import { upgradesData } from "../upgrade/data/upgrades";
+import { InjectMixpanel } from "src/analytics/injectMixpanel.decorator";
+import { Mixpanel } from "mixpanel";
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name)
-    private userModel: Model<User>
+    private userModel: Model<User>,
+    @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
   private getIdFromReferralToken(referralToken: string) {
     return Buffer.from(referralToken, "base64").toString("utf-8");
   }
 
-  async findOneOrCreate(user: AuthTokenData, referralToken?: string) {
+  async findOneOrCreate(user: AuthTokenData, ip: string, referralToken?: string) {
     const existingUser = await this.userModel.findOne({ id: user.id });
     if (existingUser) {
       return existingUser;
     }
+
+    this.mixpanel.people.set(user.id.toString(), {
+      $name: user.username,
+      $created: new Date(),
+    }, {
+      $ip: ip,
+    });
 
     let referrer: User;
     if (referralToken) {
@@ -96,6 +106,12 @@ export class UserService {
     user.cashAmount += rewardAmount;
     user.lastRobbery = date;
     await user.save();
+
+    this.mixpanel.track("Daily Robbery", {
+      distinct_id: user.id,
+      reward_amount: rewardAmount,
+      robbery_strike: user.robberyStrike,
+    });
     return user;
   }
 

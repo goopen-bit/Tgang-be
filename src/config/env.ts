@@ -40,3 +40,8 @@ export const mongoUrl = process.env['MONGO_URL'];
  * MongoDB database name.
  */
 export const mongoDb = process.env['MONGO_DB'];
+
+/**
+ * Mixpanel token.
+ */
+export const mixpanelToken = process.env['MIXPANEL_TOKEN'];

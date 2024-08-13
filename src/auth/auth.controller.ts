@@ -1,5 +1,6 @@
-import { Controller, Ip, Post, Query } from '@nestjs/common';
+import { Controller, Post, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { Ip } from "../decorators/ip.decorator";
 
 @Controller('auth')
 export class AuthController {

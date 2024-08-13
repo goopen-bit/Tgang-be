@@ -3,7 +3,6 @@ import { UserService } from "./user.service";
 import { Auth } from "../decorators/auth.decorator";
 import { AuthTokenData } from "../config/types";
 import { GetAuthToken } from "../decorators/get-auth-token.decorator";
-import { Ip } from "../decorators/ip.decorator";
 
 @Auth()
 @Controller("users")

@@ -63,7 +63,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
   [EShippingMethod.PLANE]: {
     title: EShippingMethod.PLANE,
     description: "A small plane. Reasonably large capacity and fast.",
-    basePrice: 5000,
+    basePrice: 500000,
     baseCapacityUpgradePrice: 10000,
     baseCapacity: 1000,
     baseShippingTimeUpgradePrice: 10000,

@@ -9,13 +9,14 @@ import { BuyProductDto } from "./dto/buy-product.dto";
 import { SellProductDto } from "./dto/sell-product.dto";
 import { Mixpanel } from "mixpanel";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
+import { productUpgrades } from "../upgrade/data/dealerUpgrades";
 
 @Injectable()
 export class MarketService {
   private readonly logger = new Logger(this.constructor.name);
   constructor(
     private userService: UserService,
-    @InjectMixpanel() private readonly mixpanel: Mixpanel,
+    @InjectMixpanel() private readonly mixpanel: Mixpanel
   ) {}
 
   getHistoricalEvents() {
@@ -105,7 +106,10 @@ export class MarketService {
           (product.price * (100 - discount)) / 100
         );
       } else {
-        product.discountPrice = product.price;
+        const baseProduct = productUpgrades[product.name];
+        product.discountPrice = Math.floor(
+          (product.price * (100 - baseProduct.baseDiscount)) / 100
+        );
       }
     });
     return market;
@@ -114,10 +118,7 @@ export class MarketService {
   async buyProduct(userId: number, marketId: string, params: BuyProductDto) {
     const { product, quantity } = params;
     const user = await this.userService.findOne(userId);
-    const market = await this.getMarketWithReputation(
-      marketId,
-      userId
-    );
+    const market = await this.getMarketWithReputation(marketId, userId);
     if (!user || !market) {
       throw new HttpException("User or market not found", 404);
     }
@@ -173,7 +174,9 @@ export class MarketService {
     let reputation = 0;
     sellList.batch.forEach((item) => {
       const product = user.products.find((p) => p.name === item.product);
-      const dealerUpgrade = user.dealerUpgrades.find((u) => u.product === item.product);
+      const dealerUpgrade = user.dealerUpgrades.find(
+        (u) => u.product === item.product
+      );
       const quality = dealerUpgrade ? dealerUpgrade.level + 1 : 1;
 
       const amountToSell = item.customers * quality;

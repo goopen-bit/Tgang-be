@@ -188,6 +188,9 @@ export class User extends Document {
 
   @Prop()
   lastRobbery?: Date;
+
+  @Prop()
+  wallet?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

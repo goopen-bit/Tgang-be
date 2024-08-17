@@ -1,8 +1,9 @@
-import { Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { Auth } from "../decorators/auth.decorator";
 import { AuthTokenData } from "../config/types";
 import { GetAuthToken } from "../decorators/get-auth-token.decorator";
+import { setWalletDto } from "./dto/set-wallet.dto";
 
 @Auth()
 @Controller("users")
@@ -22,5 +23,12 @@ export class UserController {
   @Get("/leaderboard")
   leaderboard() {
     return this.userService.getLeaderboard();
+  }
+
+  @Post("/wallet")
+  setWallet(@GetAuthToken() user: AuthTokenData, @Body() body: setWalletDto) {
+    return this.userService.update(user.id, {
+      wallet: body.tonWalletAddress,
+    });
   }
 }

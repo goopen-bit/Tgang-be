@@ -1,4 +1,4 @@
-import { HttpException, Injectable, Logger } from "@nestjs/common";
+import { HttpException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { markets } from "./data/market";
 import { events } from "./data/event";
@@ -47,7 +47,7 @@ export class MarketService {
   getMarket(id: string) {
     const originalMarket = markets.find((market) => market.id === id);
     if (!originalMarket) {
-      throw new Error(`Market with id ${id} not found`);
+      throw new NotFoundException(`Market with id ${id} not found`);
     }
 
     const market = cloneDeep(originalMarket) as Market;

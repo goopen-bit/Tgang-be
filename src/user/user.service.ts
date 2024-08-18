@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { User } from "./schemas/user.schema";
@@ -12,6 +12,7 @@ import {
 import { upgradesData } from "../upgrade/data/upgrades";
 import { InjectMixpanel } from "src/analytics/injectMixpanel.decorator";
 import { Mixpanel } from "mixpanel";
+import { sub, subDays } from "date-fns";
 
 @Injectable()
 export class UserService {
@@ -78,24 +79,16 @@ export class UserService {
   async dailyRobbery(id: number) {
     const user = await this.findOne(id);
     const date = new Date();
-    const now = date.getTime();
-    const twentyFour = 8.64e7;
 
     if (!user.lastRobbery) {
       user.lastRobbery = date;
       user.robberyStrike = 1;
     } else {
-      const isSameDay =
-        user.lastRobbery.getDate() === date.getDate() &&
-        user.lastRobbery.getMonth() === date.getMonth() &&
-        user.lastRobbery.getFullYear() === date.getFullYear();
-
-      if (isSameDay) {
-        throw new Error("You can only claim the reward once per day.");
+      if (user.lastRobbery < subDays(date, 1)) {
+        throw new HttpException("You can only claim the reward once per day.", HttpStatus.BAD_REQUEST);
       }
 
-      const isRobberyStrike = now - user.lastRobbery.getTime();
-      if (isRobberyStrike > twentyFour) {
+      if (user.lastRobbery > subDays(date, 2)) {
         user.robberyStrike = 1;
       } else {
         user.robberyStrike += 1;

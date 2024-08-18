@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { User } from "./schemas/user.schema";
@@ -16,6 +16,8 @@ import { sub, subDays } from "date-fns";
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(this.constructor.name);
+
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
@@ -84,11 +86,13 @@ export class UserService {
       user.lastRobbery = date;
       user.robberyStrike = 1;
     } else {
-      if (user.lastRobbery < subDays(date, 1)) {
+      if (user.lastRobbery > subDays(date, 1)) {
         throw new HttpException("You can only claim the reward once per day.", HttpStatus.BAD_REQUEST);
       }
 
-      if (user.lastRobbery > subDays(date, 2)) {
+      this.logger.debug(`Last robbery: ${user.lastRobbery}, date: ${subDays(date, 2)}`);
+      this.logger.debug(user.lastRobbery > subDays(date, 2));
+      if (user.lastRobbery < subDays(date, 2)) {
         user.robberyStrike = 1;
       } else {
         user.robberyStrike += 1;

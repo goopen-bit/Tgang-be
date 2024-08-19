@@ -73,7 +73,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     basePrice: 2000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
-    image: "/assets/product/seedling.svg",
+    image: "/assets/dealer/herb_bulk.webp",
     requirements: null,
   },
   [EDealerUpgrade.BULK_BAGS]: {
@@ -83,7 +83,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     basePrice: 2000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
-    image: "/assets/product/mushroom.svg",
+    image: "/assets/dealer/mushroom_bulk.webp",
     requirements: [{ product: EProduct.MUSHROOM, level: 1 }],
   },
   [EDealerUpgrade.FESTIVAL_BLOTTERS]: {
@@ -94,7 +94,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     basePrice: 2000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
-    image: "/assets/product/testtube.svg",
+    image: "/assets/dealer/acid_bulk.webp",
     requirements: [{ product: EProduct.ACID, level: 1 }],
   },
   [EDealerUpgrade.PARTY_PACKS]: {
@@ -104,7 +104,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     basePrice: 2000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
-    image: "/assets/product/pill.svg",
+    image: "/assets/dealer/pill_bulk.webp",
     requirements: [{ product: EProduct.PILL, level: 1 }],
   },
   [EDealerUpgrade.HIGH_DOSE_PACKAGES]: {
@@ -114,7 +114,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     basePrice: 2000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
-    image: "/assets/product/gem.svg",
+    image: "/assets/dealer/crystal_bulk.webp",
     requirements: [{ product: EProduct.CRYSTAL, level: 1 }],
   },
   [EDealerUpgrade.HIGH_END_PACKAGING]: {
@@ -124,7 +124,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     basePrice: 2000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
-    image: "/assets/product/salt.svg",
+    image: "/assets/dealer/powder_bulk.webp",
     requirements: [{ product: EProduct.POWDER, level: 1 }],
   },
 };

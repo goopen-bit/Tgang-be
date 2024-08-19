@@ -7,7 +7,7 @@ export const markets: Market[] = [
     name: "New York",
     products: [
       {
-        name: EProduct.WEED,
+        name: EProduct.HERB,
         price: 20,
       },
       {
@@ -15,19 +15,19 @@ export const markets: Market[] = [
         price: 25,
       },
       {
-        name: EProduct.LSD,
+        name: EProduct.ACID,
         price: 30,
       },
       {
-        name: EProduct.MDMA,
+        name: EProduct.PILL,
         price: 40,
       },
       {
-        name: EProduct.METH,
+        name: EProduct.CRYSTAL,
         price: 60,
       },
       {
-        name: EProduct.COCAINE,
+        name: EProduct.POWDER,
         price: 100,
       },
 

@@ -1,4 +1,9 @@
-import { HttpException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import {
+  HttpException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { markets } from "./data/market";
 import { events } from "./data/event";
@@ -66,7 +71,7 @@ export class MarketService {
       let priceChangeDirectionToday, priceChangeDirectionYesterday;
 
       if (index === 0) {
-        // For the first product (Weed) which should vary only within ±5%
+        // For the first product (Herb) which should vary only within ±5%
         effectToday = ((todayHashInteger >> (index * 4)) % 11) / 100; // 0% to +10%
         effectYesterday = ((yesterdayHashInteger >> (index * 4)) % 11) / 100; // 0% to +10%
       } else {

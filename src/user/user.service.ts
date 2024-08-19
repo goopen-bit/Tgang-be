@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { User } from "./schemas/user.schema";
@@ -21,26 +27,34 @@ export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
-    @InjectMixpanel() private readonly mixpanel: Mixpanel,
+    @InjectMixpanel() private readonly mixpanel: Mixpanel
   ) {}
 
   private getIdFromReferralToken(referralToken: string) {
     return Buffer.from(referralToken, "base64").toString("utf-8");
   }
 
-  async findOneOrCreate(user: AuthTokenData, ip: string, referralToken?: string) {
+  async findOneOrCreate(
+    user: AuthTokenData,
+    ip: string,
+    referralToken?: string
+  ) {
     const existingUser = await this.userModel.findOne({ id: user.id });
     if (existingUser) {
       return existingUser;
     }
 
-    this.mixpanel.people.set(user.id.toString(), {
-      $name: user.username,
-      $created: new Date(),
-      weed: 1
-    }, {
-      $ip: ip,
-    });
+    this.mixpanel.people.set(
+      user.id.toString(),
+      {
+        $name: user.username,
+        $created: new Date(),
+        HERB: 1,
+      },
+      {
+        $ip: ip,
+      }
+    );
 
     let referrer: User;
     if (referralToken) {
@@ -52,7 +66,7 @@ export class UserService {
       }
     }
 
-    const weed = upgradesData.product[EProduct.WEED];
+    const HERB = upgradesData.product[EProduct.HERB];
 
     return this.userModel.create({
       ...user,
@@ -62,10 +76,10 @@ export class UserService {
       reputation: 1,
       products: [
         {
-          name: EProduct.WEED,
+          name: EProduct.HERB,
           quantity: 0,
-          title: weed.title,
-          image: weed.image,
+          title: HERB.title,
+          image: HERB.image,
           level: 1,
         },
       ],
@@ -87,10 +101,15 @@ export class UserService {
       user.robberyStrike = 1;
     } else {
       if (user.lastRobbery > subDays(date, 1)) {
-        throw new HttpException("You can only claim the reward once per day.", HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          "You can only claim the reward once per day.",
+          HttpStatus.BAD_REQUEST
+        );
       }
 
-      this.logger.debug(`Last robbery: ${user.lastRobbery}, date: ${subDays(date, 2)}`);
+      this.logger.debug(
+        `Last robbery: ${user.lastRobbery}, date: ${subDays(date, 2)}`
+      );
       this.logger.debug(user.lastRobbery > subDays(date, 2));
       if (user.lastRobbery < subDays(date, 2)) {
         user.robberyStrike = 1;
@@ -139,29 +158,28 @@ export class UserService {
   }
 
   async getLeaderboard() {
-    return this.userModel
-      .aggregate([
-        {
-          $sort: { reputation: -1 },
-        },
-        {
-          $limit: 100,
-        },
-        {
-          $setWindowFields: {
-            sortBy: { reputation: -1 },
-            output: {
-              rank: { $rank: {} }
-            }
-          }
-        },
-        {
-          $project: {
-            username: 1,
-            reputation: 1,
-            rank: 1,
+    return this.userModel.aggregate([
+      {
+        $sort: { reputation: -1 },
+      },
+      {
+        $limit: 100,
+      },
+      {
+        $setWindowFields: {
+          sortBy: { reputation: -1 },
+          output: {
+            rank: { $rank: {} },
           },
         },
-      ]);
+      },
+      {
+        $project: {
+          username: 1,
+          reputation: 1,
+          rank: 1,
+        },
+      },
+    ]);
   }
 }

@@ -2,15 +2,15 @@ import { EProduct } from "../../market/market.const";
 import { Lab } from "../lab.interface";
 
 export const labs: Record<EProduct, Lab> = {
-  [EProduct.WEED]: {
-    title: "Weed Farm",
-    description: "A place to grow your own weed.",
+  [EProduct.HERB]: {
+    title: "HERB Farm",
+    description: "A place to grow your own herbs.",
     labPrice: 500,
     baseCapacity: 120,
     baseCapacityUpgradePrice: 1000,
     baseProduction: 60,
     baseProductionUpgradePrice: 1200,
-    image: `/assets/labs/weed_lab.png`,
+    image: `/assets/labs/herb_lab.png`,
     levelRequirement: 1,
   },
   [EProduct.MUSHROOM]: {
@@ -24,7 +24,7 @@ export const labs: Record<EProduct, Lab> = {
     image: `/assets/labs/mushroom_lab.png`,
     levelRequirement: 2,
   },
-  [EProduct.LSD]: {
+  [EProduct.ACID]: {
     title: "Acid Lab",
     description: "A place to create the best trips.",
     labPrice: 1200,
@@ -32,40 +32,40 @@ export const labs: Record<EProduct, Lab> = {
     baseCapacityUpgradePrice: 2000,
     baseProduction: 100,
     baseProductionUpgradePrice: 2400,
-    image: `/assets/labs/lsd_lab.png`,
+    image: `/assets/labs/acid_lab.png`,
     levelRequirement: 2,
   },
-  [EProduct.MDMA]: {
-    title: "Ecstasy Lab",
+  [EProduct.PILL]: {
+    title: "Pill Lab",
     description: "Create artificial love.",
     labPrice: 1600,
     baseCapacity: 240,
     baseCapacityUpgradePrice: 2400,
     baseProduction: 120,
     baseProductionUpgradePrice: 2800,
-    image: `/assets/labs/mdma_lab.png`,
+    image: `/assets/labs/pill_lab.png`,
     levelRequirement: 2,
   },
-  [EProduct.METH]: {
-    title: "Meth Lab",
-    description: "A place to cook the best meth.",
+  [EProduct.CRYSTAL]: {
+    title: "CRYSTAL Lab",
+    description: "A place to cook the best crystal.",
     labPrice: 2000,
     baseCapacity: 280,
     baseCapacityUpgradePrice: 2800,
     baseProduction: 140,
     baseProductionUpgradePrice: 3200,
-    image: `/assets/labs/meth_lab.png`,
+    image: `/assets/labs/crystal_lab.png`,
     levelRequirement: 2,
   },
-  [EProduct.COCAINE]: {
-    title: "Coke Synthesis",
-    description: "A place to synthesize the finest coke.",
+  [EProduct.POWDER]: {
+    title: "Powder Synthesis",
+    description: "A place to synthesize the finest Powder.",
     labPrice: 2400,
     baseCapacity: 320,
     baseCapacityUpgradePrice: 3200,
     baseProduction: 160,
     baseProductionUpgradePrice: 3600,
-    image: `/assets/labs/coke_lab.png`,
+    image: `/assets/labs/powder_lab.png`,
     levelRequirement: 2,
   },
 };

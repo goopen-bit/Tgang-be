@@ -3,55 +3,55 @@ import { Event } from "../market.interface";
 
 export const events: Event[] = [
   {
-    product: EProduct.WEED,
-    description: "Police crackdown on weed dealers, prices go up",
+    product: EProduct.HERB,
+    description: "Police crackdown on HERB dealers, prices go up",
     effect: 1.5,
   },
   {
-    product: EProduct.WEED,
+    product: EProduct.HERB,
     description:
-      "Jamaican king arrives to town and floods the market with cheap weed",
+      "Jamaican king arrives to town and floods the market with cheap HERB",
     effect: 0.5,
   },
   {
-    product: EProduct.COCAINE,
-    description: "Cocaine prices go up due to increased demand",
+    product: EProduct.POWDER,
+    description: "POWDER prices go up due to increased demand",
     effect: 1.5,
   },
   {
-    product: EProduct.COCAINE,
+    product: EProduct.POWDER,
     description:
-      "Huge shipment of cocaine arrived from Colombia, prices go down",
+      "Huge shipment of POWDER arrived from Colombia, prices go down",
     effect: 0.5,
   },
   {
-    product: EProduct.METH,
-    description: "Meth lab explosion, prices go up",
+    product: EProduct.CRYSTAL,
+    description: "Crystal lab explosion, prices go up",
     effect: 1.5,
   },
   {
-    product: EProduct.METH,
-    description: "Methhead convention in town, prices go down",
+    product: EProduct.CRYSTAL,
+    description: "Crystal head convention in town, prices go down",
     effect: 0.5,
   },
   {
-    product: EProduct.MDMA,
-    description: "Huge rave party in town leaves everyone wanting more MDMA",
+    product: EProduct.PILL,
+    description: "Huge rave party in town leaves everyone wanting more PILL",
     effect: 1.5,
   },
   {
-    product: EProduct.MDMA,
-    description: "Police search party finds and destroys MDMA lab",
+    product: EProduct.PILL,
+    description: "Police search party finds and destroys PILL lab",
     effect: 0.5,
   },
   {
-    product: EProduct.LSD,
-    description: "Hofmann arrives to town and introduces LSD to the masses",
+    product: EProduct.ACID,
+    description: "Hofmann arrives to town and introduces ACID to the masses",
     effect: 1.5,
   },
   {
-    product: EProduct.LSD,
-    description: "Country declares the first Hofmann day, LSD prices go down",
+    product: EProduct.ACID,
+    description: "Country declares the first Hofmann day, ACID prices go down",
     effect: 0.5,
   },
 ];

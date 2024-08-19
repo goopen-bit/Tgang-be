@@ -36,10 +36,13 @@ describe("UpgradeService", () => {
 
   beforeEach(async () => {
     // Create a user before each test
-    user = await userService.findOneOrCreate({
-      id: faker.number.int(),
-      username: faker.internet.userName(),
-    } as User, faker.internet.ip());
+    user = await userService.findOneOrCreate(
+      {
+        id: faker.number.int(),
+        username: faker.internet.userName(),
+      } as User,
+      faker.internet.ip()
+    );
   });
 
   it("should be defined", () => {
@@ -50,13 +53,13 @@ describe("UpgradeService", () => {
     it("should buy an upgrade", async () => {
       const params: BuyUpgradeDto = {
         category: EUpgradeCategory.PRODUCT,
-        upgrade: EProduct.WEED,
+        upgrade: EProduct.HERB,
       };
       await userService.update(user.id, { cashAmount: maxCash });
       await service.buyUpgrade(user.id, params);
       const updatedUser = await userService.findOne(user.id);
       const userUpgrade = updatedUser.products.find(
-        (u) => u.name === EProduct.WEED
+        (u) => u.name === EProduct.HERB
       );
       expect(userUpgrade).toBeDefined();
       expect(userUpgrade.level).toBe(2);
@@ -65,12 +68,12 @@ describe("UpgradeService", () => {
     it("should buy an upgrade that has unlock requirement", async () => {
       const params: BuyUpgradeDto = {
         category: EUpgradeCategory.PRODUCT,
-        upgrade: EProduct.COCAINE,
+        upgrade: EProduct.POWDER,
       };
       await userService.update(user.id, {
         products: [
           {
-            name: EProduct.WEED,
+            name: EProduct.HERB,
             level: 5,
             quantity: 0,
             image: "img.jpg",
@@ -80,7 +83,7 @@ describe("UpgradeService", () => {
       await service.buyUpgrade(user.id, params);
       const updatedUser = await userService.findOne(user.id);
       const userUpgrade = updatedUser.products.find(
-        (u) => u.name === EProduct.COCAINE
+        (u) => u.name === EProduct.POWDER
       );
       expect(userUpgrade).toBeDefined();
       expect(userUpgrade.level).toBe(1);
@@ -89,7 +92,7 @@ describe("UpgradeService", () => {
     it("should throw an error if not enough cash", async () => {
       const params: BuyUpgradeDto = {
         category: EUpgradeCategory.PRODUCT,
-        upgrade: EProduct.WEED,
+        upgrade: EProduct.HERB,
       };
       await userService.update(user.id, { cashAmount: 50 });
       await expect(service.buyUpgrade(user.id, params)).rejects.toThrow(

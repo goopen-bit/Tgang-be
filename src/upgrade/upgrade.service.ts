@@ -1,25 +1,27 @@
-import { Injectable, HttpException } from '@nestjs/common';
-import { BuyUpgradeDto } from './dto/buy-upgrade.dto';
-import { UserService } from '../user/user.service';
-import { upgradesData } from './data/upgrades';
+import { Injectable, HttpException } from "@nestjs/common";
+import { BuyUpgradeDto } from "./dto/buy-upgrade.dto";
+import { UserService } from "../user/user.service";
+import { MarketService } from "../market/market.service";
+import { upgradesData } from "./data/upgrades";
 import {
   DealerUpgrade,
   EDealerUpgrade,
   EUpgradeCategory,
   ProductUpgrade,
   Upgrade,
-} from './upgrade.interface';
-import { EProduct } from '../market/market.const';
-import { productUpgrades } from './data/dealerUpgrades';
-import { User } from '../user/schemas/user.schema';
-import { Mixpanel } from 'mixpanel';
-import { InjectMixpanel } from '../analytics/injectMixpanel.decorator';
+} from "./upgrade.interface";
+import { EProduct } from "../market/market.const";
+import { productUpgrades } from "./data/dealerUpgrades";
+import { User } from "../user/schemas/user.schema";
+import { Mixpanel } from "mixpanel";
+import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 
 @Injectable()
 export class UpgradeService {
   constructor(
     private userService: UserService,
-    @InjectMixpanel() private readonly mixpanel: Mixpanel,
+    private marketService: MarketService,
+    @InjectMixpanel() private readonly mixpanel: Mixpanel
   ) {}
 
   findAll(): Upgrade {
@@ -33,9 +35,11 @@ export class UpgradeService {
     }
 
     requirements.forEach((requirement) => {
-      const userProduct = user.products.find((p) => p.name === requirement.product);
+      const userProduct = user.products.find(
+        (p) => p.name === requirement.product
+      );
       if (!userProduct || userProduct.level < requirement.level) {
-        throw new HttpException('Upgrade not unlocked', 400);
+        throw new HttpException("Upgrade not unlocked", 400);
       }
     });
   }
@@ -60,7 +64,7 @@ export class UpgradeService {
     }
 
     if (user.cashAmount < price) {
-      throw new HttpException('Not enough cash', 400);
+      throw new HttpException("Not enough cash", 400);
     }
     user.cashAmount -= price;
 
@@ -87,7 +91,7 @@ export class UpgradeService {
     }
 
     if (user.cashAmount < price) {
-      throw new HttpException('Not enough cash', 400);
+      throw new HttpException("Not enough cash", 400);
     }
     user.cashAmount -= price;
 
@@ -96,14 +100,32 @@ export class UpgradeService {
     return user;
   }
 
-  buyUpgrade(userId: number, params: BuyUpgradeDto) {
+  async buyUpgrade(userId: number, params: BuyUpgradeDto) {
+    let updatedUser;
     switch (params.category) {
       case EUpgradeCategory.PRODUCT:
-        return this.buyProductUpgrade(userId, params.upgrade as EProduct);
+        updatedUser = await this.buyProductUpgrade(
+          userId,
+          params.upgrade as EProduct
+        );
+        break;
       case EUpgradeCategory.DEALER:
-        return this.buyDealerUpgrade(userId, params.upgrade as EDealerUpgrade);
+        updatedUser = await this.buyDealerUpgrade(
+          userId,
+          params.upgrade as EDealerUpgrade
+        );
+        break;
       default:
-        throw new HttpException('Invalid upgrade category', 400);
+        throw new HttpException("Invalid upgrade category", 400);
     }
+
+    // @note todo add current market id to user
+    const userMarketId = "NY";
+    const updatedMarket = await this.marketService.getMarketWithReputation(
+      userMarketId,
+      userId
+    );
+
+    return { user: updatedUser, market: updatedMarket };
   }
 }

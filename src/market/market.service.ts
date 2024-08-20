@@ -90,8 +90,8 @@ export class MarketService {
       effectToday *= priceChangeDirectionToday;
       effectYesterday *= priceChangeDirectionYesterday;
 
-      product.previousPrice = Math.floor(product.price * (1 + effectYesterday));
-      product.price = Math.floor(product.price * (1 + effectToday));
+      product.previousPrice = Number((product.price * (1 + effectYesterday)).toFixed(2));
+      product.price = Number((product.price * (1 + effectToday)).toFixed(2));
     });
     return market;
   }
@@ -107,14 +107,10 @@ export class MarketService {
       const productUpgrade = user.products.find((p) => p.name === product.name);
       if (productUpgrade) {
         const discount = productUpgrade.marketDiscount;
-        product.discountPrice = Math.floor(
-          (product.price * (100 - discount)) / 100
-        );
+        product.discountPrice = Number(((product.price * (100 - discount)) / 100).toFixed(2));
       } else {
         const baseProduct = productUpgrades[product.name];
-        product.discountPrice = Math.floor(
-          (product.price * (100 - baseProduct.baseDiscount)) / 100
-        );
+        product.discountPrice = Number(((product.price * (100 - baseProduct.baseDiscount)) / 100).toFixed(2));
       }
     });
     return market;
@@ -135,7 +131,7 @@ export class MarketService {
 
     const userProduct = user.products.find((p) => p.name === product);
     if (userProduct) {
-      user.cashAmount -= marketProduct.discountPrice * quantity;
+      user.cashAmount = Number((user.cashAmount - marketProduct.discountPrice * quantity).toFixed(2));
       userProduct.quantity += quantity;
     } else {
       throw new HttpException("Product not unlocked", 400);
@@ -202,7 +198,7 @@ export class MarketService {
       const marketPrice = market.products.find(
         (p) => p.name === item.product
       ).price;
-      user.cashAmount += marketPrice * amountToSell;
+      user.cashAmount = Number((user.cashAmount + marketPrice * amountToSell).toFixed(2));
     });
 
     user.customerAmountRemaining = user.customerAmount - totalCustomersSold;

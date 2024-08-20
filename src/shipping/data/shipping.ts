@@ -38,7 +38,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
   [EShippingMethod.TRUCK]: {
     title: EShippingMethod.TRUCK,
     description: "A slow truck that can carry a lot of goods.",
-    basePrice: 50000,
+    basePrice: 100000,
     baseCapacityUpgradePrice: 50000,
     baseCapacity: 5000,
     baseShippingTimeUpgradePrice: 50000,
@@ -49,7 +49,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
   [EShippingMethod.CONTAINER]: {
     title: EShippingMethod.CONTAINER,
     description: "Your own container on a ship. Slow but very efficient.",
-    basePrice: 100000,
+    basePrice: 250000,
     baseCapacityUpgradePrice: 100000,
     baseCapacity: 10000,
     baseShippingTimeUpgradePrice: 100000,

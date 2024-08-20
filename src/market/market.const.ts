@@ -1,5 +1,5 @@
 export enum EProduct {
-  HERB = "herb",
+  HERB = "Herb",
   MUSHROOM = "Mushroom",
   ACID = "Acid",
   PILL = "Pill",

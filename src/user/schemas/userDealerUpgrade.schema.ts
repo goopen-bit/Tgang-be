@@ -1,7 +1,8 @@
 import { Prop, Schema } from '@nestjs/mongoose';
 import { dealerUpgrades } from '../../upgrade/data/dealerUpgrades';
-import { DealerUpgrade, EDealerUpgrade } from '../../upgrade/upgrade.interface';
+import { DealerUpgrade, EDealerUpgrade, Requirement } from '../../upgrade/upgrade.interface';
 import { EProduct } from '../../market/market.const';
+import { setUserRequirements } from '../../upgrade/upgrade.util';
 
 @Schema({ _id: false })
 export class UserDealerUpgrade {
@@ -75,4 +76,14 @@ export class UserDealerUpgrade {
     },
   })
   upgradeAmount?: number;
+
+  @Prop({
+    type: Object,
+    virtual: true,
+    get: function () {
+      const upgrade = dealerUpgrades[this.upgrade] as DealerUpgrade;
+      return setUserRequirements(upgrade.requirements, this.level);
+    },
+  })
+  requirements?: Requirement[];
 }

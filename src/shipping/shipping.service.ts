@@ -8,6 +8,7 @@ import { ShippingMethod } from "./shipping.interface";
 import { User } from "../user/schemas/user.schema";
 import { Mixpanel } from "mixpanel";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
+import { checkRequirements } from "src/upgrade/upgrade.util";
 
 @Injectable()
 export class ShippingService {
@@ -23,64 +24,19 @@ export class ShippingService {
     return shippingMethods;
   }
 
-  checkShippingRequirements(user: User, upgrade: EShippingMethod) {
-    const shippingUpgrade = shippingMethods[upgrade] as ShippingMethod;
-    if (!shippingUpgrade.requirement) {
-      return;
-    }
-
-    if (shippingUpgrade.requirement.type === "fixed") {
-      if (
-        user.referredUsers.length <= shippingUpgrade.requirement.referredUsers
-      ) {
-        throw new HttpException(
-          `Invite ${shippingUpgrade.requirement.referredUsers} users to upgrade`,
-          400
-        );
-      } else {
-        return;
-      }
-    }
-
-    const userUpgrade = user.shipping.find((u) => u.method === upgrade);
-    if (!userUpgrade) {
-      if (
-        user.referredUsers.length <= shippingUpgrade.requirement.referredUsers
-      ) {
-        throw new HttpException(
-          `Invite ${shippingUpgrade.requirement.referredUsers} users to upgrade`,
-          400
-        );
-      } else {
-        return;
-      }
-    }
-
-    if (
-      userUpgrade.capacityLevel + shippingUpgrade.requirement.referredUsers <=
-      shippingUpgrade.requirement.referredUsers
-    ) {
-      throw new HttpException(
-        `Invite ${
-          userUpgrade.capacityLevel + shippingUpgrade.requirement.referredUsers
-        } users to upgrade`,
-        400
-      );
-    }
-  }
-
   async buyShippingUpgrade(userId: number, upgrade: EShippingMethod) {
     this.logger.debug(`User ${userId} is buying shipping upgrade ${upgrade}`);
 
     const user = await this.userService.findOne(userId);
-    this.checkShippingRequirements(user, upgrade);
+
+    const shippingUpgrade = shippingMethods[upgrade] as ShippingMethod;
+    checkRequirements(user, shippingUpgrade.requirements);
 
     const userShipping = user.shipping.find((u) => u.method === upgrade);
     if (userShipping) {
       throw new HttpException("Upgrade already bought", 400);
     }
 
-    const shippingUpgrade = shippingMethods[upgrade] as ShippingMethod;
     if (user.cashAmount < shippingUpgrade.basePrice) {
       throw new HttpException("Not enough cash", 400);
     }
@@ -107,9 +63,9 @@ export class ShippingService {
     );
 
     const user = await this.userService.findOne(userId);
-    this.checkShippingRequirements(user, upgrade);
-
     const userShipping = user.shipping.find((u) => u.method === upgrade);
+    checkRequirements(user, userShipping.requirements);
+
     if (!userShipping) {
       throw new HttpException("Upgrade not bought", 400);
     }
@@ -133,9 +89,9 @@ export class ShippingService {
     this.logger.debug(`User ${userId} is upgrading shipping time ${upgrade}`);
 
     const user = await this.userService.findOne(userId);
-    this.checkShippingRequirements(user, upgrade);
-
     const userShipping = user.shipping.find((u) => u.method === upgrade);
+    checkRequirements(user, userShipping.requirements);
+
     if (!userShipping) {
       throw new HttpException("Upgrade not bought", 400);
     }

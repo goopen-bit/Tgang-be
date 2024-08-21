@@ -1,4 +1,5 @@
 import { EShippingMethod } from "./shipping.const";
+import { Requirement } from "../upgrade/upgrade.interface";
 
 export interface ShippingMethod {
   title: EShippingMethod;
@@ -9,12 +10,5 @@ export interface ShippingMethod {
   baseShippingTimeUpgradePrice: number;
   baseShippingTime: number;
   image: string;
-  requirement: Requirement | null;
-}
-
-export type UpgradeRequirementType = 'fixed' | 'linear';
-
-export interface Requirement {
-  referredUsers: number;
-  type: UpgradeRequirementType;
+  requirements: Requirement[] | null;
 }

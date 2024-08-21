@@ -11,7 +11,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     baseShippingTimeUpgradePrice: 100,
     baseShippingTime: 60 * 60 * 2,
     image: "/assets/shipping/envelope.webp",
-    requirement: null,
+    requirements: null,
   },
   [EShippingMethod.PACKAGE]: {
     title: EShippingMethod.PACKAGE,
@@ -22,7 +22,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     baseShippingTimeUpgradePrice: 500,
     baseShippingTime: 60 * 60 * 3,
     image: "/assets/shipping/package.webp",
-    requirement: null,
+    requirements: null,
   },
   [EShippingMethod.PALLET]: {
     title: EShippingMethod.PALLET,
@@ -33,7 +33,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     baseShippingTimeUpgradePrice: 2500,
     baseShippingTime: 60 * 60 * 6,
     image: "/assets/shipping/pallet.webp",
-    requirement: null,
+    requirements: null,
   },
   [EShippingMethod.TRUCK]: {
     title: EShippingMethod.TRUCK,
@@ -44,7 +44,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     baseShippingTimeUpgradePrice: 50000,
     baseShippingTime: 60 * 60 * 24,
     image: "/assets/shipping/truck.webp",
-    requirement: null,
+    requirements: null,
   },
   [EShippingMethod.CONTAINER]: {
     title: EShippingMethod.CONTAINER,
@@ -55,10 +55,11 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     baseShippingTimeUpgradePrice: 100000,
     baseShippingTime: 60 * 60 * 48,
     image: "/assets/shipping/container.webp",
-    requirement: {
-      referredUsers: 2,
+    requirements: [{
+      level: 2,
+      requirement: "referredUsers",
       type: "fixed",
-    },
+    }],
   },
   [EShippingMethod.PLANE]: {
     title: EShippingMethod.PLANE,
@@ -69,10 +70,11 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     baseShippingTimeUpgradePrice: 500000,
     baseShippingTime: 60 * 60 * 12,
     image: "/assets/shipping/plane.webp",
-    requirement: {
-      referredUsers: 2,
+    requirements: [{
+      level: 2,
+      requirement: "referredUsers",
       type: "linear",
-    },
+    }],
   },
   [EShippingMethod.ROCKET]: {
     title: EShippingMethod.ROCKET,
@@ -83,9 +85,10 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     baseShippingTimeUpgradePrice: 1000000,
     baseShippingTime: 60 * 60 * 2,
     image: "/assets/shipping/rocket.webp",
-    requirement: {
-      referredUsers: 5,
+    requirements: [{
+      level: 5,
+      requirement: "referredUsers",
       type: "linear",
-    },
+    }],
   },
 };

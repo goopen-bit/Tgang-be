@@ -84,7 +84,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     upgradeMultiplier: 2,
     amountMultiplier: 1,
     image: "/assets/dealer/mushroom_bulk.webp",
-    requirements: [{ product: EProduct.MUSHROOM, level: 1 }],
+    requirements: [{ product: EProduct.MUSHROOM, level: 1, requirement: "product", type: "fixed" }],
   },
   [EDealerUpgrade.FESTIVAL_BLOTTERS]: {
     product: EProduct.ACID,
@@ -95,7 +95,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     upgradeMultiplier: 2,
     amountMultiplier: 1,
     image: "/assets/dealer/acid_bulk.webp",
-    requirements: [{ product: EProduct.ACID, level: 1 }],
+    requirements: [{ product: EProduct.ACID, level: 1, requirement: "product", type: "fixed" }],
   },
   [EDealerUpgrade.PARTY_PACKS]: {
     product: EProduct.PILL,
@@ -105,7 +105,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     upgradeMultiplier: 2,
     amountMultiplier: 1,
     image: "/assets/dealer/pill_bulk.webp",
-    requirements: [{ product: EProduct.PILL, level: 1 }],
+    requirements: [{ product: EProduct.PILL, level: 1, requirement: "product", type: "fixed" }],
   },
   [EDealerUpgrade.HIGH_DOSE_PACKAGES]: {
     product: EProduct.CRYSTAL,
@@ -115,7 +115,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     upgradeMultiplier: 2,
     amountMultiplier: 1,
     image: "/assets/dealer/crystal_bulk.webp",
-    requirements: [{ product: EProduct.CRYSTAL, level: 1 }],
+    requirements: [{ product: EProduct.CRYSTAL, level: 1, requirement: "product", type: "fixed" }],
   },
   [EDealerUpgrade.HIGH_END_PACKAGING]: {
     product: EProduct.POWDER,
@@ -125,7 +125,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     upgradeMultiplier: 2,
     amountMultiplier: 1,
     image: "/assets/dealer/powder_bulk.webp",
-    requirements: [{ product: EProduct.POWDER, level: 1 }],
+    requirements: [{ product: EProduct.POWDER, level: 1, requirement: "product", type: "fixed" }],
   },
 };
 
@@ -146,7 +146,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     upgradeMultiplier: 1.2,
     baseDiscount: 12,
     image: `/assets/product/mushroom.webp`,
-    requirements: [{ product: EProduct.HERB, level: 5 }],
+    requirements: [{ product: EProduct.HERB, level: 5, requirement: "product", type: "fixed" }],
   },
   [EProduct.ACID]: {
     title: "Acid",
@@ -155,7 +155,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     upgradeMultiplier: 1.2,
     baseDiscount: 15,
     image: `/assets/product/acid.webp`,
-    requirements: [{ product: EProduct.MUSHROOM, level: 5 }],
+    requirements: [{ product: EProduct.MUSHROOM, level: 5, requirement: "product", type: "fixed" }],
   },
   [EProduct.PILL]: {
     title: "Pill",
@@ -164,7 +164,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     upgradeMultiplier: 1.2,
     baseDiscount: 18,
     image: `/assets/product/pill.webp`,
-    requirements: [{ product: EProduct.ACID, level: 5 }],
+    requirements: [{ product: EProduct.ACID, level: 5, requirement: "product", type: "fixed" }],
   },
   [EProduct.CRYSTAL]: {
     title: "Crystal",
@@ -173,7 +173,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     upgradeMultiplier: 1.2,
     baseDiscount: 20,
     image: `/assets/product/crystal.png`,
-    requirements: [{ product: EProduct.PILL, level: 5 }],
+    requirements: [{ product: EProduct.PILL, level: 5, requirement: "product", type: "fixed" }],
   },
   [EProduct.POWDER]: {
     title: "Powder",
@@ -182,6 +182,6 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     upgradeMultiplier: 1.2,
     baseDiscount: 22,
     image: `/assets/product/powder.webp`,
-    requirements: [{ product: EProduct.POWDER, level: 5 }],
+    requirements: [{ product: EProduct.POWDER, level: 5, requirement: "product", type: "fixed" }],
   },
 };

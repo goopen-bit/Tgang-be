@@ -134,18 +134,18 @@ export class User extends Document {
       const socialMediaCampaign = this.dealerUpgrades.find(
         (u) => u.product === EDealerUpgrade.SOCIAL_MEDIA_CAMPAGIN
       );
-      const streetPromotionTeam = this.dealerUpgrades.find(
-        (u) => u.product === EDealerUpgrade.STREET_PROMOTION_TEAM
-      );
-      const clubPartnership = this.dealerUpgrades.find(
-        (u) => u.product === EDealerUpgrade.CLUB_PARTNERSHIP
-      );
+      // const streetPromotionTeam = this.dealerUpgrades.find(
+      //   (u) => u.product === EDealerUpgrade.STREET_PROMOTION_TEAM
+      // );
+      // const clubPartnership = this.dealerUpgrades.find(
+      //   (u) => u.product === EDealerUpgrade.CLUB_PARTNERSHIP
+      // );
 
       const customerAmountMax =
         BASE_CUSTOMER_LIMIT +
-        (socialMediaCampaign?.amount || 0) +
-        (streetPromotionTeam?.amount || 0) +
-        (clubPartnership?.amount || 0);
+        (socialMediaCampaign?.amount || 0);
+        // (streetPromotionTeam?.amount || 0) +
+        // (clubPartnership?.amount || 0);
       return customerAmountMax;
     },
   })

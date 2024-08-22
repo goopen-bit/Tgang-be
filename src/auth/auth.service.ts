@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { createHmac } from 'crypto';
-import { telegramBotToken } from '../config/env';
-import { UserService } from '../user/user.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { createHmac } from "crypto";
+import { telegramBotToken } from "../config/env";
+import { UserService } from "../user/user.service";
 
 @Injectable()
 export class AuthService {
@@ -19,20 +19,20 @@ export class AuthService {
     const initData = new URLSearchParams(telegramInitData);
     initData.sort();
 
-    const hash = initData.get('hash');
-    initData.delete('hash');
+    const hash = initData.get("hash");
+    initData.delete("hash");
     const dataToCheck = [...initData.entries()]
-      .map(([key, value]) => key + '=' + value)
-      .join('\n');
-    const secretKey = createHmac('sha256', 'WebAppData')
+      .map(([key, value]) => key + "=" + value)
+      .join("\n");
+    const secretKey = createHmac("sha256", "WebAppData")
       .update(telegramBotToken)
       .digest();
-    const _hash = createHmac('sha256', secretKey)
+    const _hash = createHmac("sha256", secretKey)
       .update(dataToCheck)
-      .digest('hex');
+      .digest("hex");
 
     if (_hash !== hash) {
-      return { error: 'Invalid hash' };
+      return { error: "Invalid hash" };
     }
 
     const user = JSON.parse(telegramInitData.user);
@@ -40,10 +40,10 @@ export class AuthService {
     await this.userService.findOneOrCreate(
       {
         id: user.id,
-        username: user.username,
+        username: user.username || "Incel",
       },
       ip,
-      initData.get('start_param'),
+      initData.get("start_param"),
     );
     return {
       access_token: this.jwtService.sign({

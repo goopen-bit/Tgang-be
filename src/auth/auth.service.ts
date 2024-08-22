@@ -40,7 +40,7 @@ export class AuthService {
     await this.userService.findOneOrCreate(
       {
         id: user.id,
-        username: user.username || "Incel",
+        username: user.username || user.first_name,
       },
       ip,
       initData.get("start_param"),

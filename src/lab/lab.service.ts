@@ -73,9 +73,10 @@ export class LabService {
     };
     await user.save();
 
-    this.mixpanel.track("Lab Bought", {
+    this.mixpanel.track("Upgrade Bought", {
       distinct_id: user.id,
-      lab: params.labProduct,
+      type: "Lab",
+      value: params.labProduct,
     });
     return user;
   }

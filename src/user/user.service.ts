@@ -27,7 +27,7 @@ export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
-    @InjectMixpanel() private readonly mixpanel: Mixpanel
+    @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
   private getIdFromReferralToken(referralToken: string) {
@@ -37,7 +37,7 @@ export class UserService {
   async findOneOrCreate(
     user: AuthTokenData,
     ip: string,
-    referralToken?: string
+    referralToken?: string,
   ) {
     const existingUser = await this.userModel.findOne({ id: user.id });
     if (existingUser) {
@@ -53,8 +53,15 @@ export class UserService {
       },
       {
         $ip: ip,
-      }
+      },
     );
+    
+    this.mixpanel.track("SignUp", {
+      distinct_id: user.id.toString(),
+      $ip: ip,
+      username: user.username,
+      referredBy: referralToken ? "Yes" : "No",
+    });
 
     let referrer: User;
     if (referralToken) {
@@ -63,12 +70,17 @@ export class UserService {
         referrer.cashAmount += REFERRAL_CASH;
         referrer.referredUsers.push(user.username);
         await referrer.save();
+
+        this.mixpanel.track("Referral Success", {
+          distinct_id: referrer.id.toString(),
+          referred_user: user.username,
+        });
       }
     }
 
     const HERB = upgradesData.product[EProduct.HERB];
 
-    return this.userModel.create({
+    const newUser = await this.userModel.create({
       ...user,
       cashAmount: referrer?.username
         ? STARTING_CASH + REFERRAL_CASH
@@ -85,8 +97,15 @@ export class UserService {
       ],
       referredBy: referrer?.username,
     });
-  }
 
+    // Set additional user properties
+    this.mixpanel.people.set(user.id.toString(), {
+      starting_cash: newUser.cashAmount,
+      referred_by: newUser.referredBy || "None",
+    });
+
+    return newUser;
+  }
   async findByReferralToken(referralToken: string) {
     const id = this.getIdFromReferralToken(referralToken);
     return this.userModel.findOne({ id });
@@ -103,12 +122,12 @@ export class UserService {
       if (user.lastRobbery > subDays(date, 1)) {
         throw new HttpException(
           "You can only claim the reward once per day.",
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
 
       this.logger.debug(
-        `Last robbery: ${user.lastRobbery}, date: ${subDays(date, 2)}`
+        `Last robbery: ${user.lastRobbery}, date: ${subDays(date, 2)}`,
       );
       this.logger.debug(user.lastRobbery > subDays(date, 2));
       if (user.lastRobbery < subDays(date, 2)) {

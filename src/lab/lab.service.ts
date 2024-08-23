@@ -1,11 +1,11 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { UserService } from '../user/user.service';
-import { BuyLabDto } from './dto/buy-lab.dto';
-import { labs } from './data/labs';
-import { EProduct } from '../market/market.const';
-import { User } from '../user/schemas/user.schema';
-import { Mixpanel } from 'mixpanel';
-import { InjectMixpanel } from '../analytics/injectMixpanel.decorator';
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { UserService } from "../user/user.service";
+import { BuyLabDto } from "./dto/buy-lab.dto";
+import { labs } from "./data/labs";
+import { EProduct } from "../market/market.const";
+import { User } from "../user/schemas/user.schema";
+import { Mixpanel } from "mixpanel";
+import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 
 @Injectable()
 export class LabService {
@@ -17,13 +17,13 @@ export class LabService {
   async buyLabPlot(userId: number) {
     const user = await this.userService.findOne(userId);
     if (user.cashAmount < user.labPlotPrice) {
-      throw new HttpException('Not enough money', HttpStatus.BAD_REQUEST);
+      throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
     }
     user.cashAmount -= user.labPlotPrice;
     user.labPlots.push({ plotId: user.labPlots.length + 1 });
 
     await user.save();
-    this.mixpanel.people.increment(user.id.toString(), 'lab_plots', 1);
+    this.mixpanel.people.increment(user.id.toString(), "lab_plots", 1);
     return user;
   }
 
@@ -37,9 +37,14 @@ export class LabService {
 
   checkLabRequirements(user: User, labProduct: EProduct) {
     const lab = this.getLab(labProduct);
-    const userProduct = user.products.find((product) => product.name === labProduct);
+    const userProduct = user.products.find(
+      (product) => product.name === labProduct,
+    );
     if (!userProduct || userProduct.level < lab.levelRequirement) {
-      throw new HttpException('Product level is too low', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        "Product level is too low",
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
@@ -49,12 +54,12 @@ export class LabService {
 
     const labPlot = user.labPlots.find((plot) => plot.plotId === params.plotId);
     if (labPlot.lab) {
-      throw new HttpException('Plot is not empty', HttpStatus.BAD_REQUEST);
+      throw new HttpException("Plot is not empty", HttpStatus.BAD_REQUEST);
     }
 
     const lab = this.getLab(params.labProduct);
     if (user.cashAmount < lab.labPrice) {
-      throw new HttpException('Not enough money', HttpStatus.BAD_REQUEST);
+      throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
     }
 
     user.cashAmount -= lab.labPrice;
@@ -68,7 +73,7 @@ export class LabService {
     };
     await user.save();
 
-    this.mixpanel.track('Lab Bought', {
+    this.mixpanel.track("Lab Bought", {
       distinct_id: user.id,
       lab: params.labProduct,
     });
@@ -78,7 +83,7 @@ export class LabService {
   private getLabPlotForUpgrade(user: User, plotId: number) {
     const labPlot = user.labPlots.find((plot) => plot.plotId === plotId);
     if (!labPlot.lab) {
-      throw new HttpException('Plot is empty', HttpStatus.BAD_REQUEST);
+      throw new HttpException("Plot is empty", HttpStatus.BAD_REQUEST);
     }
     return labPlot;
   }
@@ -88,18 +93,17 @@ export class LabService {
     const labPlot = this.getLabPlotForUpgrade(user, plotId);
 
     if (user.cashAmount < labPlot.lab.upgradeCapacityPrice) {
-      throw new HttpException('Not enough money', HttpStatus.BAD_REQUEST);
+      throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
     }
 
     user.cashAmount -= labPlot.lab.upgradeCapacityPrice;
     labPlot.lab.capacityLevel++;
     await user.save();
-
-    this.mixpanel.track('Lab Capacity Upgraded', {
+    this.mixpanel.track("Boost Upgrade", {
       distinct_id: user.id,
-      product: labPlot.lab.product,
-      plot: plotId,
-      capacity: labPlot.lab.capacityLevel,
+      type: "Lab Capacity",
+      value: labPlot.lab.product,
+      level: labPlot.lab.capacityLevel,
     });
     return user;
   }
@@ -109,17 +113,16 @@ export class LabService {
     const labPlot = this.getLabPlotForUpgrade(user, plotId);
 
     if (user.cashAmount < labPlot.lab.upgradeProductionPrice) {
-      throw new HttpException('Not enough money', HttpStatus.BAD_REQUEST);
+      throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
     }
 
     user.cashAmount -= labPlot.lab.upgradeProductionPrice;
     labPlot.lab.productionLevel++;
-
-    this.mixpanel.track('Lab Production Upgraded', {
+    this.mixpanel.track("Boost Upgrade", {
       distinct_id: user.id,
-      product: labPlot.lab.product,
-      plot: plotId,
-      production: labPlot.lab.productionLevel,
+      type: "Lab Production",
+      value: labPlot.lab.product,
+      level: labPlot.lab.productionLevel,
     });
     await user.save();
     return user;
@@ -138,7 +141,7 @@ export class LabService {
     labPlot.lab.collectTime = new Date();
     await user.save();
 
-    this.mixpanel.track('Lab Production Collected', {
+    this.mixpanel.track("Lab Production Collected", {
       distinct_id: user.id,
       product: labPlot.lab.product,
       plot: plotId,

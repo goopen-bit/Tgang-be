@@ -55,7 +55,7 @@ export class UserService {
         $ip: ip,
       },
     );
-    
+
     this.mixpanel.track("SignUp", {
       distinct_id: user.id.toString(),
       $ip: ip,
@@ -73,7 +73,7 @@ export class UserService {
 
         this.mixpanel.track("Referral Success", {
           distinct_id: referrer.id.toString(),
-          referred_user: user.username,
+          referred_user: referrer.username,
         });
       }
     }

@@ -21,7 +21,7 @@ export class UpgradeService {
   constructor(
     private userService: UserService,
     private marketService: MarketService,
-    @InjectMixpanel() private readonly mixpanel: Mixpanel
+    @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
   findAll(): Upgrade {
@@ -36,7 +36,7 @@ export class UpgradeService {
 
     requirements.forEach((requirement) => {
       const userProduct = user.products.find(
-        (p) => p.name === requirement.product
+        (p) => p.name === requirement.product,
       );
       if (!userProduct || userProduct.level < requirement.level) {
         throw new HttpException("Upgrade not unlocked", 400);
@@ -69,7 +69,11 @@ export class UpgradeService {
     user.cashAmount -= price;
 
     await user.save();
-    this.mixpanel.people.increment(user.id.toString(), product, 1);
+    this.mixpanel.track("Upgrade Bought", {
+      distinct_id: user.id,
+      type: "Product",
+      value: product,
+    });
     return user;
   }
 
@@ -96,7 +100,11 @@ export class UpgradeService {
     user.cashAmount -= price;
 
     await user.save();
-    this.mixpanel.people.increment(user.id.toString(), upgrade, 1);
+    this.mixpanel.track("Upgrade Bought", {
+      distinct_id: user.id,
+      type: "Dealer",
+      value: upgrade,
+    });
     return user;
   }
 
@@ -106,13 +114,13 @@ export class UpgradeService {
       case EUpgradeCategory.PRODUCT:
         updatedUser = await this.buyProductUpgrade(
           userId,
-          params.upgrade as EProduct
+          params.upgrade as EProduct,
         );
         break;
       case EUpgradeCategory.DEALER:
         updatedUser = await this.buyDealerUpgrade(
           userId,
-          params.upgrade as EDealerUpgrade
+          params.upgrade as EDealerUpgrade,
         );
         break;
       default:
@@ -123,7 +131,7 @@ export class UpgradeService {
     const userMarketId = "NY";
     const updatedMarket = await this.marketService.getMarketWithReputation(
       userMarketId,
-      userId
+      userId,
     );
 
     return { user: updatedUser, market: updatedMarket };

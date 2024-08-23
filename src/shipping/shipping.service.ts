@@ -50,16 +50,17 @@ export class ShippingService {
       shippingTimeLevel: 1,
     });
     await user.save();
-    this.mixpanel.track("Shipping Upgrade Bought", {
+    this.mixpanel.track("Upgrade Bought", {
       distinct_id: user.id,
-      upgrade,
+      type: "Shipping",
+      value: upgrade,
     });
     return user;
   }
 
   async upgradeShippingCapacity(userId: number, upgrade: EShippingMethod) {
     this.logger.debug(
-      `User ${userId} is upgrading shipping capacity ${upgrade}`
+      `User ${userId} is upgrading shipping capacity ${upgrade}`,
     );
 
     const user = await this.userService.findOne(userId);
@@ -77,10 +78,11 @@ export class ShippingService {
     user.cashAmount -= userShipping.upgradeCapacityPrice;
     userShipping.capacityLevel += 1;
     await user.save();
-    this.mixpanel.track("Shipping Capacity Upgraded", {
+    this.mixpanel.track("Boost Upgrade", {
       distinct_id: user.id,
-      upgrade,
-      capacity: userShipping.capacityLevel,
+      type: "Shipping Capacity",
+      value: upgrade,
+      level: userShipping.capacityLevel,
     });
     return user;
   }
@@ -103,17 +105,18 @@ export class ShippingService {
     user.cashAmount -= userShipping.upgradeShippingTimePrice;
     userShipping.shippingTimeLevel += 1;
     await user.save();
-    this.mixpanel.track("Shipping Time Upgraded", {
+    this.mixpanel.track("Boost Upgrade", {
       distinct_id: user.id,
-      upgrade,
-      time: userShipping.shippingTimeLevel,
+      type: "Shipping Time",
+      value: upgrade,
+      level: userShipping.shippingTimeLevel,
     });
     return user;
   }
 
   async shipProduct(userId: number, marketId: string, ship: ShipProductDto) {
     this.logger.debug(
-      `User ${userId} is shipping products ${JSON.stringify(ship.product)}`
+      `User ${userId} is shipping products ${JSON.stringify(ship.product)}`,
     );
 
     const user = await this.userService.findOne(userId);
@@ -122,7 +125,7 @@ export class ShippingService {
       this.logger.error("Shipping method not found");
       throw new HttpException(
         `You can not ship using ${ship.shippingMethod}`,
-        400
+        400,
       );
     }
 
@@ -143,7 +146,7 @@ export class ShippingService {
       this.logger.error(`Not enough quantity of product ${ship.product}`);
       throw new HttpException(
         `Not enough quantity of product ${ship.product}`,
-        400
+        400,
       );
     }
 

@@ -41,7 +41,6 @@ export function checkRequirements(user: User, requirements: Requirement[] | null
         if (
           user.referredUsers.length < requirement.level
         ) {
-          console.log("throwing");
           throw new HttpException(
             `Invite ${requirement.level} users to upgrade`,
             400

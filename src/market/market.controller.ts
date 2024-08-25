@@ -39,7 +39,6 @@ export class MarketController {
     @GetAuthToken() user: AuthTokenData,
     @Body() body: SellProductDto,
   ) {
-    console.log(body);
     return this.marketService.sellProduct(user.id, id, body);
   }
 }

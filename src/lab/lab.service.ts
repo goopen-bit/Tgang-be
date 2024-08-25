@@ -32,8 +32,14 @@ export class LabService {
       if (user.cashAmount < user.labPlotPrice) {
         throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
       }
+
+      const newPlotId = user.labPlots.length + 1;
+      if (user.labPlots.some(plot => plot.plotId === newPlotId)) {
+        throw new HttpException("Plot ID already exists", HttpStatus.CONFLICT);
+      }
+
       user.cashAmount -= user.labPlotPrice;
-      user.labPlots.push({ plotId: user.labPlots.length + 1 });
+      user.labPlots.push({ plotId: newPlotId });
 
       await user.save();
       this.mixpanel.people.increment(user.id.toString(), "lab_plots", 1);

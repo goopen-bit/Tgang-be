@@ -9,11 +9,4 @@ export class AppController {
   getHello() {
     return this.appService.getHello();
   }
-
-  @Post()
-  postHello(@Body() params: any, @Query() query: any) {
-    console.log(params);
-    console.log(query);
-    return this.appService.getHello();
-  }
 }

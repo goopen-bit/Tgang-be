@@ -75,7 +75,7 @@ export class UserService {
 
         this.mixpanel.track("Referral Success", {
           distinct_id: referrer.id.toString(),
-          referred_user: referrer.username,
+          referred_user: user.id.toString(),
         });
       }
     }

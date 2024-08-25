@@ -1,6 +1,6 @@
 export const STARTING_CASH = 1000;
 export const REFERRAL_CASH = 1000;
-export const REFERRAL_REPUTATION = 1000;
+export const REFERRAL_REPUTATION = 500;
 
 export const BASE_CUSTOMER_LIMIT = 500;
 

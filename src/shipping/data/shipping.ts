@@ -81,7 +81,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     description: "Your own fricking rocket. Deliver everywhere in no time.",
     basePrice: 1000000,
     baseCapacityUpgradePrice: 1000000,
-    baseCapacity: 500,
+    baseCapacity: 1600,
     baseShippingTimeUpgradePrice: 1000000,
     baseShippingTime: 60 * 60 * 2,
     image: "/assets/shipping/rocket.webp",

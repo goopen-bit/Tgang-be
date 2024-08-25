@@ -2,7 +2,6 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import {
   BASE_CUSTOMER_LIMIT,
-  BASE_CUSTOMER_NEEDS,
   BASE_LAB_PLOT_PRICE,
   LAB_PLOT_PRICE_MULTIPLIER,
 } from "../user.const";

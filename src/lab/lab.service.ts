@@ -6,25 +6,41 @@ import { EProduct } from "../market/market.const";
 import { User } from "../user/schemas/user.schema";
 import { Mixpanel } from "mixpanel";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
+import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
+import Redis from "ioredis";
 
 @Injectable()
 export class LabService {
   constructor(
     private userService: UserService,
+
+    @InjectRedis() private readonly redis: Redis,
+
     @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
   async buyLabPlot(userId: number) {
-    const user = await this.userService.findOne(userId);
-    if (user.cashAmount < user.labPlotPrice) {
-      throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
-    }
-    user.cashAmount -= user.labPlotPrice;
-    user.labPlots.push({ plotId: user.labPlots.length + 1 });
+    const lockKey = `buyLabPlot:${userId}`;
 
-    await user.save();
-    this.mixpanel.people.increment(user.id.toString(), "lab_plots", 1);
-    return user;
+    const lock = await this.redis.set(lockKey, 'locked', 'EX', 5, 'NX');
+    if (!lock) {
+      throw new HttpException('Please try again later', HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    try {
+      const user = await this.userService.findOne(userId);
+      if (user.cashAmount < user.labPlotPrice) {
+        throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
+      }
+      user.cashAmount -= user.labPlotPrice;
+      user.labPlots.push({ plotId: user.labPlots.length + 1 });
+
+      await user.save();
+      this.mixpanel.people.increment(user.id.toString(), "lab_plots", 1);
+      return user;
+    } finally {
+      await this.redis.del(lockKey);
+    }
   }
 
   getLabs() {

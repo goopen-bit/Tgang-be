@@ -1,7 +1,6 @@
 export const STARTING_CASH = 1000;
 export const REFERRAL_CASH = 100;
 
-export const BASE_CUSTOMER_NEEDS = 1;
 export const BASE_CUSTOMER_LIMIT = 500;
 
 export const BASE_LAB_PLOT_PRICE = 989;

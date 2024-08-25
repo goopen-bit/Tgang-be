@@ -42,6 +42,11 @@ export const mongoUrl = process.env['MONGO_URL'];
 export const mongoDb = process.env['MONGO_DB'];
 
 /**
+ * Redis URL
+ */
+export const redisUrl = process.env['REDIS_URL'];
+
+/**
  * Mixpanel token.
  */
 export const mixpanelToken = process.env['MIXPANEL_TOKEN'];

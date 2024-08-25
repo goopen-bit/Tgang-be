@@ -12,6 +12,7 @@ import { AuthTokenData } from "../config/types";
 import { EProduct } from "../market/market.const";
 import {
   REFERRAL_CASH,
+  REFERRAL_REPUTATION,
   ROBBERY_AMOUNT_PER_DAILY_STRIKE,
   STARTING_CASH,
 } from "./user.const";
@@ -68,6 +69,7 @@ export class UserService {
       referrer = await this.findByReferralToken(referralToken);
       if (referrer) {
         referrer.cashAmount += REFERRAL_CASH;
+        referrer.reputation += REFERRAL_REPUTATION;
         referrer.referredUsers.push(user.username);
         await referrer.save();
 

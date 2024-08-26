@@ -42,9 +42,8 @@ export class UserService {
   ) {
     const existingUser = await this.userModel.findOne({ id: user.id });
     if (existingUser) {
-      return existingUser;
+      return { existingUser, signup: false };
     }
-
     this.mixpanel.people.set(
       user.id.toString(),
       {
@@ -106,7 +105,7 @@ export class UserService {
       referred_by: newUser.referredBy || "None",
     });
 
-    return newUser;
+    return { newUser, signup: true };
   }
   async findByReferralToken(referralToken: string) {
     const id = this.getIdFromReferralToken(referralToken);

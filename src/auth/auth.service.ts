@@ -37,7 +37,7 @@ export class AuthService {
 
     const user = JSON.parse(telegramInitData.user);
 
-    await this.userService.findOneOrCreate(
+    const { signup } = await this.userService.findOneOrCreate(
       {
         id: user.id,
         username: user.username || user.first_name,
@@ -45,11 +45,14 @@ export class AuthService {
       ip,
       initData.get("start_param"),
     );
+    console.log(`signup`);
+    console.log(signup);
     return {
       access_token: this.jwtService.sign({
         id: user.id,
         username: user.username,
       }),
+      signup,
     };
   }
 }

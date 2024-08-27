@@ -11,13 +11,15 @@ import { User } from "./schemas/user.schema";
 import { AuthTokenData } from "../config/types";
 import { EProduct } from "../market/market.const";
 import {
+  PREMIUM_REFERRAL_CASH,
+  PREMIUM_REFERRAL_REPUTATION,
   REFERRAL_CASH,
   REFERRAL_REPUTATION,
   ROBBERY_AMOUNT_PER_DAILY_STRIKE,
   STARTING_CASH,
 } from "./user.const";
 import { upgradesData } from "../upgrade/data/upgrades";
-import { InjectMixpanel } from "src/analytics/injectMixpanel.decorator";
+import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 import { Mixpanel } from "mixpanel";
 import { sub, subDays } from "date-fns";
 
@@ -42,6 +44,10 @@ export class UserService {
   ) {
     const existingUser = await this.userModel.findOne({ id: user.id });
     if (existingUser) {
+      if (existingUser.isPremium !== user.isPremium) {
+        existingUser.isPremium = user.isPremium;
+        await existingUser.save();
+      }
       return existingUser;
     }
 
@@ -68,8 +74,13 @@ export class UserService {
     if (referralToken) {
       referrer = await this.findByReferralToken(referralToken);
       if (referrer) {
-        referrer.cashAmount += REFERRAL_CASH;
-        referrer.reputation += REFERRAL_REPUTATION;
+        if (referrer.isPremium) {
+          referrer.cashAmount += REFERRAL_CASH;
+          referrer.reputation += REFERRAL_REPUTATION;
+        } else {
+          referrer.cashAmount += PREMIUM_REFERRAL_CASH;
+          referrer.reputation += PREMIUM_REFERRAL_REPUTATION;
+        }
         referrer.referredUsers.push(user.username);
         await referrer.save();
 
@@ -87,7 +98,7 @@ export class UserService {
       cashAmount: referrer?.username
         ? STARTING_CASH + REFERRAL_CASH
         : STARTING_CASH,
-      reputation: 1,
+      reputation: user.isPremium ? 500 : 1,
       products: [
         {
           name: EProduct.HERB,

@@ -8,6 +8,7 @@ import { AuthTokenData } from "../config/types";
 import { faker } from "@faker-js/faker";
 import { UserService } from "../user/user.service";
 import { EShippingMethod } from "./shipping.const";
+import { mockTokenData } from "../../test/utils/user";
 
 describe("ShippingService", () => {
   let service: ShippingService;
@@ -32,7 +33,7 @@ describe("ShippingService", () => {
 
   let user: AuthTokenData;
   beforeEach(async () => {
-    user = { id: faker.number.int(), username: faker.internet.userName() };
+    user = mockTokenData();
     const u = await userService.findOneOrCreate(user, faker.internet.ip());
     u.cashAmount = 1000000;
     await u.save();

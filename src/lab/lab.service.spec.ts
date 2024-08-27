@@ -10,6 +10,7 @@ import { UserService } from "../user/user.service";
 import { EProduct } from "../market/market.const";
 import { subHours } from "date-fns";
 import { RedisModule } from "@goopen/nestjs-ioredis-provider";
+import { mockTokenData } from "../../test/utils/user";
 
 describe("LabService", () => {
   let module: TestingModule;
@@ -44,7 +45,7 @@ describe("LabService", () => {
   describe("buyLabPlot", () => {
     let user: AuthTokenData;
     beforeEach(async () => {
-      user = { id: faker.number.int(), username: faker.internet.userName() };
+      user = mockTokenData();
       const u = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 1000000;
       await u.save();
@@ -70,7 +71,7 @@ describe("LabService", () => {
   describe("buyLab", () => {
     let user: AuthTokenData;
     beforeEach(async () => {
-      user = { id: faker.number.int(), username: faker.internet.userName() };
+      user = mockTokenData();
       const u = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 1000000;
       u.labPlots = [{ plotId: 1 }];
@@ -105,7 +106,7 @@ describe("LabService", () => {
   describe("upgradeLabCapacity", () => {
     let user: AuthTokenData;
     beforeEach(async () => {
-      user = { id: faker.number.int(), username: faker.internet.userName() };
+      user = mockTokenData();
       const u = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 1000000;
       u.labPlots = [
@@ -153,7 +154,7 @@ describe("LabService", () => {
   describe("upgradeLabProduction", () => {
     let user: AuthTokenData;
     beforeEach(async () => {
-      user = { id: faker.number.int(), username: faker.internet.userName() };
+      user = mockTokenData();
       const u = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 1000000;
       u.labPlots = [
@@ -201,7 +202,7 @@ describe("LabService", () => {
   describe("collectLabProduction", () => {
     let user: AuthTokenData;
     beforeEach(async () => {
-      user = { id: faker.number.int(), username: faker.internet.userName() };
+      user = mockTokenData();
       const u = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 100;
       u.labPlots = [

@@ -5,6 +5,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { mongoUrl, mongoDb } from "../config/env";
 import { User, UserSchema } from "./schemas/user.schema";
 import { STARTING_CASH } from "./user.const";
+import { mockTokenData } from "../../test/utils/user";
 
 describe("UserService", () => {
   let module: TestingModule;
@@ -31,10 +32,7 @@ describe("UserService", () => {
 
   describe("findOneOrCreate", () => {
     it("should create new user", async () => {
-      const params = {
-        id: faker.number.int(),
-        username: faker.internet.userName(),
-      };
+      const params = mockTokenData();
       const res = await service.findOneOrCreate(params, faker.internet.ip());
       expect(res.id).toBe(params.id);
       expect(res.username).toBe(params.username);
@@ -44,10 +42,7 @@ describe("UserService", () => {
     });
 
     it("should create new user", async () => {
-      const params = {
-        id: faker.number.int(),
-        username: faker.internet.userName(),
-      };
+      const params = mockTokenData();
       const user = await service.findOneOrCreate(params, faker.internet.ip());
       await user.updateOne({
         $inc: { cashAmount: faker.number.int({ min: 10, max: 100 }) },
@@ -67,10 +62,7 @@ describe("UserService", () => {
     let user: User;
 
     beforeEach(async () => {
-      user = await service.findOneOrCreate({
-        id: faker.number.int(),
-        username: faker.internet.userName(),
-      } as User, faker.internet.ip());
+      user = await service.findOneOrCreate(mockTokenData(), faker.internet.ip());
     });
     afterEach(async () => {
       await service.delete(user.id);

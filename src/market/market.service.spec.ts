@@ -7,6 +7,7 @@ import { faker } from "@faker-js/faker";
 import { AuthTokenData } from "../config/types";
 import { EProduct } from "./market.const";
 import { UserService } from "../user/user.service";
+import { mockTokenData } from "../../test/utils/user";
 
 describe("MarketService", () => {
   let module: TestingModule;
@@ -43,7 +44,7 @@ describe("MarketService", () => {
   describe("buyProduct", () => {
     let user: AuthTokenData;
     beforeEach(async () => {
-      user = { id: faker.number.int(), username: faker.internet.userName() };
+      user = mockTokenData();
       await userService.findOneOrCreate(user, faker.internet.ip());
     });
 

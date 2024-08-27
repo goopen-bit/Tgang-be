@@ -91,7 +91,7 @@ export class UserService {
       products: [
         {
           name: EProduct.HERB,
-          quantity: 0,
+          quantity: 100,
           title: HERB.title,
           image: HERB.image,
           level: 1,

@@ -12,7 +12,6 @@ import { LabModule } from './lab/lab.module';
 import { ShippingModule } from './shipping/shipping.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { RedisModule } from '@goopen/nestjs-ioredis-provider';
-import { TelegramModule } from './telegram/telegram.module';
 
 @Module({
   imports: [
@@ -35,7 +34,6 @@ import { TelegramModule } from './telegram/telegram.module';
     UpgradeModule,
     LabModule,
     ShippingModule,
-    TelegramModule,
   ],
   controllers: [AppController],
   providers: [AppService],

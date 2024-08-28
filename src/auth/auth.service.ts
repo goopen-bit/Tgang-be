@@ -46,8 +46,6 @@ export class AuthService {
       ip,
       initData.get("start_param"),
     );
-    console.log(`signup`);
-    console.log(signup);
     return {
       access_token: this.jwtService.sign({
         id: user.id,

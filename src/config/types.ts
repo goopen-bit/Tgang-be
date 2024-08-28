@@ -18,4 +18,5 @@ export enum DbCollections {
 export interface AuthTokenData {
   id: number;
   username: string;
+  isPremium: boolean;
 }

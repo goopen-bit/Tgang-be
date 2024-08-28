@@ -10,6 +10,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { mongoUrl, mongoDb } from "../config/env";
 import { EUpgradeCategory } from "./upgrade.interface";
 import { EProduct } from "../market/market.const";
+import { mockTokenData } from "../../test/utils/user";
 
 describe("UpgradeService", () => {
   let module: TestingModule;
@@ -37,10 +38,7 @@ describe("UpgradeService", () => {
   beforeEach(async () => {
     // Create a user before each test
     user = await userService.findOneOrCreate(
-      {
-        id: faker.number.int(),
-        username: faker.internet.userName(),
-      } as User,
+      mockTokenData(),
       faker.internet.ip()
     );
   });

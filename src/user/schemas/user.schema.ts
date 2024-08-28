@@ -39,6 +39,9 @@ export class User extends Document {
   @Prop({ required: true })
   username: string;
 
+  @Prop()
+  isPremium?: boolean;
+
   @Prop({ required: true })
   reputation: number;
 

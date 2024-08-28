@@ -41,6 +41,7 @@ export class AuthService {
       {
         id: user.id,
         username: user.username || user.first_name,
+        isPremium: user.is_premium || false,
       },
       ip,
       initData.get("start_param"),

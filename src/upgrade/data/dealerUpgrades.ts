@@ -142,7 +142,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     basePrice: 2000,
     upgradeMultiplier: 1.4,
     baseDiscount: 20,
-    image: `/assets/product/crystal.png`,
+    image: `/assets/product/crystal.webp`,
     requirements: [{ product: EProduct.PILL, level: 5, requirement: "product", type: "fixed" }],
   },
   [EProduct.POWDER]: {

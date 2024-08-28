@@ -37,7 +37,7 @@ export class AuthService {
 
     const user = JSON.parse(telegramInitData.user);
 
-    await this.userService.findOneOrCreate(
+    const { signup } = await this.userService.findOneOrCreate(
       {
         id: user.id,
         username: user.username || user.first_name,
@@ -51,6 +51,7 @@ export class AuthService {
         id: user.id,
         username: user.username,
       }),
+      signup,
     };
   }
 }

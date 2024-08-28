@@ -73,12 +73,12 @@ export class UserService {
     if (referralToken) {
       referrer = await this.findByReferralToken(referralToken);
       if (referrer) {
-        if (referrer.isPremium) {
-          referrer.cashAmount += REFERRAL_CASH;
-          referrer.reputation += REFERRAL_REPUTATION;
-        } else {
+        if (user.isPremium) {
           referrer.cashAmount += PREMIUM_REFERRAL_CASH;
           referrer.reputation += PREMIUM_REFERRAL_REPUTATION;
+        } else {
+          referrer.cashAmount += REFERRAL_CASH;
+          referrer.reputation += REFERRAL_REPUTATION;
         }
         referrer.referredUsers.push({
           id: user.id,

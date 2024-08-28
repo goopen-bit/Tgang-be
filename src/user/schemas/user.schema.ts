@@ -24,6 +24,18 @@ export class LabPlot {
   lab?: UserLab;
 }
 
+@Schema({ _id: false })
+export class ReferredUsers {
+  @Prop({ required: true })
+  id: number;
+
+  @Prop({ required: true })
+  username: string;
+
+  @Prop({ required: true })
+  reward: number;
+}
+
 @Schema({
   toObject: {
     getters: true,
@@ -159,8 +171,8 @@ export class User extends Document {
   @Prop()
   referredBy?: string;
 
-  @Prop({ type: [String], default: [] })
-  referredUsers: string[];
+  @Prop({ type: [ReferredUsers], default: [] })
+  referredUsers: ReferredUsers[];
 
   @Prop({ required: true, default: 0 })
   robberyStrike: number;

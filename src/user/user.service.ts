@@ -80,7 +80,13 @@ export class UserService {
           referrer.cashAmount += PREMIUM_REFERRAL_CASH;
           referrer.reputation += PREMIUM_REFERRAL_REPUTATION;
         }
-        referrer.referredUsers.push(user.username);
+        referrer.referredUsers.push({
+          id: user.id,
+          username: user.username,
+          reward: referrer.isPremium
+            ? PREMIUM_REFERRAL_CASH
+            : REFERRAL_CASH,
+        });
         await referrer.save();
 
         this.mixpanel.track("Referral Success", {

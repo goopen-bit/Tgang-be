@@ -143,7 +143,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     upgradeMultiplier: 1.4,
     baseDiscount: 20,
     image: `/assets/product/crystal.webp`,
-    requirements: [{ product: EProduct.PILL, level: 5, requirement: "product", type: "fixed" }],
+    requirements: [{ level: 4, requirement: "referredUsers", type: "fixed" }],
   },
   [EProduct.POWDER]: {
     title: "Powder",
@@ -152,6 +152,6 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     upgradeMultiplier: 1.4,
     baseDiscount: 22,
     image: `/assets/product/powder.webp`,
-    requirements: [{ product: EProduct.POWDER, level: 5, requirement: "product", type: "fixed" }],
+    requirements: [{ level: 5, requirement: "referredUsers", type: "fixed" }],
   },
 };

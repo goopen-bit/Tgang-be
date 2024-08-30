@@ -7,14 +7,13 @@ import {
   DealerUpgrade,
   EDealerUpgrade,
   EUpgradeCategory,
-  ProductUpgrade,
   Upgrade,
 } from "./upgrade.interface";
 import { EProduct } from "../market/market.const";
 import { productUpgrades } from "./data/dealerUpgrades";
-import { User } from "../user/schemas/user.schema";
 import { Mixpanel } from "mixpanel";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
+import { checkRequirements } from "./upgrade.util";
 
 @Injectable()
 export class UpgradeService {
@@ -28,26 +27,10 @@ export class UpgradeService {
     return upgradesData;
   }
 
-  checkProductRequirements(user: User, upgrade: ProductUpgrade) {
-    const { requirements } = upgrade;
-    if (!requirements) {
-      return;
-    }
-
-    requirements.forEach((requirement) => {
-      const userProduct = user.products.find(
-        (p) => p.name === requirement.product,
-      );
-      if (!userProduct || userProduct.level < requirement.level) {
-        throw new HttpException("Upgrade not unlocked", 400);
-      }
-    });
-  }
-
   async buyProductUpgrade(userId: number, product: EProduct) {
     const user = await this.userService.findOne(userId);
     const upgrade = productUpgrades[product];
-    this.checkProductRequirements(user, upgrade);
+    checkRequirements(user, upgrade.requirements);
     let price = upgrade.basePrice;
 
     const p = user.products.find((p) => p.name === product);
@@ -80,6 +63,7 @@ export class UpgradeService {
   async buyDealerUpgrade(userId: number, upgrade: EDealerUpgrade) {
     const user = await this.userService.findOne(userId);
     const dealerUpgrade = upgradesData.dealer[upgrade] as DealerUpgrade;
+    checkRequirements(user, dealerUpgrade.requirements);
     const du = user.dealerUpgrades.find((u) => u.title === dealerUpgrade.title);
     let price = dealerUpgrade.basePrice;
     if (!du) {

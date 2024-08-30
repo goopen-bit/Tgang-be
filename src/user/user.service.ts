@@ -83,7 +83,7 @@ export class UserService {
         referrer.referredUsers.push({
           id: user.id,
           username: user.username,
-          reward: referrer.isPremium
+          reward: user.isPremium
             ? PREMIUM_REFERRAL_CASH
             : REFERRAL_CASH,
         });

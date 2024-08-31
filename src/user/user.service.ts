@@ -21,7 +21,7 @@ import {
 import { upgradesData } from "../upgrade/data/upgrades";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 import { Mixpanel } from "mixpanel";
-import { sub, subDays } from "date-fns";
+import { subDays } from "date-fns";
 
 @Injectable()
 export class UserService {
@@ -48,7 +48,7 @@ export class UserService {
         existingUser.isPremium = user.isPremium;
         await existingUser.save();
       }
-      return { existingUser, signup: false };
+      return { user: existingUser, signup: false };
     }
     this.mixpanel.people.set(
       user.id.toString(),
@@ -122,7 +122,7 @@ export class UserService {
       referred_by: newUser.referredBy || "None",
     });
 
-    return { newUser, signup: true };
+    return { user: newUser, signup: true };
   }
   async findByReferralToken(referralToken: string) {
     const id = this.getIdFromReferralToken(referralToken);

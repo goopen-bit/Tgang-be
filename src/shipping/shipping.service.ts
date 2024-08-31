@@ -5,10 +5,9 @@ import { ShipProductDto } from "./dto/ship-product.dto";
 import { EShippingMethod } from "./shipping.const";
 import { shippingMethods } from "./data/shipping";
 import { ShippingMethod } from "./shipping.interface";
-import { User } from "../user/schemas/user.schema";
 import { Mixpanel } from "mixpanel";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
-import { checkRequirements } from "src/upgrade/upgrade.util";
+import { checkRequirements } from "../upgrade/upgrade.util";
 
 @Injectable()
 export class ShippingService {

@@ -7,10 +7,12 @@ import { BuyUpgradeDto } from "./dto/buy-upgrade.dto";
 import { upgradesData } from "./data/upgrades";
 import { User } from "../user/schemas/user.schema";
 import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb } from "../config/env";
+import { mongoUrl, mongoDb, mixpanelToken } from "../config/env";
 import { EUpgradeCategory } from "./upgrade.interface";
 import { EProduct } from "../market/market.const";
 import { mockTokenData } from "../../test/utils/user";
+import { AnalyticsModule } from "../analytics/analytics.module";
+import { MarketModule } from "../market/market.module";
 
 describe("UpgradeService", () => {
   let module: TestingModule;
@@ -26,6 +28,11 @@ describe("UpgradeService", () => {
           dbName: mongoDb,
           readPreference: "secondaryPreferred",
         }),
+        AnalyticsModule.register({
+          mixpanelToken: mixpanelToken,
+          isGlobal: true,
+        }),
+        MarketModule,
         UserModule,
       ],
       providers: [UpgradeService],
@@ -37,10 +44,11 @@ describe("UpgradeService", () => {
 
   beforeEach(async () => {
     // Create a user before each test
-    user = await userService.findOneOrCreate(
+    const res = await userService.findOneOrCreate(
       mockTokenData(),
       faker.internet.ip()
     );
+    user = res.user;
   });
 
   it("should be defined", () => {

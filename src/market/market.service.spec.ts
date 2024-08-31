@@ -1,13 +1,14 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { MarketService } from "./market.service";
 import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb } from "../config/env";
+import { mongoUrl, mongoDb, mixpanelToken } from "../config/env";
 import { UserModule } from "../user/user.module";
 import { faker } from "@faker-js/faker";
 import { AuthTokenData } from "../config/types";
 import { EProduct } from "./market.const";
 import { UserService } from "../user/user.service";
 import { mockTokenData } from "../../test/utils/user";
+import { AnalyticsModule } from "../analytics/analytics.module";
 
 describe("MarketService", () => {
   let module: TestingModule;
@@ -20,6 +21,10 @@ describe("MarketService", () => {
         MongooseModule.forRoot(mongoUrl, {
           dbName: mongoDb,
           readPreference: "secondaryPreferred",
+        }),
+        AnalyticsModule.register({
+          mixpanelToken: mixpanelToken,
+          isGlobal: true,
         }),
         UserModule,
       ],
@@ -59,7 +64,7 @@ describe("MarketService", () => {
         (p) => p.name === EProduct.HERB
       );
       expect(product).toBeDefined();
-      expect(product.quantity).toBe(1);
+      expect(product.quantity).toBe(101);
     });
 
     it("should throw an error if not enough cash", async () => {

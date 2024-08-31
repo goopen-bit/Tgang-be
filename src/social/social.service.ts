@@ -4,6 +4,8 @@ import { Telegram } from 'telegraf';
 import { SOCIAL_CASH_REWARD, SOCIAL_REPUTATION_REWARD, SocialChannel } from './social.const';
 import { UserService } from '../user/user.service';
 import { socials } from './data/socials';
+import { Mixpanel } from 'mixpanel';
+import { InjectMixpanel } from 'src/analytics/injectMixpanel.decorator';
 
 @Injectable()
 export class SocialService {
@@ -11,6 +13,7 @@ export class SocialService {
 
   constructor(
     private userService: UserService,
+    @InjectMixpanel() private readonly mixpanel: Mixpanel,
 ) {
     this.telegram = new Telegram(telegramBotToken);
   }
@@ -56,6 +59,12 @@ export class SocialService {
       user.cashAmount += SOCIAL_CASH_REWARD;
       user.reputation += SOCIAL_REPUTATION_REWARD;
       await user.save();
+
+      this.mixpanel.track('Social Verified', {
+        distinct_id: user.id,
+        channel: channel,
+      });
+
       return user;
     }
   }

@@ -23,8 +23,8 @@ export class SocialService {
     switch (channel) {
       case SocialChannel.TELEGRAM_CHANNEL:
         return this.verifyChannelMember(userId);
-      case SocialChannel.TELEGRAM_GROUP:
-        return this.verifyGroupMember(userId);
+      // case SocialChannel.TELEGRAM_GROUP:
+      //   return this.verifyGroupMember(userId);
       default:
         throw new HttpException('Invalid social channel', HttpStatus.BAD_REQUEST);
     }
@@ -45,7 +45,11 @@ export class SocialService {
       }
       const social = user.socials.find((s) => s.channel === channel);
       if (social) {
-        social.member = true;
+        if (social.member) {
+          throw new HttpException('You have already verified this channel', HttpStatus.BAD_REQUEST);
+        } else {
+          social.member = true;
+        }
       } else {
         user.socials.push({ channel: channel, member: true });
       }
@@ -65,12 +69,12 @@ export class SocialService {
     }
   }
 
-  async verifyGroupMember(userId: number) {
-    try {
-      const user = await this.verifyTelegram(userId, SocialChannel.TELEGRAM_GROUP);
-      return user;
-    } catch (_) {
-      throw new HttpException('You are not a member of the Telegram group', HttpStatus.FORBIDDEN);
-    }
-  }
+  // async verifyGroupMember(userId: number) {
+  //   try {
+  //     const user = await this.verifyTelegram(userId, SocialChannel.TELEGRAM_GROUP);
+  //     return user;
+  //   } catch (_) {
+  //     throw new HttpException('You are not a member of the Telegram group', HttpStatus.FORBIDDEN);
+  //   }
+  // }
 }

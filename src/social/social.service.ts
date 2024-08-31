@@ -1,11 +1,15 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { telegramBotToken } from '../config/env';
-import { Telegram } from 'telegraf';
-import { SOCIAL_CASH_REWARD, SOCIAL_REPUTATION_REWARD, SocialChannel } from './social.const';
-import { UserService } from '../user/user.service';
-import { socials } from './data/socials';
-import { Mixpanel } from 'mixpanel';
-import { InjectMixpanel } from 'src/analytics/injectMixpanel.decorator';
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { telegramBotToken } from "../config/env";
+import { Telegram } from "telegraf";
+import {
+  SOCIAL_CASH_REWARD,
+  SOCIAL_REPUTATION_REWARD,
+  SocialChannel,
+} from "./social.const";
+import { UserService } from "../user/user.service";
+import { socials } from "./data/socials";
+import { Mixpanel } from "mixpanel";
+import { InjectMixpanel } from "src/analytics/injectMixpanel.decorator";
 
 @Injectable()
 export class SocialService {
@@ -14,7 +18,7 @@ export class SocialService {
   constructor(
     private userService: UserService,
     @InjectMixpanel() private readonly mixpanel: Mixpanel,
-) {
+  ) {
     this.telegram = new Telegram(telegramBotToken);
   }
 
@@ -29,18 +33,20 @@ export class SocialService {
       // case SocialChannel.TELEGRAM_GROUP:
       //   return this.verifyGroupMember(userId);
       default:
-        throw new HttpException('Invalid social channel', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          "Invalid social channel",
+          HttpStatus.BAD_REQUEST,
+        );
     }
   }
 
   private async verifyTelegram(userId: number, channel: SocialChannel) {
     const social = socials[channel];
     const member = await this.telegram.getChatMember(social.id, userId);
-
     if (
-      member.status === 'creator' ||
-      member.status === 'administrator' ||
-      member.status === 'member'
+      member.status === "creator" ||
+      member.status === "administrator" ||
+      member.status === "member"
     ) {
       const user = await this.userService.findOne(userId);
       if (!user.socials) {
@@ -49,7 +55,10 @@ export class SocialService {
       const social = user.socials.find((s) => s.channel === channel);
       if (social) {
         if (social.member) {
-          throw new HttpException('You have already verified this channel', HttpStatus.BAD_REQUEST);
+          throw new HttpException(
+            "You have already verified this channel",
+            HttpStatus.BAD_REQUEST,
+          );
         } else {
           social.member = true;
         }
@@ -60,21 +69,32 @@ export class SocialService {
       user.reputation += SOCIAL_REPUTATION_REWARD;
       await user.save();
 
-      this.mixpanel.track('Social Verified', {
+      this.mixpanel.track("Social Verified", {
         distinct_id: user.id,
         channel: channel,
       });
 
       return user;
+    } else {
+      throw new HttpException(
+        "You are not a member of the Telegram channel",
+        HttpStatus.FORBIDDEN,
+      );
     }
   }
 
   async verifyChannelMember(userId: number) {
     try {
-      const user = await this.verifyTelegram(userId, SocialChannel.TELEGRAM_CHANNEL);
+      const user = await this.verifyTelegram(
+        userId,
+        SocialChannel.TELEGRAM_CHANNEL,
+      );
       return user;
     } catch (_) {
-      throw new HttpException('You are not a member of the Telegram channel', HttpStatus.FORBIDDEN);
+      throw new HttpException(
+        "You are not a member of the Telegram channel",
+        HttpStatus.FORBIDDEN,
+      );
     }
   }
 

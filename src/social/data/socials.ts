@@ -8,10 +8,10 @@ export const socials: Record<SocialChannel, SocialData> = {
     title: 'Cartel Announcements',
     image: '/assets/social/telegram.png',
   },
-  [SocialChannel.TELEGRAM_GROUP]: {
-    id: '', // TODO: Add group ID when available
-    url: '',
-    title: 'Cartel Group',
-    image: '/assets/social/telegram.png',
-  },
+  // [SocialChannel.TELEGRAM_GROUP]: {
+  //   id: '', // TODO: Add group ID when available
+  //   url: '',
+  //   title: 'Cartel Group',
+  //   image: '/assets/social/telegram.png',
+  // },
 };

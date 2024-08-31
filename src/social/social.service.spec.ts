@@ -66,20 +66,20 @@ describe('SocialService', () => {
     });
   });
 
-  describe.skip('verifyGroupMember', () => { // TODO: Enable when Telegram group is available
-    it('should successfully verify group member', async () => {
-      const member = await service.verifyGroupMember(subscribedUserId);
-      expect(member).toBeDefined();
-      expect(member.socials).toBeDefined();
-      const social = member.socials.find((s) => s.channel === SocialChannel.TELEGRAM_GROUP);
-      expect(social).toBeDefined();
-      expect(social.member).toBe(true);
-    });
+  // describe('verifyGroupMember', () => { // TODO: Enable when Telegram group is available
+  //   it('should successfully verify group member', async () => {
+  //     const member = await service.verifyGroupMember(subscribedUserId);
+  //     expect(member).toBeDefined();
+  //     expect(member.socials).toBeDefined();
+  //     const social = member.socials.find((s) => s.channel === SocialChannel.TELEGRAM_GROUP);
+  //     expect(social).toBeDefined();
+  //     expect(social.member).toBe(true);
+  //   });
 
-    it('should throw error if not a member of the group', async () => {
-      await expect(service.verifyGroupMember(unsubscribedUserId)).rejects.toThrow(
-        "You are not a member of the Telegram group"
-      );
-    });
-  });
+  //   it('should throw error if not a member of the group', async () => {
+  //     await expect(service.verifyGroupMember(unsubscribedUserId)).rejects.toThrow(
+  //       "You are not a member of the Telegram group"
+  //     );
+  //   });
+  // });
 });

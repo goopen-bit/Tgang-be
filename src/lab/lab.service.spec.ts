@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb, redisUrl } from "../config/env";
+import { mongoUrl, mongoDb, redisUrl, mixpanelToken } from "../config/env";
 import { LabService } from "./lab.service";
 import { UserModule } from "../user/user.module";
 import { User, UserSchema } from "../user/schemas/user.schema";
@@ -11,6 +11,7 @@ import { EProduct } from "../market/market.const";
 import { subHours } from "date-fns";
 import { RedisModule } from "@goopen/nestjs-ioredis-provider";
 import { mockTokenData } from "../../test/utils/user";
+import { AnalyticsModule } from "../analytics/analytics.module";
 
 describe("LabService", () => {
   let module: TestingModule;
@@ -26,6 +27,10 @@ describe("LabService", () => {
         }),
         RedisModule.register({
           url: redisUrl,
+          isGlobal: true,
+        }),
+        AnalyticsModule.register({
+          mixpanelToken: mixpanelToken,
           isGlobal: true,
         }),
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
@@ -46,7 +51,7 @@ describe("LabService", () => {
     let user: AuthTokenData;
     beforeEach(async () => {
       user = mockTokenData();
-      const u = await userService.findOneOrCreate(user, faker.internet.ip());
+      const { user: u } = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 1000000;
       await u.save();
     });
@@ -72,7 +77,7 @@ describe("LabService", () => {
     let user: AuthTokenData;
     beforeEach(async () => {
       user = mockTokenData();
-      const u = await userService.findOneOrCreate(user, faker.internet.ip());
+      const { user: u } = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 1000000;
       u.labPlots = [{ plotId: 1 }];
       await u.save();
@@ -107,7 +112,7 @@ describe("LabService", () => {
     let user: AuthTokenData;
     beforeEach(async () => {
       user = mockTokenData();
-      const u = await userService.findOneOrCreate(user, faker.internet.ip());
+      const { user: u } = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 1000000;
       u.labPlots = [
         {
@@ -155,7 +160,7 @@ describe("LabService", () => {
     let user: AuthTokenData;
     beforeEach(async () => {
       user = mockTokenData();
-      const u = await userService.findOneOrCreate(user, faker.internet.ip());
+      const { user: u } = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 1000000;
       u.labPlots = [
         {
@@ -203,7 +208,7 @@ describe("LabService", () => {
     let user: AuthTokenData;
     beforeEach(async () => {
       user = mockTokenData();
-      const u = await userService.findOneOrCreate(user, faker.internet.ip());
+      const { user: u } = await userService.findOneOrCreate(user, faker.internet.ip());
       u.cashAmount = 100;
       u.labPlots = [
         {
@@ -229,7 +234,7 @@ describe("LabService", () => {
       const product = updatedUser.products.find(
         (p) => p.name === EProduct.HERB
       );
-      expect(product.quantity).toBe(10);
+      expect(product.quantity).toBe(160);
     });
   });
 

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ShippingService } from "./shipping.service";
 import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb } from "../config/env";
+import { mongoUrl, mongoDb, mixpanelToken } from "../config/env";
 import { MarketModule } from "../market/market.module";
 import { UserModule } from "../user/user.module";
 import { AuthTokenData } from "../config/types";
@@ -9,6 +9,7 @@ import { faker } from "@faker-js/faker";
 import { UserService } from "../user/user.service";
 import { EShippingMethod } from "./shipping.const";
 import { mockTokenData } from "../../test/utils/user";
+import { AnalyticsModule } from "../analytics/analytics.module";
 
 describe("ShippingService", () => {
   let service: ShippingService;
@@ -20,6 +21,10 @@ describe("ShippingService", () => {
         MongooseModule.forRoot(mongoUrl, {
           dbName: mongoDb,
           readPreference: "secondaryPreferred",
+        }),
+        AnalyticsModule.register({
+          mixpanelToken: mixpanelToken,
+          isGlobal: true,
         }),
         UserModule,
         MarketModule,
@@ -34,7 +39,7 @@ describe("ShippingService", () => {
   let user: AuthTokenData;
   beforeEach(async () => {
     user = mockTokenData();
-    const u = await userService.findOneOrCreate(user, faker.internet.ip());
+    const { user: u } = await userService.findOneOrCreate(user, faker.internet.ip());
     u.cashAmount = 1000000;
     await u.save();
   });

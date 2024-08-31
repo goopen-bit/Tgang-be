@@ -2,10 +2,11 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { faker } from "@faker-js/faker";
 import { UserService } from "./user.service";
 import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb } from "../config/env";
+import { mongoUrl, mongoDb, mixpanelToken } from "../config/env";
 import { User, UserSchema } from "./schemas/user.schema";
 import { STARTING_CASH } from "./user.const";
 import { mockTokenData } from "../../test/utils/user";
+import { AnalyticsModule } from "../analytics/analytics.module";
 
 describe("UserService", () => {
   let module: TestingModule;
@@ -17,6 +18,10 @@ describe("UserService", () => {
         MongooseModule.forRoot(mongoUrl, {
           dbName: mongoDb,
           readPreference: "secondaryPreferred",
+        }),
+        AnalyticsModule.register({
+          mixpanelToken: mixpanelToken,
+          isGlobal: true,
         }),
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
       ],
@@ -33,7 +38,7 @@ describe("UserService", () => {
   describe("findOneOrCreate", () => {
     it("should create new user", async () => {
       const params = mockTokenData();
-      const res = await service.findOneOrCreate(params, faker.internet.ip());
+      const { user: res } = await service.findOneOrCreate(params, faker.internet.ip());
       expect(res.id).toBe(params.id);
       expect(res.username).toBe(params.username);
       expect(res.cashAmount).toBe(STARTING_CASH);
@@ -43,12 +48,12 @@ describe("UserService", () => {
 
     it("should create new user", async () => {
       const params = mockTokenData();
-      const user = await service.findOneOrCreate(params, faker.internet.ip());
+      const { user } = await service.findOneOrCreate(params, faker.internet.ip());
       await user.updateOne({
         $inc: { cashAmount: faker.number.int({ min: 10, max: 100 }) },
       });
 
-      const res = await service.findOneOrCreate(params, faker.internet.ip());
+      const { user: res } = await service.findOneOrCreate(params, faker.internet.ip());
       expect(res.id).toBe(params.id);
       expect(res.username).toBe(params.username);
       expect(res.cashAmount).toBeGreaterThan(STARTING_CASH);
@@ -62,7 +67,8 @@ describe("UserService", () => {
     let user: User;
 
     beforeEach(async () => {
-      user = await service.findOneOrCreate(mockTokenData(), faker.internet.ip());
+      const res = await service.findOneOrCreate(mockTokenData(), faker.internet.ip());
+      user = res.user;
     });
     afterEach(async () => {
       await service.delete(user.id);

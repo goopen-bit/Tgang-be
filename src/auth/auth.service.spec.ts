@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { jwtSecret } from '../config/env';
+import { jwtSecret, mixpanelToken } from '../config/env';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from '../user/user.module';
 import { mongoUrl, mongoDb } from '../config/env';
+import { AnalyticsModule } from '../analytics/analytics.module';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -16,6 +17,10 @@ describe('AuthService', () => {
         MongooseModule.forRoot(mongoUrl, {
           dbName: mongoDb,
           readPreference: 'secondaryPreferred',
+        }),
+        AnalyticsModule.register({
+          mixpanelToken: mixpanelToken,
+          isGlobal: true,
         }),
         PassportModule,
         JwtModule.register({

@@ -14,6 +14,7 @@ import { UserShipping } from "./userShipping.schema";
 import { reputationLevels } from "../data/reputationLevel";
 import { IReputationLevel } from "../user.interface";
 import { dealerUpgrades } from "../../upgrade/data/dealerUpgrades";
+import { SocialChannel } from "../../social/social.const";
 
 @Schema({ _id: false })
 export class LabPlot {
@@ -34,6 +35,15 @@ export class ReferredUsers {
 
   @Prop({ required: true })
   reward: number;
+}
+
+@Schema({ _id: false })
+export class Social {
+  @Prop({ required: true })
+  channel: SocialChannel;
+
+  @Prop({ required: true })
+  member: boolean;
 }
 
 @Schema({
@@ -173,6 +183,9 @@ export class User extends Document {
 
   @Prop({ type: [ReferredUsers], default: [] })
   referredUsers: ReferredUsers[];
+
+  @Prop({ type: [Social], default: [] })
+  socials: Social[];
 
   @Prop({ required: true, default: 0 })
   robberyStrike: number;

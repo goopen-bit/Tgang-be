@@ -12,6 +12,7 @@ import { LabModule } from './lab/lab.module';
 import { ShippingModule } from './shipping/shipping.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { RedisModule } from '@goopen/nestjs-ioredis-provider';
+import { SocialModule } from './social/social.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { RedisModule } from '@goopen/nestjs-ioredis-provider';
     UpgradeModule,
     LabModule,
     ShippingModule,
+    SocialModule,
   ],
   controllers: [AppController],
   providers: [AppService],

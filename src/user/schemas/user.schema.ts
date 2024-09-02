@@ -44,6 +44,9 @@ export class Social {
 
   @Prop({ required: true })
   member: boolean;
+
+  @Prop({ default: new Date() })
+  joined?: Date;
 }
 
 @Schema({

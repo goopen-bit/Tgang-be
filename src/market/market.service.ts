@@ -201,7 +201,8 @@ export class MarketService {
       user.cashAmount = Number((user.cashAmount + marketPrice * amountToSell).toFixed(2));
     });
 
-    user.customerAmountRemaining = user.customerAmount - totalCustomersSold;
+    const customerAmountRemaining = user.customerAmount - totalCustomersSold;
+    user.customerAmountRemaining = customerAmountRemaining < 0 ? 0 : customerAmountRemaining;
     user.lastSell = new Date();
     user.reputation += reputation;
     await user.save();

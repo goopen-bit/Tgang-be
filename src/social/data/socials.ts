@@ -14,34 +14,34 @@ export const socials: Record<SocialChannel, SocialData> = {
   //   title: 'Cartel Group',
   //   image: '/assets/social/telegram.png',
   // },
+  [SocialChannel.YOUTUBE]: {
+    id: '@CartelGameTon',
+    url: 'https://www.youtube.com/@CartelGameTon',
+    title: 'Cartel YouTube',
+    image: '/assets/social/youtube.png',
+  },
   [SocialChannel.TWITTER]: {
     id: '@CartelGameTon',
     url: 'https://x.com/CartelGameTon',
     title: 'Cartel X',
     image: '/assets/social/x.png',
   },
-  // [SocialChannel.FACEBOOK]: {
-  //   id: 'CartelGameTon',
-  //   url: 'https://www.facebook.com/cartelgameton/',
-  //   title: 'Cartel Facebook',
-  //   image: '/assets/social/facebook.png',
-  // },
-  // [SocialChannel.INSTAGRAM]: {
-  //   id: 'cartelgameton',
-  //   url: 'https://www.instagram.com/cartelgameton/',
-  //   title: 'Cartel Instagram',
-  //   image: '/assets/social/instagram.png',
-  // },
-  // [SocialChannel.TIKTOK]: {
-  //   id: 'cartelgameton',
-  //   url: 'https://www.tiktok.com/@cartelgameton',
-  //   title: 'Cartel TikTok',
-  //   image: '/assets/social/tiktok.png',
-  // },
-  // [SocialChannel.YOUTUBE]: {
-  //   id: '@CartelGameTon',
-  //   url: 'https://www.youtube.com/@CartelGameTon',
-  //   title: 'Cartel YouTube',
-  //   image: '/assets/social/youtube.png',
-  // },
+  [SocialChannel.TIKTOK]: {
+    id: 'cartelgameton',
+    url: 'https://www.tiktok.com/@cartelgameton',
+    title: 'Cartel TikTok',
+    image: '/assets/social/tiktok.png',
+  },
+  [SocialChannel.FACEBOOK]: {
+    id: 'CartelGameTon',
+    url: 'https://www.facebook.com/cartelgameton/',
+    title: 'Cartel Facebook',
+    image: '/assets/social/facebook.png',
+  },
+  [SocialChannel.INSTAGRAM]: {
+    id: 'cartelgameton',
+    url: 'https://www.instagram.com/cartelgameton/',
+    title: 'Cartel Instagram',
+    image: '/assets/social/instagram.png',
+  },
 };

@@ -33,11 +33,11 @@ export class SocialService {
         return this.verifyChannelMember(userId);
       // case SocialChannel.TELEGRAM_GROUP:
       //   return this.verifyGroupMember(userId);
+      case SocialChannel.YOUTUBE:
       case SocialChannel.TWITTER:
-      // case SocialChannel.FACEBOOK:
-      // case SocialChannel.INSTAGRAM:
-      // case SocialChannel.TIKTOK:
-      // case SocialChannel.YOUTUBE:
+      case SocialChannel.TIKTOK:
+      case SocialChannel.FACEBOOK:
+      case SocialChannel.INSTAGRAM:
         return this.verifySocial(userId, channel);
       default:
         throw new HttpException(
@@ -155,11 +155,11 @@ export class SocialService {
       case SocialChannel.TELEGRAM_CHANNEL:
       // case SocialChannel.TELEGRAM_GROUP:
         return {}
+      case SocialChannel.YOUTUBE:
       case SocialChannel.TWITTER:
-      // case SocialChannel.FACEBOOK:
-      // case SocialChannel.INSTAGRAM:
-      // case SocialChannel.TIKTOK:
-      // case SocialChannel.YOUTUBE:
+      case SocialChannel.TIKTOK:
+      case SocialChannel.FACEBOOK:
+      case SocialChannel.INSTAGRAM:
         return this.joinSocial(userId, channel);
       default:
         throw new HttpException(

@@ -16,6 +16,7 @@ import {
   REFERRAL_CASH,
   REFERRAL_REPUTATION,
   ROBBERY_AMOUNT_PER_DAILY_STRIKE,
+  ROBBERY_MAX_AMOUNT_PER_DAILY_STRIKE,
   STARTING_CASH,
 } from "./user.const";
 import { upgradesData } from "../upgrade/data/upgrades";
@@ -157,7 +158,9 @@ export class UserService {
 
     // We give 1000$ per extra daily strike
     const rewardAmount = user.robberyStrike * ROBBERY_AMOUNT_PER_DAILY_STRIKE;
-    user.cashAmount += rewardAmount;
+    user.cashAmount +=
+      rewardAmount > ROBBERY_MAX_AMOUNT_PER_DAILY_STRIKE ?
+      rewardAmount : ROBBERY_MAX_AMOUNT_PER_DAILY_STRIKE;
     user.lastRobbery = date;
     await user.save();
 

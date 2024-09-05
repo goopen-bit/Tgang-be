@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Put } from '@nestjs/common';
+import { Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { SocialService } from './social.service';
 import { AuthTokenData } from '../config/types';
 import { GetAuthToken } from '../decorators/get-auth-token.decorator';
@@ -13,6 +13,14 @@ export class SocialController {
   @Get()
   getSocials() {
     return this.socialService.getSocials();
+  }
+
+  @Put("/join/:channel")
+  joinChannel(
+    @GetAuthToken() user: AuthTokenData,
+    @Param("channel") channel: SocialChannel,
+  ) {
+    return this.socialService.join(user.id, channel);
   }
 
   @Put("/verify/:channel")

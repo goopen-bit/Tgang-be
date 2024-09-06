@@ -19,9 +19,11 @@ import { productUpgrades } from "../upgrade/data/dealerUpgrades";
 @Injectable()
 export class MarketService {
   private readonly logger = new Logger(this.constructor.name);
+  private readonly secretKey = "STcHRUjgRaXK3fFn5Pi4rvAMAhKRZGCfqzexFAEiTzU=";
+
   constructor(
     private userService: UserService,
-    @InjectMixpanel() private readonly mixpanel: Mixpanel
+    @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
   getHistoricalEvents() {
@@ -30,7 +32,7 @@ export class MarketService {
     for (let i = 0; i < 5; i++) {
       const secondsSinceEpochStartOfHour = currentTime - i * 3600;
       const hash = createHash("sha256")
-        .update(secondsSinceEpochStartOfHour.toString())
+        .update(this.secretKey + secondsSinceEpochStartOfHour.toString())
         .digest("hex");
 
       const hashInteger = parseInt(hash, 16);
@@ -45,7 +47,7 @@ export class MarketService {
     const specificTime = new Date(date.setHours(22, 42, 0, 0));
     const secondsSinceEpoch = Math.floor(specificTime.getTime() / 1000);
     return createHash("sha256")
-      .update(secondsSinceEpoch.toString())
+      .update(this.secretKey + secondsSinceEpoch.toString())
       .digest("hex");
   }
 
@@ -90,7 +92,9 @@ export class MarketService {
       effectToday *= priceChangeDirectionToday;
       effectYesterday *= priceChangeDirectionYesterday;
 
-      product.previousPrice = Number((product.price * (1 + effectYesterday)).toFixed(2));
+      product.previousPrice = Number(
+        (product.price * (1 + effectYesterday)).toFixed(2),
+      );
       product.price = Number((product.price * (1 + effectToday)).toFixed(2));
     });
     return market;
@@ -107,10 +111,14 @@ export class MarketService {
       const productUpgrade = user.products.find((p) => p.name === product.name);
       if (productUpgrade) {
         const discount = productUpgrade.marketDiscount;
-        product.discountPrice = Number(((product.price * (100 - discount)) / 100).toFixed(2));
+        product.discountPrice = Number(
+          ((product.price * (100 - discount)) / 100).toFixed(2),
+        );
       } else {
         const baseProduct = productUpgrades[product.name];
-        product.discountPrice = Number(((product.price * (100 - baseProduct.baseDiscount)) / 100).toFixed(2));
+        product.discountPrice = Number(
+          ((product.price * (100 - baseProduct.baseDiscount)) / 100).toFixed(2),
+        );
       }
     });
     return market;
@@ -131,7 +139,9 @@ export class MarketService {
 
     const userProduct = user.products.find((p) => p.name === product);
     if (userProduct) {
-      user.cashAmount = Number((user.cashAmount - marketProduct.discountPrice * quantity).toFixed(2));
+      user.cashAmount = Number(
+        (user.cashAmount - marketProduct.discountPrice * quantity).toFixed(2),
+      );
       userProduct.quantity += quantity;
     } else {
       throw new HttpException("Product not unlocked", 400);
@@ -148,7 +158,7 @@ export class MarketService {
   async sellProduct(
     userId: number,
     marketId: string,
-    sellList: SellProductDto
+    sellList: SellProductDto,
   ) {
     this.logger.debug(`Selling products for user ${userId}`);
     const user = await this.userService.findOne(userId);
@@ -160,23 +170,24 @@ export class MarketService {
 
     const totalCustomersSold = sellList.batch.reduce(
       (acc, item) => acc + item.customers,
-      0
+      0,
     );
 
-    if (totalCustomersSold > user.customerAmount + 10) { // Allow a buffer of 10 customers
+    if (totalCustomersSold > user.customerAmount + 10) {
+      // Allow a buffer of 10 customers
       this.logger.debug(
-        `Attempt to sell more customers than available: ${totalCustomersSold} > ${user.customerAmount}`
+        `Attempt to sell more customers than available: ${totalCustomersSold} > ${user.customerAmount}`,
       );
       throw new HttpException(
         "Attempt to sell more customers than available",
-        400
+        400,
       );
     }
     let reputation = 0;
     sellList.batch.forEach((item) => {
       const product = user.products.find((p) => p.name === item.product);
       const dealerUpgrade = user.dealerUpgrades.find(
-        (u) => u.product === item.product
+        (u) => u.product === item.product,
       );
       const quality = dealerUpgrade ? dealerUpgrade.level + 1 : 1;
 
@@ -189,20 +200,23 @@ export class MarketService {
       if (product.quantity < amountToSell) {
         throw new HttpException(
           `Insufficient quantity of ${item.product}`,
-          400
+          400,
         );
       }
 
       product.quantity -= amountToSell;
       reputation += amountToSell;
       const marketPrice = market.products.find(
-        (p) => p.name === item.product
+        (p) => p.name === item.product,
       ).price;
-      user.cashAmount = Number((user.cashAmount + marketPrice * amountToSell).toFixed(2));
+      user.cashAmount = Number(
+        (user.cashAmount + marketPrice * amountToSell).toFixed(2),
+      );
     });
 
     const customerAmountRemaining = user.customerAmount - totalCustomersSold;
-    user.customerAmountRemaining = customerAmountRemaining < 0 ? 0 : customerAmountRemaining;
+    user.customerAmountRemaining =
+      customerAmountRemaining < 0 ? 0 : customerAmountRemaining;
     user.lastSell = new Date();
     user.reputation += reputation;
     await user.save();

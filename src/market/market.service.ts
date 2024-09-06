@@ -15,7 +15,7 @@ import { SellProductDto } from "./dto/sell-product.dto";
 import { Mixpanel } from "mixpanel";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 import { productUpgrades } from "../upgrade/data/dealerUpgrades";
-import { startOfDay, getUnixTime, subDays } from "date-fns";
+import { startOfDay, getUnixTime, subDays, subSeconds } from "date-fns";
 
 @Injectable()
 export class MarketService {
@@ -215,7 +215,7 @@ export class MarketService {
     const customerAmountRemaining = user.customerAmount - totalCustomersSold;
     user.customerAmountRemaining =
       customerAmountRemaining < 0 ? 0 : customerAmountRemaining;
-    user.lastSell = new Date();
+    user.lastSell = subSeconds(new Date(), 1);
     user.reputation += reputation;
     await user.save();
     this.mixpanel.track("Product Sold", {

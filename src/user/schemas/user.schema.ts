@@ -136,7 +136,7 @@ export class User extends Document {
     virtual: true,
     get: function () {
       const socialMediaCampaign = this.dealerUpgrades.find(
-        (u) => u.product === EDealerUpgrade.SOCIAL_MEDIA_CAMPAGIN
+        (u) => u.upgrade === EDealerUpgrade.SOCIAL_MEDIA_CAMPAGIN
       );
       // const streetPromotionTeam = this.dealerUpgrades.find(
       //   (u) => u.product === EDealerUpgrade.STREET_PROMOTION_TEAM

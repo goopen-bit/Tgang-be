@@ -173,8 +173,7 @@ export class MarketService {
       0,
     );
 
-    if (totalCustomersSold > user.customerAmount + 10) {
-      // Allow a buffer of 10 customers
+    if (totalCustomersSold > user.customerAmount) {
       this.logger.debug(
         `Attempt to sell more customers than available: ${totalCustomersSold} > ${user.customerAmount}`,
       );

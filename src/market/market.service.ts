@@ -15,6 +15,7 @@ import { SellProductDto } from "./dto/sell-product.dto";
 import { Mixpanel } from "mixpanel";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 import { productUpgrades } from "../upgrade/data/dealerUpgrades";
+import { startOfDay, getUnixTime, subDays } from "date-fns";
 
 @Injectable()
 export class MarketService {
@@ -44,23 +45,22 @@ export class MarketService {
   }
 
   private getDailyHash(date: Date): string {
-    const specificTime = new Date(date.setHours(22, 42, 0, 0));
-    const secondsSinceEpoch = Math.floor(specificTime.getTime() / 1000);
+    const specificTime = startOfDay(date);
+    const secondsSinceEpoch = getUnixTime(specificTime);
     return createHash("sha256")
       .update(this.secretKey + secondsSinceEpoch.toString())
       .digest("hex");
   }
 
-  getMarket(id: string) {
+  getMarket(id: string, date = new Date()) {
     const originalMarket = markets.find((market) => market.id === id);
     if (!originalMarket) {
       throw new NotFoundException(`Market with id ${id} not found`);
     }
 
     const market = cloneDeep(originalMarket) as Market;
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
+    const today = date;
+    const yesterday = subDays(today, 1);
 
     const todayHash = this.getDailyHash(today);
     const yesterdayHash = this.getDailyHash(yesterday);
@@ -70,7 +70,6 @@ export class MarketService {
 
     market.products.forEach((product, index) => {
       let effectToday, effectYesterday;
-      let priceChangeDirectionToday, priceChangeDirectionYesterday;
 
       if (index === 0) {
         // For the first product (Herb) which should vary only within ±5%
@@ -84,9 +83,9 @@ export class MarketService {
       }
 
       // Determine the direction of the price change
-      priceChangeDirectionToday =
+      const priceChangeDirectionToday =
         (todayHashInteger >> (index * 4 + 1)) % 2 === 0 ? 1 : -1;
-      priceChangeDirectionYesterday =
+      const priceChangeDirectionYesterday =
         (yesterdayHashInteger >> (index * 4 + 1)) % 2 === 0 ? 1 : -1;
 
       effectToday *= priceChangeDirectionToday;

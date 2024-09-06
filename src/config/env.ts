@@ -50,3 +50,5 @@ export const redisUrl = process.env['REDIS_URL'];
  * Mixpanel token.
  */
 export const mixpanelToken = process.env['MIXPANEL_TOKEN'];
+
+export const internalApiKey = process.env['INTERNAL_API_KEY'];

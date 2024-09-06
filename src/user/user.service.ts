@@ -84,9 +84,7 @@ export class UserService {
         referrer.referredUsers.push({
           id: user.id,
           username: user.username,
-          reward: user.isPremium
-            ? PREMIUM_REFERRAL_CASH
-            : REFERRAL_CASH,
+          reward: user.isPremium ? PREMIUM_REFERRAL_CASH : REFERRAL_CASH,
         });
         await referrer.save();
 
@@ -155,12 +153,12 @@ export class UserService {
         user.robberyStrike += 1;
       }
     }
-
     // We give 1000$ per extra daily strike
     const rewardAmount = user.robberyStrike * ROBBERY_AMOUNT_PER_DAILY_STRIKE;
     user.cashAmount +=
-      rewardAmount > ROBBERY_MAX_AMOUNT_PER_DAILY_STRIKE ?
-      rewardAmount : ROBBERY_MAX_AMOUNT_PER_DAILY_STRIKE;
+      rewardAmount > ROBBERY_MAX_AMOUNT_PER_DAILY_STRIKE
+        ? ROBBERY_MAX_AMOUNT_PER_DAILY_STRIKE
+        : rewardAmount;
     user.lastRobbery = date;
     await user.save();
 

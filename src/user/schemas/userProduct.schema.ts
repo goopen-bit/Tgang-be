@@ -55,10 +55,9 @@ export class UserProduct {
     virtual: true,
     get: function () {
       const upgrade = productUpgrades[this.name];
-      return (
-        (upgrade.baseDiscount + (60 - upgrade.baseDiscount)) *
-        (Math.log(this.level + 1) / Math.log(1000))
-      );
+      return upgrade.baseDiscount + 
+        (60 - upgrade.baseDiscount) * 
+        (Math.log(this.level) / Math.log(1000));
     },
   })
   marketDiscount?: number;
@@ -67,10 +66,9 @@ export class UserProduct {
     virtual: true,
     get: function () {
       const upgrade = productUpgrades[this.name];
-      return (
-        (upgrade.baseDiscount + (60 - upgrade.baseDiscount)) *
-        (Math.log(this.level + 2) / Math.log(1000))
-      );
+      return upgrade.baseDiscount + 
+        (60 - upgrade.baseDiscount) * 
+        (Math.log(this.level + 1) / Math.log(1000));
     },
   })
   upgradeMarketDiscount?: number;

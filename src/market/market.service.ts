@@ -167,40 +167,37 @@ export class MarketService {
       throw new HttpException("User not found", 404);
     }
 
-    const totalCustomersSold = sellList.batch.reduce(
-      (acc, item) => acc + item.customers,
-      0,
-    );
-
-    if (totalCustomersSold > user.customerAmount) {
-      this.logger.debug(
-        `Attempt to sell more customers than available: ${totalCustomersSold} > ${user.customerAmount}`,
-      );
-      throw new HttpException(
-        "Attempt to sell more customers than available",
-        400,
-      );
-    }
     let reputation = 0;
-    sellList.batch.forEach((item) => {
+    for (const item of sellList.batch) {
       const product = user.products.find((p) => p.name === item.product);
-      const dealerUpgrade = user.dealerUpgrades.find(
-        (u) => u.product === item.product,
-      );
-      const quality = dealerUpgrade ? dealerUpgrade.level + 1 : 1;
-
-      const amountToSell = item.customers * quality;
-
       if (!product) {
         throw new HttpException(`Product ${item.product} not found`, 404);
       }
 
-      if (product.quantity < amountToSell) {
-        throw new HttpException(
-          `Insufficient quantity of ${item.product}`,
-          400,
-        );
+      const dealerUpgrade = user.dealerUpgrades.find(
+        (u) => u.product === item.product,
+      );
+      const quantity = dealerUpgrade ? dealerUpgrade.level + 1 : 1;
+
+      let customers = item.customers;
+      if (user.customerAmount < item.customers) {
+        customers = user.customerAmount;
       }
+      if (customers === 0) {
+        continue;
+      }
+
+      let amountToSell = customers * quantity;
+      if (product.quantity < amountToSell) {
+        amountToSell = product.quantity;
+      }
+      if (amountToSell === 0) {
+        continue;
+      }
+
+      const customerAmountRemaining = user.customerAmount - customers;
+      user.customerAmountRemaining =
+        customerAmountRemaining < 0 ? 0 : customerAmountRemaining;
 
       product.quantity -= amountToSell;
       reputation += amountToSell;
@@ -210,11 +207,8 @@ export class MarketService {
       user.cashAmount = Number(
         (user.cashAmount + marketPrice * amountToSell).toFixed(2),
       );
-    });
+    }
 
-    const customerAmountRemaining = user.customerAmount - totalCustomersSold;
-    user.customerAmountRemaining =
-      customerAmountRemaining < 0 ? 0 : customerAmountRemaining;
     user.lastSell = subSeconds(new Date(), 1);
     user.reputation += reputation;
     await user.save();

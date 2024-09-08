@@ -24,6 +24,9 @@ export class MarketService {
 
   constructor(
     private userService: UserService,
+
+    // @InjectRedis() private readonly redis: Redis, // Enable this when we get a proper Redis instance
+
     @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
@@ -160,47 +163,49 @@ export class MarketService {
     sellList: SellProductDto,
   ) {
     this.logger.debug(`Selling products for user ${userId}`);
+
+    // const lockKey = `sellProduct:${marketId}:${userId}`;
+
+    // while (!await this.redis.set(lockKey, 'locked', 'EX', 2, 'NX')) {
+    //   await new Promise((resolve) => setTimeout(resolve, 100));
+    // }
+
     const user = await this.userService.findOne(userId);
-    const market = await this.getMarket(marketId);
-
-    if (!user) {
-      throw new HttpException("User not found", 404);
-    }
-
-    const totalCustomersSold = sellList.batch.reduce(
-      (acc, item) => acc + item.customers,
-      0,
-    );
-
-    if (totalCustomersSold > user.customerAmount) {
-      this.logger.debug(
-        `Attempt to sell more customers than available: ${totalCustomersSold} > ${user.customerAmount}`,
-      );
-      throw new HttpException(
-        "Attempt to sell more customers than available",
-        400,
-      );
-    }
+    const market = this.getMarket(marketId);
+    // try {
     let reputation = 0;
-    sellList.batch.forEach((item) => {
+    for (const item of sellList.batch) {
       const product = user.products.find((p) => p.name === item.product);
-      const dealerUpgrade = user.dealerUpgrades.find(
-        (u) => u.product === item.product,
-      );
-      const quality = dealerUpgrade ? dealerUpgrade.level + 1 : 1;
-
-      const amountToSell = item.customers * quality;
-
       if (!product) {
         throw new HttpException(`Product ${item.product} not found`, 404);
       }
 
-      if (product.quantity < amountToSell) {
-        throw new HttpException(
-          `Insufficient quantity of ${item.product}`,
-          400,
-        );
+      const dealerUpgrade = user.dealerUpgrades.find(
+        (u) => u.product === item.product,
+      );
+      const quantity = dealerUpgrade ? dealerUpgrade.level + 1 : 1;
+
+      let customers = item.customers;
+      if (user.customerAmount < item.customers) {
+        customers = user.customerAmount;
+        item.customers = customers;
       }
+      if (customers === 0) {
+        item.customers = 0;
+        continue;
+      }
+
+      let amountToSell = customers * quantity;
+      if (product.quantity < amountToSell) {
+        amountToSell = product.quantity;
+      }
+      if (amountToSell === 0) {
+        continue;
+      }
+
+      const customerAmountRemaining = user.customerAmount - customers;
+      user.customerAmountRemaining =
+        customerAmountRemaining < 0 ? 0 : customerAmountRemaining;
 
       product.quantity -= amountToSell;
       reputation += amountToSell;
@@ -210,11 +215,8 @@ export class MarketService {
       user.cashAmount = Number(
         (user.cashAmount + marketPrice * amountToSell).toFixed(2),
       );
-    });
+    }
 
-    const customerAmountRemaining = user.customerAmount - totalCustomersSold;
-    user.customerAmountRemaining =
-      customerAmountRemaining < 0 ? 0 : customerAmountRemaining;
     user.lastSell = subSeconds(new Date(), 1);
     user.reputation += reputation;
     await user.save();
@@ -223,6 +225,12 @@ export class MarketService {
       products: sellList.batch,
       reputation,
     });
+    // } catch (error) {
+    //   this.logger.error(error);
+    //   throw error;
+    // } finally {
+    //   await this.redis.del(lockKey);
+    // }
     return user;
   }
 }

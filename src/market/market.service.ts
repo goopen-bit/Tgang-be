@@ -188,8 +188,10 @@ export class MarketService {
       let customers = item.customers;
       if (user.customerAmount < item.customers) {
         customers = user.customerAmount;
+        item.customers = customers;
       }
       if (customers === 0) {
+        item.customers = 0;
         continue;
       }
 

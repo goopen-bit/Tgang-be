@@ -13,6 +13,7 @@ import { ShippingModule } from './shipping/shipping.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { RedisModule } from '@goopen/nestjs-ioredis-provider';
 import { SocialModule } from './social/social.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -27,6 +28,10 @@ import { SocialModule } from './social/social.module';
     AnalyticsModule.register({
       mixpanelToken: mixpanelToken,
       isGlobal: true,
+    }),
+    CacheModule.register({
+      isGlobal: true,
+      
     }),
     HealthModule,
     AuthModule,

@@ -5,11 +5,20 @@ import { UserService } from "../user/user.service";
 export class MultiplayerService {
   constructor(private readonly userService: UserService) {}
 
+  private isSameDay(date1: Date, date2: Date): boolean {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  }
+
   async searchPlayer() {
     const players = await this.userService.findPvpPlayers();
     return players;
   }
 
+  // Hell of a function need to be refactor to be more readable and maintainable size ^^
   async startFight(userId: string, opponentId: string) {
     const attacker = await this.userService.findOne(parseInt(userId));
     const defender = await this.userService.findOne(parseInt(opponentId));
@@ -24,9 +33,9 @@ export class MultiplayerService {
 
     const now = new Date();
     const resetAttackCount =
-      !attacker.pvp.lastAttack || !isSameDay(attacker.pvp.lastAttack, now);
+      !attacker.pvp.lastAttack || !this.isSameDay(attacker.pvp.lastAttack, now);
     const resetDefendCount =
-      !defender.pvp.lastDefend || !isSameDay(defender.pvp.lastDefend, now);
+      !defender.pvp.lastDefend || !this.isSameDay(defender.pvp.lastDefend, now);
 
     if (resetAttackCount) {
       attacker.pvp.todayAttackNbr = 0;
@@ -95,7 +104,7 @@ export class MultiplayerService {
       attacker.pvp.victory++;
       defender.pvp.defeat++;
 
-      // improve that 10% of cash, max 10,000
+      // improve that right now 10% of cash, max 10,000 but it's bad we need to loot product too
       const maxLoot = Math.min(defender.cashAmount * 0.1, 10000);
       loot = Math.floor(maxLoot * attacker.pvp.lootPower);
 
@@ -153,13 +162,4 @@ export class MultiplayerService {
     await this.userService.update(user.id, { pvp: user.pvp });
     return { message: "PvP enabled successfully", pvp: user.pvp };
   }
-}
-
-// Helper function to check if two dates are on the same day
-function isSameDay(date1: Date, date2: Date): boolean {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
 }

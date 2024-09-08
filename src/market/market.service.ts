@@ -24,6 +24,9 @@ export class MarketService {
 
   constructor(
     private userService: UserService,
+
+    // @InjectRedis() private readonly redis: Redis, // Enable this when we get a proper Redis instance
+
     @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
@@ -160,13 +163,16 @@ export class MarketService {
     sellList: SellProductDto,
   ) {
     this.logger.debug(`Selling products for user ${userId}`);
+
+    // const lockKey = `sellProduct:${marketId}:${userId}`;
+
+    // while (!await this.redis.set(lockKey, 'locked', 'EX', 2, 'NX')) {
+    //   await new Promise((resolve) => setTimeout(resolve, 100));
+    // }
+
     const user = await this.userService.findOne(userId);
-    const market = await this.getMarket(marketId);
-
-    if (!user) {
-      throw new HttpException("User not found", 404);
-    }
-
+    const market = this.getMarket(marketId);
+    // try {
     let reputation = 0;
     for (const item of sellList.batch) {
       const product = user.products.find((p) => p.name === item.product);
@@ -217,6 +223,12 @@ export class MarketService {
       products: sellList.batch,
       reputation,
     });
+    // } catch (error) {
+    //   this.logger.error(error);
+    //   throw error;
+    // } finally {
+    //   await this.redis.del(lockKey);
+    // }
     return user;
   }
 }

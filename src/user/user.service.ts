@@ -220,4 +220,44 @@ export class UserService {
       },
     ]);
   }
+
+  async findPvpPlayers(userId: string) {
+    const players = await this.userModel.aggregate([
+      {
+        $match: {
+          id: { $ne: parseInt(userId) },
+          'pvp.pvpEnabled': true,
+          'pvp.todayDefendNbr': 0
+        }
+      },
+      {
+        $addFields: {
+          totalValue: {
+            $add: [
+              '$cashAmount',
+              { $sum: '$products.quantity' }
+            ]
+          }
+        }
+      },
+      {
+        $sort: { totalValue: -1 }
+      },
+      {
+        $limit: 10
+      },
+      {
+        $project: {
+          id: 1,
+          username: 1,
+          cashAmount: 1,
+          products: 1,
+          pvp: 1,
+          totalValue: 1
+        }
+      }
+    ]).exec();
+
+    return players;
+  }
 }

@@ -15,6 +15,23 @@ import { reputationLevels } from "../data/reputationLevel";
 import { IReputationLevel } from "../user.interface";
 import { dealerUpgrades } from "../../upgrade/data/dealerUpgrades";
 import { SocialChannel } from "../../social/social.const";
+import { UserPvp } from "./userPvp.schema";
+
+interface Pvp {
+  pvpEnabled: boolean;
+  victory: number;
+  defeat: number;
+  lastAttack: Date;
+  todayAttackNbr: number;
+  lastDefend: Date;
+  todayDefendNbr: number;
+  baseHp: number;
+  protection: number;
+  damage: number;
+  accuracy: number;
+  evasion: number;
+  lootPower?: number;
+}
 
 @Schema({ _id: false })
 export class LabPlot {
@@ -198,6 +215,9 @@ export class User extends Document {
 
   @Prop()
   wallet?: string;
+
+  @Prop({ type: UserPvp, default: () => ({}) })
+  pvp?: UserPvp;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

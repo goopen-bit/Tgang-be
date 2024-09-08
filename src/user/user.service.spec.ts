@@ -4,9 +4,64 @@ import { UserService } from "./user.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { mongoUrl, mongoDb, mixpanelToken } from "../config/env";
 import { User, UserSchema } from "./schemas/user.schema";
-import { STARTING_CASH } from "./user.const";
+import { BASE_CUSTOMER_LIMIT, BASE_LAB_PLOT_PRICE, STARTING_CASH } from "./user.const";
 import { mockTokenData } from "../../test/utils/user";
 import { AnalyticsModule } from "../analytics/analytics.module";
+import { UserPvp } from "./schemas/userPvp.schema";
+import { Model } from 'mongoose';
+import { EDealerUpgrade } from "../upgrade/upgrade.interface";
+
+// Add this mock user
+export const createMockUser = (overrides = {}): Partial<User> => ({
+  id: 123,
+  username: 'testuser',
+  isPremium: false,
+  reputation: 100,
+  userLevel: {
+    level: 1,
+    title: 'Beginner',
+    minReputation: 0,
+    maxReputation: 1000,
+  },
+  cashAmount: STARTING_CASH,
+  products: [],
+  dealerUpgrades: [
+    { upgrade: EDealerUpgrade.SOCIAL_MEDIA_CAMPAGIN, level: 0 },
+    { upgrade: EDealerUpgrade.STREET_PROMOTION_TEAM, level: 0 },
+    { upgrade: EDealerUpgrade.CLUB_PARTNERSHIP, level: 0 },
+    { upgrade: EDealerUpgrade.ONLINE_MARKETPLACE, level: 0 },
+    { upgrade: EDealerUpgrade.INTERNATIONAL_SHIPPING, level: 0 },
+    { upgrade: EDealerUpgrade.QUALITY_CONTROL, level: 0 },
+    { upgrade: EDealerUpgrade.RESEARCH_AND_DEVELOPMENT, level: 0 },
+  ],
+  shipping: [],
+  labPlots: [{ plotId: 0 }],
+  labPlotPrice: BASE_LAB_PLOT_PRICE,
+  lastSell: new Date(),
+  customerAmountMax: BASE_CUSTOMER_LIMIT,
+  customerAmount: 0,
+  customerAmountRemaining: 0,
+  referralToken: 'mockReferralToken',
+  referredUsers: [],
+  socials: [],
+  robberyStrike: 0,
+  pvp: {
+    pvpEnabled: false,
+    victory: 0,
+    defeat: 0,
+    lastAttack: new Date(),
+    todayAttackNbr: 0,
+    lastDefend: new Date(),
+    todayDefendNbr: 0,
+    baseHp: 100,
+    protection: 0,
+    damage: 10,
+    accuracy: 50,
+    evasion: 5,
+    lootPower: 0.1,
+  } as UserPvp,
+  ...overrides
+});
 
 describe("UserService", () => {
   let module: TestingModule;

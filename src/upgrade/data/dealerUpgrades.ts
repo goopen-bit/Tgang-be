@@ -66,8 +66,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
   [EDealerUpgrade.FESTIVAL_BLOTTERS]: {
     product: EProduct.ACID,
     title: "🧪 Festival Blotters",
-    description:
-      "Offer blotters designed for festivals, encouraging larger purchases.",
+    description: "Offer blotters designed for festivals, encouraging larger purchases.",
     basePrice: 2000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,
@@ -132,6 +131,12 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
       },
     ],
   },
+  [EDealerUpgrade.STREET_PROMOTION_TEAM]: undefined,
+  [EDealerUpgrade.CLUB_PARTNERSHIP]: undefined,
+  [EDealerUpgrade.ONLINE_MARKETPLACE]: undefined,
+  [EDealerUpgrade.INTERNATIONAL_SHIPPING]: undefined,
+  [EDealerUpgrade.QUALITY_CONTROL]: undefined,
+  [EDealerUpgrade.RESEARCH_AND_DEVELOPMENT]: undefined
 };
 
 export const productUpgrades: Record<EProduct, ProductUpgrade> = {

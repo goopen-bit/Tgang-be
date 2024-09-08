@@ -13,6 +13,7 @@ import { ShippingModule } from './shipping/shipping.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { RedisModule } from '@goopen/nestjs-ioredis-provider';
 import { SocialModule } from './social/social.module';
+import { MultiplayerModule } from './multiplayer/multiplayer.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { SocialModule } from './social/social.module';
     LabModule,
     ShippingModule,
     SocialModule,
+    MultiplayerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

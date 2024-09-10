@@ -196,6 +196,7 @@ export class UserService {
   }
 
   async getLeaderboard() {
+    this.logger.debug("Getting leaderboard");
     return this.userModel.aggregate([
       {
         $sort: { reputation: -1 },

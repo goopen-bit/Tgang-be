@@ -199,8 +199,9 @@ describe("UserService", () => {
       for (const user of users) {
         await userModel.create(user);
       }
-
-      const result = await service.findPvpPlayers();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const result = await service.findPvpPlayers(today);
 
       expect(result).toHaveLength(2);
       expect(result[0].id).toBe(456);

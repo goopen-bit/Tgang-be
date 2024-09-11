@@ -221,47 +221,33 @@ export class UserService {
     ]);
   }
 
-  async findPvpPlayers() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const players = await this.userModel
-      .aggregate([
-        {
-          $match: {
-            "pvp.pvpEnabled": true,
-            $or: [
-              { "pvp.lastDefend": { $lt: today } },
-              { "pvp.lastDefend": { $exists: false } }
-            ]
-          }
+  async findPvpPlayers(today: Date) {
+    return this.userModel.aggregate([
+      {
+        $match: {
+          "pvp.pvpEnabled": true,
+          $or: [
+            { "pvp.lastDefendDate": { $lt: today } },
+            { "pvp.lastDefendDate": { $exists: false } },
+            { "pvp.lastDefendDate": null },
+          ],
         },
-        {
-          $addFields: {
-            totalValue: {
-              $add: ["$cashAmount", { $sum: "$products.quantity" }],
-            },
-          },
+      },
+      {
+        $sort: { cashAmount: -1 },
+      },
+      {
+        $limit: 5,
+      },
+      {
+        $project: {
+          id: 1,
+          username: 1,
+          cashAmount: 1,
+          products: 1,
+          pvp: 1,
         },
-        {
-          $sort: { totalValue: -1 },
-        },
-        {
-          $limit: 10,
-        },
-        {
-          $project: {
-            id: 1,
-            username: 1,
-            cashAmount: 1,
-            products: 1,
-            pvp: 1,
-            totalValue: 1,
-          },
-        },
-      ])
-      .exec();
-
-    return players;
+      },
+    ]);
   }
 }

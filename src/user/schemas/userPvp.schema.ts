@@ -11,17 +11,14 @@ export class UserPvp {
   @Prop({ required: true, default: 0 })
   defeat: number;
 
-  @Prop({ required: true, default: new Date() })
-  lastAttack: Date;
+  @Prop({ required: true, default: new Date(0) })
+  lastAttackDate: Date;
 
   @Prop({ required: true, default: 0 })
-  todayAttackNbr: number;
+  attacksToday: number;
 
-  @Prop({ required: true, default: new Date() })
-  lastDefend: Date;
-
-  @Prop({ required: true, default: 0 })
-  todayDefendNbr: number;
+  @Prop({ required: true, default: new Date(0) })
+  lastDefendDate: Date;
 
   @Prop({ required: true, default: 100 })
   baseHp: number;

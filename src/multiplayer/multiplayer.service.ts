@@ -5,17 +5,11 @@ import { UserService } from "../user/user.service";
 export class MultiplayerService {
   constructor(private readonly userService: UserService) {}
 
-  private isSameDay(date1: Date, date2: Date): boolean {
-    return (
-      date1.getFullYear() === date2.getFullYear() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getDate() === date2.getDate()
-    );
-  }
-
   async searchPlayer() {
-    const players = await this.userService.findPvpPlayers();
-    return players;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return this.userService.findPvpPlayers(today);
   }
 
   // Hell of a function need to be refactor to be more readable and maintainable size ^^
@@ -32,25 +26,19 @@ export class MultiplayerService {
     }
 
     const now = new Date();
-    const resetAttackCount =
-      !attacker.pvp.lastAttack || !this.isSameDay(attacker.pvp.lastAttack, now);
-    const resetDefendCount =
-      !defender.pvp.lastDefend || !this.isSameDay(defender.pvp.lastDefend, now);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    if (resetAttackCount) {
-      attacker.pvp.todayAttackNbr = 0;
-    }
-    if (resetDefendCount) {
-      defender.pvp.todayDefendNbr = 0;
+    if (attacker.pvp.lastAttackDate < today) {
+      attacker.pvp.attacksToday = 0;
     }
 
-    if (attacker.pvp.todayAttackNbr >= 3) {
+    if (attacker.pvp.attacksToday >= 2) {
       throw new Error(
         "You have reached the maximum number of attacks for today",
       );
     }
 
-    if (defender.pvp.todayDefendNbr >= 1) {
+    if (defender.pvp.lastDefendDate >= today) {
       throw new Error("This player has already been attacked today");
     }
 
@@ -95,10 +83,9 @@ export class MultiplayerService {
       winner = attackerHp > defenderHp ? "attacker" : "defender";
     }
 
-    attacker.pvp.todayAttackNbr++;
-    defender.pvp.todayDefendNbr++;
-    attacker.pvp.lastAttack = now;
-    defender.pvp.lastDefend = now;
+    attacker.pvp.attacksToday++;
+    attacker.pvp.lastAttackDate = now;
+    defender.pvp.lastDefendDate = now;
     let loot = 0;
     if (winner === "attacker") {
       attacker.pvp.victory++;
@@ -112,7 +99,6 @@ export class MultiplayerService {
       defender.cashAmount -= loot;
 
       attacker.reputation += 10;
-      attacker.pvp.victory = (attacker.pvp.victory || 0) + 1;
     } else {
       defender.pvp.victory++;
       attacker.pvp.defeat++;
@@ -144,10 +130,9 @@ export class MultiplayerService {
         pvpEnabled: true,
         victory: 0,
         defeat: 0,
-        lastAttack: new Date(),
-        todayAttackNbr: 0,
-        lastDefend: new Date(),
-        todayDefendNbr: 0,
+        lastAttackDate: new Date(0),
+        attacksToday: 0,
+        lastDefendDate: new Date(0),
         baseHp: 100,
         protection: 0,
         damage: 10,

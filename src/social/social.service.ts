@@ -9,7 +9,7 @@ import {
 import { UserService } from "../user/user.service";
 import { socials } from "./data/socials";
 import { Mixpanel } from "mixpanel";
-import { InjectMixpanel } from "src/analytics/injectMixpanel.decorator";
+import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 import { addHours } from "date-fns";
 
 @Injectable()
@@ -153,8 +153,8 @@ export class SocialService {
   join(userId: number, channel: SocialChannel) {
     switch (channel) {
       case SocialChannel.TELEGRAM_CHANNEL:
-      // case SocialChannel.TELEGRAM_GROUP:
-        return {}
+        // case SocialChannel.TELEGRAM_GROUP:
+        return {};
       case SocialChannel.YOUTUBE:
       case SocialChannel.TWITTER:
       case SocialChannel.TIKTOK:
@@ -177,10 +177,10 @@ export class SocialService {
     if (user.socials.find((s) => s.channel === channel)) {
       return {};
     }
-    const userSocial = { channel: channel, member: false, joined: new Date() }
+    const userSocial = { channel: channel, member: false, joined: new Date() };
     user.socials.push(userSocial);
     await user.save();
 
-    return userSocial
+    return userSocial;
   }
 }

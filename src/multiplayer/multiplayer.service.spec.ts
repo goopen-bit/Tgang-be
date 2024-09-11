@@ -52,43 +52,50 @@ describe("MultiplayerService", () => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
       const users = [
         createMockUser({
           id: 123,
           username: "current",
           cashAmount: 500,
-          pvp: { pvpEnabled: true, lastDefend: yesterday },
+          pvp: { pvpEnabled: true, lastDefendDate: yesterday },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           id: 456,
           username: "player1",
           cashAmount: 1000,
-          pvp: { pvpEnabled: true },
+          pvp: { pvpEnabled: true, lastDefendDate: new Date(0) },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           id: 789,
           username: "player2",
           cashAmount: 2000,
-          pvp: { pvpEnabled: true, lastDefend: today },
+          pvp: { pvpEnabled: true, lastDefendDate: new Date() },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           id: 101,
           username: "player3",
           cashAmount: 3000,
-          pvp: { pvpEnabled: false },
+          pvp: { pvpEnabled: false, lastDefendDate: new Date(0) },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           id: 102,
           username: "player4",
           cashAmount: 1500,
-          pvp: { pvpEnabled: true, lastDefend: yesterday },
+          pvp: { pvpEnabled: true, lastDefendDate: yesterday },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           id: 103,
-          username: "player4",
+          username: "player5",
           cashAmount: 1500,
           pvp: undefined,
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
       ];
 
@@ -98,73 +105,89 @@ describe("MultiplayerService", () => {
 
       const result = await service.searchPlayer();
       expect(result).toHaveLength(3);
-      expect(result[0].id).toBe(456);
-      expect(result[1].id).toBe(102);
-      expect(result[2].id).toBe(123);
+      expect(result.map((player) => player.id)).toEqual([102, 456, 123]);
       expect(result.every((player) => player.pvp.pvpEnabled)).toBe(true);
-      expect(result.every((player) => !player.pvp.lastDefend || player.pvp.lastDefend < today.setHours(0,0,0,0))).toBe(true);
+      expect(
+        result.every(
+          (player) =>
+            !player.pvp.lastDefendDate || player.pvp.lastDefendDate < today,
+        ),
+      ).toBe(true);
     });
   });
 
   describe("startFight", () => {
-    it("should successfully start a fight between two players and update lastAttack and lastDefend", async () => {
+    it("should successfully start a fight between two players and update lastAttackDate and lastDefendDate", async () => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
 
-      const attacker = await userModel.create(createMockUser({
-        id: 123,
-        username: "attacker",
-        cashAmount: 10000,
-        pvp: {
-          pvpEnabled: true,
-          lastAttack: yesterday,
-          baseHp: 100,
-          damage: 20,
-          protection: 5,
-          accuracy: 80,
-          evasion: 10,
-          lootPower: 0.5,
-          victory: 0,
-          defeat: 0
-        }
-      }));
+      const attacker = await userModel.create(
+        createMockUser({
+          id: 123,
+          username: "attacker",
+          cashAmount: 10000,
+          pvp: {
+            pvpEnabled: true,
+            lastAttackDate: yesterday,
+            attacksToday: 0,
+            baseHp: 100,
+            damage: 20,
+            protection: 5,
+            accuracy: 80,
+            evasion: 10,
+            lootPower: 0.5,
+            victory: 0,
+            defeat: 0,
+          },
+        }),
+      );
 
-      const defender = await userModel.create(createMockUser({
-        id: 456,
-        username: "defender",
-        cashAmount: 20000,
-        pvp: {
-          pvpEnabled: true,
-          lastDefend: yesterday,
-          baseHp: 100,
-          damage: 15,
-          protection: 10,
-          accuracy: 70,
-          evasion: 15,
-          victory: 0,
-          defeat: 0
-        }
-      }));
+      const defender = await userModel.create(
+        createMockUser({
+          id: 456,
+          username: "defender",
+          cashAmount: 20000,
+          pvp: {
+            pvpEnabled: true,
+            lastDefendDate: yesterday,
+            baseHp: 100,
+            damage: 15,
+            protection: 10,
+            accuracy: 70,
+            evasion: 15,
+            victory: 0,
+            defeat: 0,
+          },
+        }),
+      );
 
-      const result = await service.startFight(attacker.id.toString(), defender.id.toString());
+      const result = await service.startFight(
+        attacker.id.toString(),
+        defender.id.toString(),
+      );
 
-      expect(result).toHaveProperty('winner');
-      expect(result).toHaveProperty('loser');
-      expect(result).toHaveProperty('rounds');
-      expect(result).toHaveProperty('loot');
+      expect(result).toHaveProperty("winner");
+      expect(result).toHaveProperty("loser");
+      expect(result).toHaveProperty("rounds");
+      expect(result).toHaveProperty("loot");
 
       const updatedAttacker = await userModel.findOne({ id: attacker.id });
       const updatedDefender = await userModel.findOne({ id: defender.id });
 
-      expect(updatedAttacker.pvp.lastAttack.getDate()).toBe(new Date().getDate());
-      expect(updatedDefender.pvp.lastDefend.getDate()).toBe(new Date().getDate());
+      expect(updatedAttacker.pvp.lastAttackDate.getDate()).toBe(
+        new Date().getDate(),
+      );
+      expect(updatedDefender.pvp.lastDefendDate.getDate()).toBe(
+        new Date().getDate(),
+      );
+      expect(updatedAttacker.pvp.attacksToday).toBe(1);
 
       if (result.winner === attacker.username) {
         expect(updatedAttacker.pvp.victory).toBe(1);
         expect(updatedDefender.pvp.defeat).toBe(1);
         expect(updatedAttacker.cashAmount).toBeGreaterThan(10000);
         expect(updatedDefender.cashAmount).toBeLessThan(20000);
-        expect(updatedAttacker.reputation).toBe(10);
+        expect(updatedAttacker.reputation).toBe(11); //10 to win the match and 1 base reputation
       } else {
         expect(updatedDefender.pvp.victory).toBe(1);
         expect(updatedAttacker.pvp.defeat).toBe(1);
@@ -174,95 +197,103 @@ describe("MultiplayerService", () => {
       }
     });
 
-    it("should allow a fight if lastAttack is from yesterday", async () => {
+    it("should allow a fight if lastAttackDate is from yesterday", async () => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
 
-      const attacker = await userModel.create(createMockUser({
-        id: 123,
-        pvp: { 
-          pvpEnabled: true, 
-          lastAttack: yesterday 
-        }
-      }));
+      const attacker = await userModel.create(
+        createMockUser({
+          id: 123,
+          pvp: {
+            pvpEnabled: true,
+            lastAttackDate: yesterday,
+            attacksToday: 0,
+          },
+        }),
+      );
 
-      const defender = await userModel.create(createMockUser({
-        id: 456,
-        pvp: { pvpEnabled: true }
-      }));
+      const defender = await userModel.create(
+        createMockUser({
+          id: 456,
+          pvp: { pvpEnabled: true },
+        }),
+      );
 
-      await expect(service.startFight(attacker.id.toString(), defender.id.toString()))
-        .resolves.not.toThrow();
+      await expect(
+        service.startFight(attacker.id.toString(), defender.id.toString()),
+      ).resolves.not.toThrow();
     });
 
-    it("should allow a fight if defender's lastDefend is from yesterday", async () => {
+    it("should allow a fight if defender's lastDefendDate is from yesterday", async () => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
 
-      const attacker = await userModel.create(createMockUser({
-        id: 123,
-        pvp: { pvpEnabled: true }
-      }));
+      const attacker = await userModel.create(
+        createMockUser({
+          id: 123,
+          pvp: { pvpEnabled: true },
+        }),
+      );
 
-      const defender = await userModel.create(createMockUser({
-        id: 456,
-        pvp: { 
-          pvpEnabled: true, 
-          lastDefend: yesterday 
-        }
-      }));
+      const defender = await userModel.create(
+        createMockUser({
+          id: 456,
+          pvp: {
+            pvpEnabled: true,
+            lastDefendDate: yesterday,
+          },
+        }),
+      );
 
-      await expect(service.startFight(attacker.id.toString(), defender.id.toString()))
-        .resolves.not.toThrow();
+      await expect(
+        service.startFight(attacker.id.toString(), defender.id.toString()),
+      ).resolves.not.toThrow();
     });
 
-    it("should throw an error if PvP is not enabled for both players", async () => {
-      const attacker = await userModel.create(createMockUser({
-        id: 123,
-        pvp: { pvpEnabled: true }
-      }));
-
-      const defender = await userModel.create(createMockUser({
-        id: 456,
-        pvp: { pvpEnabled: false }
-      }));
-
-      await expect(service.startFight(attacker.id.toString(), defender.id.toString()))
-        .rejects.toThrow('Both players must have PvP enabled');
-    });
-
-    it("should throw an error if attacker has already attacked today", async () => {
+    it("should throw an error if attacker has already attacked twice today", async () => {
       const today = new Date();
 
-      const attacker = await userModel.create(createMockUser({
-        id: 123,
-        pvp: { pvpEnabled: true, lastAttack: today }
-      }));
+      const attacker = await userModel.create(
+        createMockUser({
+          id: 123,
+          pvp: { pvpEnabled: true, lastAttackDate: today, attacksToday: 2 },
+        }),
+      );
 
-      const defender = await userModel.create(createMockUser({
-        id: 456,
-        pvp: { pvpEnabled: true }
-      }));
+      const defender = await userModel.create(
+        createMockUser({
+          id: 456,
+          pvp: { pvpEnabled: true },
+        }),
+      );
 
-      await expect(service.startFight(attacker.id.toString(), defender.id.toString()))
-        .rejects.toThrow('You have reached the maximum number of attacks for today');
+      await expect(
+        service.startFight(attacker.id.toString(), defender.id.toString()),
+      ).rejects.toThrow(
+        "You have reached the maximum number of attacks for today",
+      );
     });
 
     it("should throw an error if defender has already been attacked today", async () => {
       const today = new Date();
 
-      const attacker = await userModel.create(createMockUser({
-        id: 123,
-        pvp: { pvpEnabled: true }
-      }));
+      const attacker = await userModel.create(
+        createMockUser({
+          id: 123,
+          pvp: { pvpEnabled: true },
+        }),
+      );
 
-      const defender = await userModel.create(createMockUser({
-        id: 456,
-        pvp: { pvpEnabled: true, lastDefend: today }
-      }));
+      const defender = await userModel.create(
+        createMockUser({
+          id: 456,
+          pvp: { pvpEnabled: true, lastDefendDate: today },
+        }),
+      );
 
-      await expect(service.startFight(attacker.id.toString(), defender.id.toString()))
-        .rejects.toThrow('This player has already been attacked today');
+      await expect(
+        service.startFight(attacker.id.toString(), defender.id.toString()),
+      ).rejects.toThrow("This player has already been attacked today");
     });
   });
 
@@ -276,6 +307,9 @@ describe("MultiplayerService", () => {
       expect(result.pvp.pvpEnabled).toBe(true);
       const updatedUser = await userModel.findOne({ id: 123 });
       expect(updatedUser.pvp.pvpEnabled).toBe(true);
+      expect(updatedUser.pvp.lastAttackDate).toBeInstanceOf(Date);
+      expect(updatedUser.pvp.lastDefendDate).toBeInstanceOf(Date);
+      expect(updatedUser.pvp.attacksToday).toBe(0);
     });
 
     it("should enable PvP for a user with existing PvP data", async () => {

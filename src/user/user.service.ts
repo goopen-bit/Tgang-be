@@ -221,10 +221,11 @@ export class UserService {
     ]);
   }
 
-  async findPvpPlayers(today: Date) {
+  async findPvpPlayers(today: Date, excludeUserId: number) {
     return this.userModel.aggregate([
       {
         $match: {
+          id: { $ne: excludeUserId },
           "pvp.pvpEnabled": true,
           $or: [
             { "pvp.lastDefendDate": { $lt: today } },

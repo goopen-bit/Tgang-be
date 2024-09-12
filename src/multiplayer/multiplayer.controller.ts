@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from "@nestjs/common";
+import { Controller, Post, Body, Get } from "@nestjs/common";
 import { MultiplayerService } from "./multiplayer.service";
 import { Auth } from "../decorators/auth.decorator";
 import { GetAuthToken } from "../decorators/get-auth-token.decorator";
@@ -9,9 +9,9 @@ import { AuthTokenData } from "../config/types";
 export class MultiplayerController {
   constructor(private readonly multiplayerService: MultiplayerService) {}
 
-  @Post("search")
+  @Get("search")
   async searchPlayer(@GetAuthToken() user: AuthTokenData) {
-    return this.multiplayerService.searchPlayer();
+    return this.multiplayerService.searchPlayer(user.id.toString());
   }
 
   @Post("fight")

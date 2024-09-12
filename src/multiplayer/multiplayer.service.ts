@@ -5,11 +5,11 @@ import { UserService } from "../user/user.service";
 export class MultiplayerService {
   constructor(private readonly userService: UserService) {}
 
-  async searchPlayer() {
+  async searchPlayer(userId: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    return this.userService.findPvpPlayers(today);
+    return this.userService.findPvpPlayers(today, parseInt(userId));
   }
 
   // Hell of a function need to be refactor to be more readable and maintainable size ^^

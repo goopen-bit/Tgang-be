@@ -17,22 +17,6 @@ import { dealerUpgrades } from "../../upgrade/data/dealerUpgrades";
 import { SocialChannel } from "../../social/social.const";
 import { UserPvp } from "./userPvp.schema";
 
-interface Pvp {
-  pvpEnabled: boolean;
-  victory: number;
-  defeat: number;
-  lastAttack: Date;
-  todayAttackNbr: number;
-  lastDefend: Date;
-  todayDefendNbr: number;
-  baseHp: number;
-  protection: number;
-  damage: number;
-  accuracy: number;
-  evasion: number;
-  lootPower?: number;
-}
-
 @Schema({ _id: false })
 export class LabPlot {
   @Prop({ required: true })

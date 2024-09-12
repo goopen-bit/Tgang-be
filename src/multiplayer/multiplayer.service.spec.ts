@@ -103,9 +103,9 @@ describe("MultiplayerService", () => {
         await userModel.create(user);
       }
 
-      const result = await service.searchPlayer();
-      expect(result).toHaveLength(3);
-      expect(result.map((player) => player.id)).toEqual([102, 456, 123]);
+      const result = await service.searchPlayer("123");
+      expect(result).toHaveLength(2);
+      expect(result.map((player) => player.id)).toEqual([102, 456]);
       expect(result.every((player) => player.pvp.pvpEnabled)).toBe(true);
       expect(
         result.every(

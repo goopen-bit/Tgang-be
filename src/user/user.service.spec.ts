@@ -201,7 +201,7 @@ describe("UserService", () => {
       }
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const result = await service.findPvpPlayers(today);
+      const result = await service.findPvpPlayers(today, 123);
 
       expect(result).toHaveLength(2);
       expect(result[0].id).toBe(456);

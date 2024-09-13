@@ -202,7 +202,7 @@ export class UserService {
         $sort: { reputation: -1 },
       },
       {
-        $limit: 100,
+        $limit: 50,
       },
       {
         $setWindowFields: {

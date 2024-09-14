@@ -93,23 +93,23 @@ export class User extends Document {
   @Prop({
     type: [UserDealerUpgrade],
     default: [],
-    set: function (upgrades: UserDealerUpgrade[]) {
-      return Object.entries(dealerUpgrades).map(([key, du]) => {
-        const userUpgrade = upgrades.find((u) => u.product === key);
-        return (
-          userUpgrade || {
-            product: key,
-            title: du.title,
-            description: du.description,
-            image: du.image,
-            level: 0,
-            upgradePrice: du.basePrice,
-            amount: 0,
-            upgradeAmount: du.amountMultiplier,
-          }
-        );
-      });
-    },
+    // set: function (upgrades: UserDealerUpgrade[]) {
+    //   return Object.entries(dealerUpgrades).map(([key, du]) => {
+    //     const userUpgrade = upgrades.find((u) => u.product === key);
+    //     return (
+    //       userUpgrade || {
+    //         product: key,
+    //         title: du.title,
+    //         description: du.description,
+    //         image: du.image,
+    //         level: 0,
+    //         upgradePrice: du.basePrice,
+    //         amount: 0,
+    //         upgradeAmount: du.amountMultiplier,
+    //       }
+    //     );
+    //   });
+    // },
   })
   dealerUpgrades: UserDealerUpgrade[];
 

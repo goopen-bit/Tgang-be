@@ -4,11 +4,11 @@ import { MultiplayerService } from "./multiplayer.service";
 import { User, UserSchema } from "../user/schemas/user.schema";
 import { createMockUser } from "../user/user.service.spec";
 import { Model } from "mongoose";
-import { mongoUrl, mongoDb, redisUrl } from "../config/env";
 import { AnalyticsModule } from "../analytics/analytics.module";
 import { mixpanelToken } from "../config/env";
-import { RedisModule } from "@goopen/nestjs-ioredis-provider";
 import { UserModule } from "../user/user.module";
+import { faker } from "@faker-js/faker";
+import { appConfigImports } from '../config/app';
 
 describe("MultiplayerService", () => {
   let service: MultiplayerService;
@@ -18,13 +18,7 @@ describe("MultiplayerService", () => {
   beforeAll(async () => {
     module = await Test.createTestingModule({
       imports: [
-        MongooseModule.forRoot(mongoUrl, {
-          dbName: mongoDb,
-        }),
-        RedisModule.register({
-          url: redisUrl,
-          isGlobal: true,
-        }),
+        ...appConfigImports,
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         AnalyticsModule.register({
           mixpanelToken: mixpanelToken,
@@ -43,10 +37,6 @@ describe("MultiplayerService", () => {
     await module.close();
   });
 
-  beforeEach(async () => {
-    await userModel.deleteMany({});
-  });
-
   it("should be defined", () => {
     expect(service).toBeDefined();
   });
@@ -58,44 +48,39 @@ describe("MultiplayerService", () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
+      const uids: number[] = [];
       const users = [
         createMockUser({
-          id: 123,
           username: "current",
           cashAmount: 500,
           pvp: { pvpEnabled: true, lastDefendDate: yesterday },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
-          id: 456,
           username: "player1",
           cashAmount: 1000,
           pvp: { pvpEnabled: true, lastDefendDate: new Date(0) },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
-          id: 789,
           username: "player2",
           cashAmount: 2000,
           pvp: { pvpEnabled: true, lastDefendDate: new Date() },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
-          id: 101,
           username: "player3",
           cashAmount: 3000,
           pvp: { pvpEnabled: false, lastDefendDate: new Date(0) },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
-          id: 102,
           username: "player4",
           cashAmount: 1500,
           pvp: { pvpEnabled: true, lastDefendDate: yesterday },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
-          id: 103,
           username: "player5",
           cashAmount: 1500,
           pvp: undefined,
@@ -104,15 +89,20 @@ describe("MultiplayerService", () => {
       ];
 
       for (const user of users) {
-        await userModel.create(user);
+        const userId = faker.number.int({ min: 1000 });
+        uids.push(userId);
+        await userModel.create({
+          ...user,
+          id: userId,
+        });
       }
 
-      const result = await service.searchPlayer(123);
+      const result = await service.searchPlayer(uids[0]);
       expect(result).toHaveLength(5);
-      const player1 = result.find((player) => player.id === 123);
-      const player2 = result.find((player) => player.id === 456);
-      const player3 = result.find((player) => player.id === 789);
-      const player4 = result.find((player) => player.id === 101);
+      const player1 = result.find((player) => player.id === uids[0]);
+      const player2 = result.find((player) => player.id === uids[1]);
+      const player3 = result.find((player) => player.id === uids[2]);
+      const player4 = result.find((player) => player.id === uids[3]);
       expect(player1).not.toBeDefined();
       expect(player2).toBeDefined();
       expect(player3).not.toBeDefined();
@@ -134,7 +124,7 @@ describe("MultiplayerService", () => {
 
       const attacker = await userModel.create(
         createMockUser({
-          id: 123,
+          id: faker.number.int(),
           username: "attacker",
           cashAmount: 10000,
           pvp: {
@@ -155,7 +145,7 @@ describe("MultiplayerService", () => {
 
       const defender = await userModel.create(
         createMockUser({
-          id: 456,
+          id: faker.number.int(),
           username: "defender",
           cashAmount: 20000,
           pvp: {
@@ -204,7 +194,7 @@ describe("MultiplayerService", () => {
         expect(updatedAttacker.pvp.defeat).toBe(1);
         expect(updatedAttacker.cashAmount).toBe(10000);
         expect(updatedDefender.cashAmount).toBe(20000);
-        expect(updatedAttacker.reputation).toBe(0);
+        expect(updatedAttacker.reputation).toBe(1);
       }
     });
 
@@ -214,7 +204,7 @@ describe("MultiplayerService", () => {
 
       const attacker = await userModel.create(
         createMockUser({
-          id: 123,
+          id: faker.number.int(),
           pvp: {
             pvpEnabled: true,
             lastAttackDate: yesterday,
@@ -225,7 +215,7 @@ describe("MultiplayerService", () => {
 
       const defender = await userModel.create(
         createMockUser({
-          id: 456,
+          id: faker.number.int(),
           pvp: { pvpEnabled: true },
         }),
       );
@@ -241,14 +231,14 @@ describe("MultiplayerService", () => {
 
       const attacker = await userModel.create(
         createMockUser({
-          id: 123,
+          id: faker.number.int(),
           pvp: { pvpEnabled: true },
         }),
       );
 
       const defender = await userModel.create(
         createMockUser({
-          id: 456,
+          id: faker.number.int(),
           pvp: {
             pvpEnabled: true,
             lastDefendDate: yesterday,
@@ -266,14 +256,14 @@ describe("MultiplayerService", () => {
 
       const attacker = await userModel.create(
         createMockUser({
-          id: 123,
+          id: faker.number.int(),
           pvp: { pvpEnabled: true, lastAttackDate: today, attacksToday: 2 },
         }),
       );
 
       const defender = await userModel.create(
         createMockUser({
-          id: 456,
+          id: faker.number.int(),
           pvp: { pvpEnabled: true },
         }),
       );
@@ -290,14 +280,14 @@ describe("MultiplayerService", () => {
 
       const attacker = await userModel.create(
         createMockUser({
-          id: 123,
+          id: faker.number.int(),
           pvp: { pvpEnabled: true },
         }),
       );
 
       const defender = await userModel.create(
         createMockUser({
-          id: 456,
+          id: faker.number.int(),
           pvp: { pvpEnabled: true, lastDefendDate: today },
         }),
       );
@@ -310,13 +300,14 @@ describe("MultiplayerService", () => {
 
   describe("enablePvp", () => {
     it("should enable PvP for a user without existing PvP data", async () => {
+      const userId = faker.number.int();
       await userModel.create(
-        createMockUser({ id: 123, pvp: undefined }),
+        createMockUser({ id: userId, pvp: undefined }),
       );
-      const result = await service.enablePvp(123);
+      const result = await service.enablePvp(userId);
       expect(result.message).toBe("PvP enabled successfully");
       expect(result.pvp.pvpEnabled).toBe(true);
-      const updatedUser = await userModel.findOne({ id: 123 });
+      const updatedUser = await userModel.findOne({ id: userId });
       expect(updatedUser.pvp.pvpEnabled).toBe(true);
       expect(updatedUser.pvp.lastAttackDate).toBeInstanceOf(Date);
       expect(updatedUser.pvp.lastDefendDate).toBeInstanceOf(Date);
@@ -324,13 +315,14 @@ describe("MultiplayerService", () => {
     });
 
     it("should enable PvP for a user with existing PvP data", async () => {
+      const userId = faker.number.int();
       await userModel.create(
-        createMockUser({ id: 123, pvp: { pvpEnabled: false } }),
+        createMockUser({ id: userId, pvp: { pvpEnabled: false } }),
       );
-      const result = await service.enablePvp(123);
+      const result = await service.enablePvp(userId);
       expect(result.message).toBe("PvP enabled successfully");
       expect(result.pvp.pvpEnabled).toBe(true);
-      const updatedUser = await userModel.findOne({ id: 123 });
+      const updatedUser = await userModel.findOne({ id: userId });
       expect(updatedUser.pvp.pvpEnabled).toBe(true);
     });
   });

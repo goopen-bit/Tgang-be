@@ -8,20 +8,12 @@ export enum EUpgradeCategory {
 
 export enum EDealerUpgrade {
   SOCIAL_MEDIA_CAMPAGIN = "social_media_campaign",
-  // STREET_PROMOTION_TEAM = "street_promotion_team",
-  // CLUB_PARTNERSHIP = "club_partnership",
   COMBO_PACKS = "combo_packs",
   HIGH_END_PACKAGING = "high_end_packaging",
   PARTY_PACKS = "party_packs",
   HIGH_DOSE_PACKAGES = "high_dose_packages",
   FESTIVAL_BLOTTERS = "festival_blotters",
   BULK_BAGS = "bulk_bags",
-  STREET_PROMOTION_TEAM = "STREET_PROMOTION_TEAM",
-  CLUB_PARTNERSHIP = "CLUB_PARTNERSHIP",
-  ONLINE_MARKETPLACE = "ONLINE_MARKETPLACE",
-  INTERNATIONAL_SHIPPING = "INTERNATIONAL_SHIPPING",
-  QUALITY_CONTROL = "QUALITY_CONTROL",
-  RESEARCH_AND_DEVELOPMENT = "RESEARCH_AND_DEVELOPMENT",
 }
 
 export type UpgradeRequirementType = 'fixed' | 'linear';

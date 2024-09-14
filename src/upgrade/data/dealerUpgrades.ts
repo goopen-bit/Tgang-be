@@ -131,12 +131,6 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
       },
     ],
   },
-  [EDealerUpgrade.STREET_PROMOTION_TEAM]: undefined,
-  [EDealerUpgrade.CLUB_PARTNERSHIP]: undefined,
-  [EDealerUpgrade.ONLINE_MARKETPLACE]: undefined,
-  [EDealerUpgrade.INTERNATIONAL_SHIPPING]: undefined,
-  [EDealerUpgrade.QUALITY_CONTROL]: undefined,
-  [EDealerUpgrade.RESEARCH_AND_DEVELOPMENT]: undefined
 };
 
 export const productUpgrades: Record<EProduct, ProductUpgrade> = {

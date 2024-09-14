@@ -13,9 +13,9 @@ import { UserProduct } from "./userProduct.schema";
 import { UserShipping } from "./userShipping.schema";
 import { reputationLevels } from "../data/reputationLevel";
 import { IReputationLevel } from "../user.interface";
-import { dealerUpgrades } from "../../upgrade/data/dealerUpgrades";
 import { SocialChannel } from "../../social/social.const";
 import { UserPvp } from "./userPvp.schema";
+import { DbCollections } from "src/config/types";
 
 @Schema({ _id: false })
 export class LabPlot {
@@ -51,6 +51,7 @@ export class Social {
 }
 
 @Schema({
+  collection: DbCollections.USERS,
   toObject: {
     getters: true,
   },

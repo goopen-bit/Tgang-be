@@ -65,7 +65,7 @@ export class UserService {
       {
         $name: user.username,
         $created: new Date(),
-        HERB: 1,
+        HERB: 100,
       },
       {
         $ip: ip,
@@ -320,8 +320,6 @@ export class UserService {
       const bots = await this.createBots(PVP_NUMBER_OF_PLAYERS - players.length, excludeUserId)
       players.push(...bots);
     }
-
-    this.logger.debug(`Players: ${JSON.stringify(players)}`);
 
     return players;
   }

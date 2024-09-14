@@ -1,28 +1,26 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { UserService } from "../user/user.service";
+import { startOfDay } from "date-fns";
+import { User } from "../user/schemas/user.schema";
 
 @Injectable()
 export class MultiplayerService {
   constructor(private readonly userService: UserService) {}
 
-  async searchPlayer(userId: string) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    return this.userService.findPvpPlayers(today, parseInt(userId));
+  async searchPlayer(userId: number) {
+    const today = startOfDay(new Date());
+    return this.userService.findPvpPlayers(today, userId);
   }
 
   // Hell of a function need to be refactor to be more readable and maintainable size ^^
-  async startFight(userId: string, opponentId: string) {
-    const attacker = await this.userService.findOne(parseInt(userId));
-    const defender = await this.userService.findOne(parseInt(opponentId));
-
-    if (!attacker || !defender) {
-      throw new NotFoundException("User not found");
-    }
+  async startFight(userId: number, opponentId: number) {
+    const [attacker, defender] = await Promise.all([
+      this.userService.findOne(userId),
+      this.userService.findDefender(opponentId, userId),
+    ]);
 
     if (!attacker.pvp?.pvpEnabled || !defender.pvp?.pvpEnabled) {
-      throw new Error("Both players must have PvP enabled");
+      throw new HttpException("Both players must have PvP enabled", HttpStatus.BAD_REQUEST);
     }
 
     const now = new Date();
@@ -33,13 +31,14 @@ export class MultiplayerService {
     }
 
     if (attacker.pvp.attacksToday >= 2) {
-      throw new Error(
+      throw new HttpException(
         "You have reached the maximum number of attacks for today",
+        HttpStatus.BAD_REQUEST,
       );
     }
 
     if (defender.pvp.lastDefendDate >= today) {
-      throw new Error("This player has already been attacked today");
+      throw new HttpException("This player has already been attacked today", HttpStatus.BAD_REQUEST);
     }
 
     const attackerDamage = Math.max(
@@ -104,15 +103,10 @@ export class MultiplayerService {
       attacker.pvp.defeat++;
     }
 
-    await this.userService.update(attacker.id, {
-      pvp: attacker.pvp,
-      cashAmount: attacker.cashAmount,
-      reputation: attacker.reputation,
-    });
-    await this.userService.update(defender.id, {
-      pvp: defender.pvp,
-      cashAmount: defender.cashAmount,
-    });
+    await Promise.all([
+      attacker.save(),
+      (defender as any).isBot ? Promise.resolve() : (defender as any).save(),
+    ]);
 
     return {
       winner: winner === "attacker" ? attacker.username : defender.username,
@@ -122,8 +116,8 @@ export class MultiplayerService {
     };
   }
 
-  async enablePvp(userId: string): Promise<{ message: string; pvp: any }> {
-    const user = await this.userService.findOne(parseInt(userId));
+  async enablePvp(userId: number): Promise<{ message: string; pvp: any }> {
+    const user = await this.userService.findOne(userId);
 
     if (!user.pvp) {
       user.pvp = {
@@ -144,7 +138,7 @@ export class MultiplayerService {
       user.pvp.pvpEnabled = true;
     }
 
-    await this.userService.update(user.id, { pvp: user.pvp });
+    await user.save();
     return { message: "PvP enabled successfully", pvp: user.pvp };
   }
 }

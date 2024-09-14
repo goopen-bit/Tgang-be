@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get } from "@nestjs/common";
+import { Controller, Post, Get, Param, ParseIntPipe } from "@nestjs/common";
 import { MultiplayerService } from "./multiplayer.service";
 import { Auth } from "../decorators/auth.decorator";
 import { GetAuthToken } from "../decorators/get-auth-token.decorator";
@@ -11,19 +11,19 @@ export class MultiplayerController {
 
   @Get("search")
   async searchPlayer(@GetAuthToken() user: AuthTokenData) {
-    return this.multiplayerService.searchPlayer(user.id.toString());
+    return this.multiplayerService.searchPlayer(user.id);
   }
 
-  @Post("fight")
+  @Post("fight/:opponentId")
   async startFight(
     @GetAuthToken() user: AuthTokenData,
-    @Body("opponentId") opponentId: string,
+    @Param("opponentId", new ParseIntPipe()) opponentId: number,
   ) {
-    return this.multiplayerService.startFight(user.id.toString(), opponentId);
+    return this.multiplayerService.startFight(user.id, opponentId);
   }
 
   @Post("enable-pvp")
   async enablePvp(@GetAuthToken() user: AuthTokenData) {
-    return this.multiplayerService.enablePvp(user.id.toString());
+    return this.multiplayerService.enablePvp(user.id);
   }
 }

@@ -1,16 +1,17 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { faker } from "@faker-js/faker";
 import { UserService } from "./user.service";
-import { mongoUrl, mongoDb, mixpanelToken } from "../config/env";
+import { mongoUrl, mongoDb, mixpanelToken, redisUrl } from "../config/env";
 import { User, UserSchema } from "./schemas/user.schema";
 import { mockTokenData } from "../../test/utils/user";
 import { AnalyticsModule } from "../analytics/analytics.module";
 import { MongooseModule, getModelToken } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-
 import { EProduct } from "../market/market.const";
 import { upgradesData } from "../upgrade/data/upgrades";
 import { STARTING_CASH } from "./user.const";
+import { RedisModule } from "@goopen/nestjs-ioredis-provider";
+import { subDays } from "date-fns";
 
 export const createMockUser = (overrides = {}): Partial<User> => {
   const HERB = upgradesData.product[EProduct.HERB];
@@ -45,6 +46,10 @@ describe("UserService", () => {
         MongooseModule.forRoot(mongoUrl, {
           dbName: mongoDb,
           readPreference: "secondaryPreferred",
+        }),
+        RedisModule.register({
+          url: redisUrl,
+          isGlobal: true,
         }),
         AnalyticsModule.register({
           mixpanelToken: mixpanelToken,
@@ -166,15 +171,14 @@ describe("UserService", () => {
 
   describe("findPvpPlayers", () => {
     it("should return a list of PvP-enabled players who haven't been attacked today", async () => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterday = subDays(new Date(), 1);
 
       const users = [
         createMockUser({
           id: 123,
           username: "player1",
           cashAmount: 1000,
-          pvp: { pvpEnabled: true, lastDefend: yesterday },
+          pvp: { pvpEnabled: true, lastDefendDate: yesterday },
         }),
         createMockUser({
           id: 456,
@@ -186,7 +190,7 @@ describe("UserService", () => {
           id: 789,
           username: "player3",
           cashAmount: 3000,
-          pvp: { pvpEnabled: true, lastDefend: new Date() },
+          pvp: { pvpEnabled: true, lastDefendDate: new Date() },
         }),
         createMockUser({
           id: 101,
@@ -201,17 +205,23 @@ describe("UserService", () => {
       }
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const result = await service.findPvpPlayers(today, 123);
+      const result = await service.findPvpPlayers(today, 666);
 
-      expect(result).toHaveLength(2);
-      expect(result[0].id).toBe(456);
-      expect(result[1].id).toBe(123);
+      expect(result).toHaveLength(5);
+      const player1 = result.find((player) => player.id === 123);
+      const player2 = result.find((player) => player.id === 456);
+      const player3 = result.find((player) => player.id === 789);
+      const player4 = result.find((player) => player.id === 101);
+      expect(player1).toBeDefined();
+      expect(player2).toBeDefined();
+      expect(player3).not.toBeDefined();
+      expect(player4).not.toBeDefined();
       expect(result.every((player) => player.pvp.pvpEnabled)).toBe(true);
       expect(
         result.every(
           (player) =>
-            !player.pvp.lastDefend ||
-            player.pvp.lastDefend < new Date().setHours(0, 0, 0, 0),
+            !player.pvp.lastDefendDate ||
+            player.pvp.lastDefendDate < new Date().setHours(0, 0, 0, 0),
         ),
       ).toBe(true);
     });

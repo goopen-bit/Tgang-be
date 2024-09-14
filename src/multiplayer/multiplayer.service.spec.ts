@@ -1,17 +1,17 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { MongooseModule, getModelToken } from "@nestjs/mongoose";
 import { MultiplayerService } from "./multiplayer.service";
-import { UserService } from "../user/user.service";
 import { User, UserSchema } from "../user/schemas/user.schema";
 import { createMockUser } from "../user/user.service.spec";
 import { Model } from "mongoose";
-import { mongoUrl, mongoDb } from "../config/env";
+import { mongoUrl, mongoDb, redisUrl } from "../config/env";
 import { AnalyticsModule } from "../analytics/analytics.module";
 import { mixpanelToken } from "../config/env";
+import { RedisModule } from "@goopen/nestjs-ioredis-provider";
+import { UserModule } from "../user/user.module";
 
 describe("MultiplayerService", () => {
   let service: MultiplayerService;
-  let userService: UserService;
   let userModel: Model<User>;
   let module: TestingModule;
 
@@ -21,17 +21,21 @@ describe("MultiplayerService", () => {
         MongooseModule.forRoot(mongoUrl, {
           dbName: mongoDb,
         }),
+        RedisModule.register({
+          url: redisUrl,
+          isGlobal: true,
+        }),
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         AnalyticsModule.register({
           mixpanelToken: mixpanelToken,
           isGlobal: true,
         }),
+        UserModule,
       ],
-      providers: [MultiplayerService, UserService],
+      providers: [MultiplayerService],
     }).compile();
 
     service = module.get<MultiplayerService>(MultiplayerService);
-    userService = module.get<UserService>(UserService);
     userModel = module.get<Model<User>>(getModelToken(User.name));
   });
 
@@ -103,9 +107,16 @@ describe("MultiplayerService", () => {
         await userModel.create(user);
       }
 
-      const result = await service.searchPlayer("123");
-      expect(result).toHaveLength(2);
-      expect(result.map((player) => player.id)).toEqual([102, 456]);
+      const result = await service.searchPlayer(123);
+      expect(result).toHaveLength(5);
+      const player1 = result.find((player) => player.id === 123);
+      const player2 = result.find((player) => player.id === 456);
+      const player3 = result.find((player) => player.id === 789);
+      const player4 = result.find((player) => player.id === 101);
+      expect(player1).not.toBeDefined();
+      expect(player2).toBeDefined();
+      expect(player3).not.toBeDefined();
+      expect(player4).not.toBeDefined();
       expect(result.every((player) => player.pvp.pvpEnabled)).toBe(true);
       expect(
         result.every(
@@ -162,8 +173,8 @@ describe("MultiplayerService", () => {
       );
 
       const result = await service.startFight(
-        attacker.id.toString(),
-        defender.id.toString(),
+        attacker.id,
+        defender.id,
       );
 
       expect(result).toHaveProperty("winner");
@@ -220,7 +231,7 @@ describe("MultiplayerService", () => {
       );
 
       await expect(
-        service.startFight(attacker.id.toString(), defender.id.toString()),
+        service.startFight(attacker.id, defender.id),
       ).resolves.not.toThrow();
     });
 
@@ -246,7 +257,7 @@ describe("MultiplayerService", () => {
       );
 
       await expect(
-        service.startFight(attacker.id.toString(), defender.id.toString()),
+        service.startFight(attacker.id, defender.id),
       ).resolves.not.toThrow();
     });
 
@@ -268,7 +279,7 @@ describe("MultiplayerService", () => {
       );
 
       await expect(
-        service.startFight(attacker.id.toString(), defender.id.toString()),
+        service.startFight(attacker.id, defender.id),
       ).rejects.toThrow(
         "You have reached the maximum number of attacks for today",
       );
@@ -292,17 +303,17 @@ describe("MultiplayerService", () => {
       );
 
       await expect(
-        service.startFight(attacker.id.toString(), defender.id.toString()),
+        service.startFight(attacker.id, defender.id),
       ).rejects.toThrow("This player has already been attacked today");
     });
   });
 
   describe("enablePvp", () => {
     it("should enable PvP for a user without existing PvP data", async () => {
-      const user = await userModel.create(
+      await userModel.create(
         createMockUser({ id: 123, pvp: undefined }),
       );
-      const result = await service.enablePvp("123");
+      const result = await service.enablePvp(123);
       expect(result.message).toBe("PvP enabled successfully");
       expect(result.pvp.pvpEnabled).toBe(true);
       const updatedUser = await userModel.findOne({ id: 123 });
@@ -313,10 +324,10 @@ describe("MultiplayerService", () => {
     });
 
     it("should enable PvP for a user with existing PvP data", async () => {
-      const user = await userModel.create(
+      await userModel.create(
         createMockUser({ id: 123, pvp: { pvpEnabled: false } }),
       );
-      const result = await service.enablePvp("123");
+      const result = await service.enablePvp(123);
       expect(result.message).toBe("PvP enabled successfully");
       expect(result.pvp.pvpEnabled).toBe(true);
       const updatedUser = await userModel.findOne({ id: 123 });

@@ -200,7 +200,7 @@ export class User extends Document {
   @Prop()
   wallet?: string;
 
-  @Prop({ type: UserPvp, default: () => ({}) })
+  @Prop({ type: UserPvp })
   pvp?: UserPvp;
 }
 

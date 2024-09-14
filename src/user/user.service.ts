@@ -13,6 +13,7 @@ import { EProduct } from "../market/market.const";
 import {
   PREMIUM_REFERRAL_CASH,
   PREMIUM_REFERRAL_REPUTATION,
+  PVP_NUMBER_OF_PLAYERS,
   REFERRAL_CASH,
   REFERRAL_REPUTATION,
   ROBBERY_AMOUNT_PER_DAILY_STRIKE,
@@ -23,6 +24,11 @@ import { upgradesData } from "../upgrade/data/upgrades";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 import { Mixpanel } from "mixpanel";
 import { subDays } from "date-fns";
+import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
+import Redis from "ioredis";
+import { faker } from "@faker-js/faker";
+import { BotUser } from "./user.interface";
+import { reputationLevels } from "./data/reputationLevel";
 
 @Injectable()
 export class UserService {
@@ -31,6 +37,9 @@ export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
+
+    @InjectRedis() private readonly redis: Redis,
+
     @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
@@ -221,8 +230,67 @@ export class UserService {
     ]);
   }
 
+  async findDefender(userId: number, attackerUserId: number) {
+    let defender: User | BotUser = await this.userModel.findOne({ id: userId });
+    if (!defender) {
+      const botsString = await this.redis.get(`bots:${attackerUserId}`);
+      if (!botsString) {
+        throw new NotFoundException("Defender not found");
+      }
+      const bots: BotUser[] = JSON.parse(botsString);
+      defender = bots.find((bot) => bot.id === userId);
+    }
+
+    return defender;
+  }
+
+  private async createBots(numberOfBots: number, userId: number) {
+    const bots = [];
+    for (let i = 0; i < numberOfBots; i++) {
+      const products = [];
+      for (let j = 0; j < Math.floor(Math.random() * 3) + 1; j++) {
+        const product = Object.keys(upgradesData.product)[
+          Math.floor(Math.random() * Object.keys(upgradesData.product).length)
+        ];
+        products.push({
+          name: product,
+          quantity: Math.floor(Math.random() * 400) + 100,
+          title: upgradesData.product[product].title,
+          image: upgradesData.product[product].image,
+          level: 1,
+        });
+      }
+
+      bots.push({
+        id: i,
+        username: faker.internet.userName(),
+        cashAmount: Math.floor(Math.random() * 100000) + 10000,
+        reputation: Math.floor(Math.random() * 100000) + 1000,
+        products: products,
+        userLevel: reputationLevels[Math.floor(Math.random() * 5)],
+        pvp: {
+          pvpEnabled: true,
+          victory: 0,
+          defeat: 0,
+          lastAttackDate: new Date(0),
+          attacksToday: 0,
+          lastDefendDate: new Date(0),
+          baseHp: 100,
+          protection: 0,
+          damage: 10,
+          accuracy: 50,
+          evasion: 5,
+        },
+        isBot: true,
+      });
+    }
+
+    await this.redis.set(`bots:${userId}`, JSON.stringify(bots), "EX", 900);
+    return bots as BotUser[];
+  }
+
   async findPvpPlayers(today: Date, excludeUserId: number) {
-    return this.userModel.aggregate([
+    const players = await this.userModel.aggregate([
       {
         $match: {
           id: { $ne: excludeUserId },
@@ -235,10 +303,7 @@ export class UserService {
         },
       },
       {
-        $sort: { cashAmount: -1 },
-      },
-      {
-        $limit: 5,
+        $sample: { size: PVP_NUMBER_OF_PLAYERS },
       },
       {
         $project: {
@@ -250,5 +315,14 @@ export class UserService {
         },
       },
     ]);
+
+    if (players.length < 5) {
+      const bots = await this.createBots(PVP_NUMBER_OF_PLAYERS - players.length, excludeUserId)
+      players.push(...bots);
+    }
+
+    this.logger.debug(`Players: ${JSON.stringify(players)}`);
+
+    return players;
   }
 }

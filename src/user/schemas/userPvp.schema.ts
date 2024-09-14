@@ -20,21 +20,50 @@ export class UserPvp {
   @Prop({ required: true, default: new Date(0) })
   lastDefendDate: Date;
 
-  @Prop({ required: true, default: 100 })
+  @Prop({
+    virtual: true,
+    get: function () {
+      return 100;
+    },
+  })
   baseHp: number;
 
-  @Prop({ required: true, default: 0 })
+  @Prop({
+    virtual: true,
+    get: function () {
+      return 0;
+    },
+  })
   protection: number;
 
-  @Prop({ required: true, default: 10 })
+  @Prop({virtual: true,
+    get: function () {
+      return 10;
+    },
+  })
   damage: number;
 
-  @Prop({ required: true, default: 50 })
+  @Prop({
+    virtual: true,
+    get: function () {
+      return 50;
+    },
+  })
   accuracy: number;
 
-  @Prop({ required: true, default: 5 })
+  @Prop({
+    virtual: true,
+    get: function () {
+      return 5;
+    },
+  })
   evasion: number;
 
-  @Prop({ required: false, default: 0.1 })
+  @Prop({
+    virtual: true,
+    get: function () {
+      return 0.1;
+    },
+  })
   lootPower?: number;
 }

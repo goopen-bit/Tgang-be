@@ -148,7 +148,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     title: "Mushroom",
     description: "Used by shamans for centuries.",
     basePrice: 800,
-    upgradeMultiplier: 1.5,
+    upgradeMultiplier: 1.4,
     baseDiscount: 10,
     image: `/assets/product/mushroom.webp`,
     requirements: [
@@ -164,7 +164,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     title: "Acid",
     description: "Hoffman's bicycle ride.",
     basePrice: 1200,
-    upgradeMultiplier: 1.6,
+    upgradeMultiplier: 1.4,
     baseDiscount: 10,
     image: `/assets/product/acid.webp`,
     requirements: [
@@ -180,7 +180,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     title: "Pill",
     description: "Feel the love.",
     basePrice: 1600,
-    upgradeMultiplier: 1.7,
+    upgradeMultiplier: 1.6,
     baseDiscount: 10,
     image: `/assets/product/pill.webp`,
     requirements: [
@@ -205,7 +205,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
     title: "Powder",
     description: "Fidel's favorite.",
     basePrice: 2400,
-    upgradeMultiplier: 1.9,
+    upgradeMultiplier: 1.8,
     baseDiscount: 10,
     image: `/assets/product/powder.webp`,
     requirements: [{ level: 5, requirement: "referredUsers", type: "fixed" }],

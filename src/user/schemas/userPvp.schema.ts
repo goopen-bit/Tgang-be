@@ -1,4 +1,5 @@
 import { Prop, Schema } from '@nestjs/mongoose';
+import { PVP_BASE_ATTACKS_PER_DAY } from '../user.const';
 
 @Schema({ _id: false })
 export class UserPvp {
@@ -23,10 +24,31 @@ export class UserPvp {
   @Prop({
     virtual: true,
     get: function () {
+      const parent = this.parent();
+      const referredUsers = parent.referredUsers?.length || 0;
+      let dailyAttacks = PVP_BASE_ATTACKS_PER_DAY;
+      if (referredUsers >= 20) {
+        dailyAttacks += 3;
+      } else if (referredUsers >= 10) {
+        dailyAttacks += 2;
+      } else if (referredUsers >= 5) {
+        dailyAttacks += 1;
+      }
+
+      // TODO: watched add
+
+      return dailyAttacks;
+    },
+  })
+  attacksAvailable?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
       return 100;
     },
   })
-  baseHp: number;
+  baseHp?: number;
 
   @Prop({
     virtual: true,
@@ -34,14 +56,14 @@ export class UserPvp {
       return 0;
     },
   })
-  protection: number;
+  protection?: number;
 
   @Prop({virtual: true,
     get: function () {
       return 10;
     },
   })
-  damage: number;
+  damage?: number;
 
   @Prop({
     virtual: true,
@@ -49,7 +71,7 @@ export class UserPvp {
       return 50;
     },
   })
-  accuracy: number;
+  accuracy?: number;
 
   @Prop({
     virtual: true,
@@ -57,7 +79,7 @@ export class UserPvp {
       return 5;
     },
   })
-  evasion: number;
+  evasion?: number;
 
   @Prop({
     virtual: true,

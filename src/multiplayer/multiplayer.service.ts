@@ -7,6 +7,7 @@ import { Loot } from "./multiplayer.interface";
 import { BattleResult } from "./schemas/battleResult.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
+import { MAX_CASH_LOOT, MAX_PRODUCT_LOOT } from "./multiplayer.const";
 
 @Injectable()
 export class MultiplayerService {
@@ -28,7 +29,10 @@ export class MultiplayerService {
     const loss: Loot[] = [];
     for (const product of products) {
       const quantity = Math.floor(product.quantity * 0.01);
-      product.quantity -= quantity;
+      if (quantity === 0) {
+        continue;
+      }
+      product.quantity -= Math.min(quantity, MAX_PRODUCT_LOOT);
       loss.push({ name: product.name, quantity });
     }
     return loss;
@@ -49,35 +53,7 @@ export class MultiplayerService {
     }
   }
 
-  // Hell of a function need to be refactor to be more readable and maintainable size ^^
-  async startFight(userId: number, opponentId: number) {
-    const [attacker, defender] = await Promise.all([
-      this.userService.findOne(userId),
-      this.userService.findDefender(opponentId, userId),
-    ]);
-
-    if (!attacker.pvp?.pvpEnabled || !defender.pvp?.pvpEnabled) {
-      throw new HttpException("Both players must have PvP enabled", HttpStatus.BAD_REQUEST);
-    }
-
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    if (attacker.pvp.lastAttackDate < today) {
-      attacker.pvp.attacksToday = 0;
-    }
-
-    if (attacker.pvp.attacksToday >= 2) {
-      throw new HttpException(
-        "You have reached the maximum number of attacks for today",
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    if (defender.pvp.lastDefendDate >= today) {
-      throw new HttpException("This player has already been attacked today", HttpStatus.BAD_REQUEST);
-    }
-
+  private async determineWinner(attacker: User, defender: User | BotUser) {
     const attackerDamage = Math.max(
       0,
       attacker.pvp.damage - defender.pvp.protection,
@@ -132,6 +108,40 @@ export class MultiplayerService {
       winner = attackerHp > defenderHp ? "attacker" : "defender";
     }
 
+    return { winner, rounds, roundResults };
+  }
+
+  // Hell of a function need to be refactor to be more readable and maintainable size ^^
+  async startFight(userId: number, opponentId: number) {
+    const [attacker, defender] = await Promise.all([
+      this.userService.findOne(userId),
+      this.userService.findDefender(opponentId, userId),
+    ]);
+
+    if (!attacker.pvp?.pvpEnabled || !defender.pvp?.pvpEnabled) {
+      throw new HttpException("Both players must have PvP enabled", HttpStatus.BAD_REQUEST);
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (attacker.pvp.lastAttackDate < today) {
+      attacker.pvp.attacksToday = 0;
+    }
+
+    if (attacker.pvp.attacksToday >= attacker.pvp.attacksAvailable) {
+      throw new HttpException(
+        "You have reached the maximum number of attacks for today",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (defender.pvp.lastDefendDate >= today) {
+      throw new HttpException("This player has already been attacked today", HttpStatus.BAD_REQUEST);
+    }
+
+    const { winner, rounds, roundResults } = await this.determineWinner(attacker, defender);
+
     attacker.pvp.attacksToday++;
     attacker.pvp.lastAttackDate = now;
     defender.pvp.lastDefendDate = now;
@@ -145,9 +155,9 @@ export class MultiplayerService {
       productLoot = this.defenderProductLoss(defender);
       this.attackerProductGain(attacker, productLoot);
 
-      // The remaining amount steal in cash, up to 10 % of the defender's cash
-      const percentage = (10 - productLoot.length) / 100;
-      const maxCashLoot = Math.min(defender.cashAmount * percentage, 10000);
+      // The remaining amount steal in cash, up to 5 % of the defender's cash
+      const percentage = (5 - productLoot.length) / 100;
+      const maxCashLoot = Math.min(defender.cashAmount * percentage, MAX_CASH_LOOT);
       loot = Math.floor(maxCashLoot * attacker.pvp.lootPower);
 
       attacker.cashAmount += loot;
@@ -192,12 +202,6 @@ export class MultiplayerService {
         lastAttackDate: new Date(0),
         attacksToday: 0,
         lastDefendDate: new Date(0),
-        baseHp: 100,
-        protection: 0,
-        damage: 10,
-        accuracy: 50,
-        evasion: 5,
-        lootPower: 0.1,
       };
     } else {
       user.pvp.pvpEnabled = true;

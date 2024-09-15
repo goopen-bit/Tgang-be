@@ -15,7 +15,7 @@ import { reputationLevels } from "../data/reputationLevel";
 import { IReputationLevel } from "../user.interface";
 import { SocialChannel } from "../../social/social.const";
 import { UserPvp } from "./userPvp.schema";
-import { DbCollections } from "src/config/types";
+import { DbCollections } from "../../config/types";
 
 @Schema({ _id: false })
 export class LabPlot {
@@ -91,27 +91,7 @@ export class User extends Document {
   @Prop({ type: [UserProduct], default: [] })
   products: UserProduct[];
 
-  @Prop({
-    type: [UserDealerUpgrade],
-    default: [],
-    // set: function (upgrades: UserDealerUpgrade[]) {
-    //   return Object.entries(dealerUpgrades).map(([key, du]) => {
-    //     const userUpgrade = upgrades.find((u) => u.product === key);
-    //     return (
-    //       userUpgrade || {
-    //         product: key,
-    //         title: du.title,
-    //         description: du.description,
-    //         image: du.image,
-    //         level: 0,
-    //         upgradePrice: du.basePrice,
-    //         amount: 0,
-    //         upgradeAmount: du.amountMultiplier,
-    //       }
-    //     );
-    //   });
-    // },
-  })
+  @Prop({ type: [UserDealerUpgrade], default: [] })
   dealerUpgrades: UserDealerUpgrade[];
 
   @Prop({ type: [UserShipping], default: [] })

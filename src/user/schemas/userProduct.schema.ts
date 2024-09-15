@@ -55,6 +55,9 @@ export class UserProduct {
     virtual: true,
     get: function () {
       const upgrade = productUpgrades[this.name];
+      if (this.level === 0) {
+        return upgrade.baseDiscount;
+      }
       return upgrade.baseDiscount + 
         (60 - upgrade.baseDiscount) * 
         (Math.log(this.level) / Math.log(1000));

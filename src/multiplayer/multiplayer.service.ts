@@ -8,6 +8,7 @@ import { BattleResult } from "./schemas/battleResult.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { MAX_CASH_LOOT, MAX_PRODUCT_LOOT } from "./multiplayer.const";
+import { SocialChannel } from "src/social/social.const";
 
 @Injectable()
 export class MultiplayerService {
@@ -118,8 +119,18 @@ export class MultiplayerService {
       this.userService.findDefender(opponentId, userId),
     ]);
 
-    if (!attacker.pvp?.pvpEnabled || !defender.pvp?.pvpEnabled) {
-      throw new HttpException("Both players must have PvP enabled", HttpStatus.BAD_REQUEST);
+    if (!attacker.socials.find((s) => s.channel === SocialChannel.TELEGRAM_CHANNEL)) {
+      throw new HttpException(
+        "You must join our Telegram channel to participate in PvP",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (!attacker.pvp) {
+      this.setupPvp(attacker);
+    }
+    if (defender instanceof User && !defender.pvp) {
+      this.setupPvp(defender);
     }
 
     const now = new Date();
@@ -191,23 +202,17 @@ export class MultiplayerService {
     };
   }
 
-  async enablePvp(userId: number) {
-    const user = await this.userService.findOne(userId);
-
+  setupPvp(user: User) {
     if (!user.pvp) {
       user.pvp = {
-        pvpEnabled: true,
         victory: 0,
         defeat: 0,
         lastAttackDate: new Date(0),
         attacksToday: 0,
         lastDefendDate: new Date(0),
       };
-    } else {
-      user.pvp.pvpEnabled = true;
     }
 
-    await user.save();
     return user;
   }
 }

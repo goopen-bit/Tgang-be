@@ -1,5 +1,5 @@
-import { DbCollections } from 'src/config/types';
 import { Db } from 'mongodb';
+import { DbCollections } from '../../src/config/types';
 
 module.exports = {
   async up(db: Db) {

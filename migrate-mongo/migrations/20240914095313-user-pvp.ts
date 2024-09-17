@@ -1,20 +1,20 @@
-import { DbCollections } from 'src/config/types';
 import { Db } from 'mongodb';
+import { DbCollections } from '../../src/config/types';
 
 module.exports = {
   async up(db: Db) {
     await db.collection(DbCollections.USERS).createIndex(
       {
-        'pvp.pvpEnabled': 1,
+        reputation: 1,
         'pvp.lastDefendDate': 1,
       },
       {
-        name: 'pvp_enabled_last_defend_date_index',
+        name: 'reputation_last_defend_date_index',
       },
     );
   },
 
   async down(db: Db) {
-    await db.collection(DbCollections.USERS).dropIndex('pvp_enabled_last_defend_date_index');
+    await db.collection(DbCollections.USERS).dropIndex('reputation_last_defend_date_index');
   },
 };

@@ -21,9 +21,4 @@ export class MultiplayerController {
   ) {
     return this.multiplayerService.startFight(user.id, opponentId);
   }
-
-  @Post("enable-pvp")
-  async enablePvp(@GetAuthToken() user: AuthTokenData) {
-    return this.multiplayerService.enablePvp(user.id);
-  }
 }

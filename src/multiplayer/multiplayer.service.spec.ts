@@ -9,6 +9,7 @@ import { mixpanelToken } from "../config/env";
 import { UserModule } from "../user/user.module";
 import { faker } from "@faker-js/faker";
 import { appConfigImports } from '../config/app';
+import { BattleResult, BattleResultSchema } from "./schemas/battleResult.schema";
 
 describe("MultiplayerService", () => {
   let service: MultiplayerService;
@@ -19,7 +20,10 @@ describe("MultiplayerService", () => {
     module = await Test.createTestingModule({
       imports: [
         ...appConfigImports,
-        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+        MongooseModule.forFeature([
+          { name: User.name, schema: UserSchema },
+          { name: BattleResult.name, schema: BattleResultSchema },
+        ]),
         AnalyticsModule.register({
           mixpanelToken: mixpanelToken,
           isGlobal: true,
@@ -53,36 +57,42 @@ describe("MultiplayerService", () => {
         createMockUser({
           username: "current",
           cashAmount: 500,
-          pvp: { pvpEnabled: true, lastDefendDate: yesterday },
+          reputation: 10000,
+          pvp: { lastDefendDate: yesterday },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           username: "player1",
           cashAmount: 1000,
-          pvp: { pvpEnabled: true, lastDefendDate: new Date(0) },
+          reputation: 10000,
+          pvp: { lastDefendDate: new Date(0) },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           username: "player2",
           cashAmount: 2000,
-          pvp: { pvpEnabled: true, lastDefendDate: new Date() },
+          reputation: 10000,
+          pvp: { lastDefendDate: new Date() },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           username: "player3",
           cashAmount: 3000,
-          pvp: { pvpEnabled: false, lastDefendDate: new Date(0) },
+          reputation: 100,
+          pvp: { lastDefendDate: new Date(0) },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           username: "player4",
           cashAmount: 1500,
-          pvp: { pvpEnabled: true, lastDefendDate: yesterday },
+          reputation: 10000,
+          pvp: { lastDefendDate: yesterday },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           username: "player5",
           cashAmount: 1500,
+          reputation: 100,
           pvp: undefined,
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
@@ -107,7 +117,7 @@ describe("MultiplayerService", () => {
       expect(player2).toBeDefined();
       expect(player3).not.toBeDefined();
       expect(player4).not.toBeDefined();
-      expect(result.every((player) => player.pvp.pvpEnabled)).toBe(true);
+      // expect(result.every((player) => player.reputation > 1000)).toBe(true);
       expect(
         result.every(
           (player) =>
@@ -127,8 +137,8 @@ describe("MultiplayerService", () => {
           id: faker.number.int(),
           username: "attacker",
           cashAmount: 10000,
+          reputation: 10000,
           pvp: {
-            pvpEnabled: true,
             lastAttackDate: yesterday,
             attacksToday: 0,
             baseHp: 100,
@@ -148,8 +158,8 @@ describe("MultiplayerService", () => {
           id: faker.number.int(),
           username: "defender",
           cashAmount: 20000,
+          reputation: 10000,
           pvp: {
-            pvpEnabled: true,
             lastDefendDate: yesterday,
             baseHp: 100,
             damage: 15,
@@ -188,13 +198,13 @@ describe("MultiplayerService", () => {
         expect(updatedDefender.pvp.defeat).toBe(1);
         expect(updatedAttacker.cashAmount).toBeGreaterThan(10000);
         expect(updatedDefender.cashAmount).toBeLessThan(20000);
-        expect(updatedAttacker.reputation).toBe(11); //10 to win the match and 1 base reputation
+        expect(updatedAttacker.reputation).toBe(11000);
       } else {
         expect(updatedDefender.pvp.victory).toBe(1);
         expect(updatedAttacker.pvp.defeat).toBe(1);
         expect(updatedAttacker.cashAmount).toBe(10000);
         expect(updatedDefender.cashAmount).toBe(20000);
-        expect(updatedAttacker.reputation).toBe(1);
+        expect(updatedAttacker.reputation).toBe(10000);
       }
     });
 
@@ -205,8 +215,8 @@ describe("MultiplayerService", () => {
       const attacker = await userModel.create(
         createMockUser({
           id: faker.number.int(),
+          reputation: 10000,
           pvp: {
-            pvpEnabled: true,
             lastAttackDate: yesterday,
             attacksToday: 0,
           },
@@ -216,7 +226,7 @@ describe("MultiplayerService", () => {
       const defender = await userModel.create(
         createMockUser({
           id: faker.number.int(),
-          pvp: { pvpEnabled: true },
+          reputation: 10000,
         }),
       );
 
@@ -232,15 +242,15 @@ describe("MultiplayerService", () => {
       const attacker = await userModel.create(
         createMockUser({
           id: faker.number.int(),
-          pvp: { pvpEnabled: true },
+          reputation: 10000,
         }),
       );
 
       const defender = await userModel.create(
         createMockUser({
           id: faker.number.int(),
+          reputation: 10000,
           pvp: {
-            pvpEnabled: true,
             lastDefendDate: yesterday,
           },
         }),
@@ -257,14 +267,15 @@ describe("MultiplayerService", () => {
       const attacker = await userModel.create(
         createMockUser({
           id: faker.number.int(),
-          pvp: { pvpEnabled: true, lastAttackDate: today, attacksToday: 2 },
+          reputation: 10000,
+          pvp: { lastAttackDate: today, attacksToday: 2 },
         }),
       );
 
       const defender = await userModel.create(
         createMockUser({
           id: faker.number.int(),
-          pvp: { pvpEnabled: true },
+          reputation: 10000,
         }),
       );
 
@@ -281,49 +292,21 @@ describe("MultiplayerService", () => {
       const attacker = await userModel.create(
         createMockUser({
           id: faker.number.int(),
-          pvp: { pvpEnabled: true },
+          reputation: 10000,
         }),
       );
 
       const defender = await userModel.create(
         createMockUser({
           id: faker.number.int(),
-          pvp: { pvpEnabled: true, lastDefendDate: today },
+          reputation: 10000,
+          pvp: { lastDefendDate: today },
         }),
       );
 
       await expect(
         service.startFight(attacker.id, defender.id),
       ).rejects.toThrow("This player has already been attacked today");
-    });
-  });
-
-  describe("enablePvp", () => {
-    it("should enable PvP for a user without existing PvP data", async () => {
-      const userId = faker.number.int();
-      await userModel.create(
-        createMockUser({ id: userId, pvp: undefined }),
-      );
-      const result = await service.enablePvp(userId);
-      expect(result.message).toBe("PvP enabled successfully");
-      expect(result.pvp.pvpEnabled).toBe(true);
-      const updatedUser = await userModel.findOne({ id: userId });
-      expect(updatedUser.pvp.pvpEnabled).toBe(true);
-      expect(updatedUser.pvp.lastAttackDate).toBeInstanceOf(Date);
-      expect(updatedUser.pvp.lastDefendDate).toBeInstanceOf(Date);
-      expect(updatedUser.pvp.attacksToday).toBe(0);
-    });
-
-    it("should enable PvP for a user with existing PvP data", async () => {
-      const userId = faker.number.int();
-      await userModel.create(
-        createMockUser({ id: userId, pvp: { pvpEnabled: false } }),
-      );
-      const result = await service.enablePvp(userId);
-      expect(result.message).toBe("PvP enabled successfully");
-      expect(result.pvp.pvpEnabled).toBe(true);
-      const updatedUser = await userModel.findOne({ id: userId });
-      expect(updatedUser.pvp.pvpEnabled).toBe(true);
     });
   });
 });

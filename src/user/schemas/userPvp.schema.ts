@@ -3,9 +3,6 @@ import { PVP_BASE_ATTACKS_PER_DAY } from '../user.const';
 
 @Schema({ _id: false })
 export class UserPvp {
-  @Prop({ required: true, default: false })
-  pvpEnabled: boolean;
-
   @Prop({ required: true, default: 0 })
   victory: number;
 

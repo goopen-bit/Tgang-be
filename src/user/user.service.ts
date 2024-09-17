@@ -269,7 +269,6 @@ export class UserService {
         products: products,
         userLevel: reputationLevels[Math.floor(Math.random() * 5)],
         pvp: {
-          pvpEnabled: true,
           victory: 0,
           defeat: 0,
           lastAttackDate: new Date(0),
@@ -294,7 +293,7 @@ export class UserService {
       {
         $match: {
           id: { $ne: excludeUserId },
-          "pvp.pvpEnabled": true,
+          reputation: { $gt: 1000 },
           $or: [
             { "pvp.lastDefendDate": { $lt: today } },
             { "pvp.lastDefendDate": { $exists: false } },

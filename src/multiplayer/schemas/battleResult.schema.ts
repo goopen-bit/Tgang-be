@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import { Loot } from "../multiplayer.interface";
 import { EProduct } from "../../market/market.const";
-import { DbCollections } from "src/config/types";
+import { DbCollections } from "../../config/types";
 
 @Schema({ _id: false })
 export class BattleLoot implements Loot {
@@ -15,6 +15,7 @@ export class BattleLoot implements Loot {
 
 @Schema({
   collection: DbCollections.BATTLE_RESULTS,
+  timestamps: { createdAt: true, updatedAt: false },
 })
 export class BattleResult extends Document {
   @Prop({ required: true })

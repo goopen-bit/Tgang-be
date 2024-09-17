@@ -8,7 +8,7 @@ import { BattleResult } from "./schemas/battleResult.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { MAX_CASH_LOOT, MAX_PRODUCT_LOOT } from "./multiplayer.const";
-import { SocialChannel } from "src/social/social.const";
+import { SocialChannel } from "../social/social.const";
 
 @Injectable()
 export class MultiplayerService {

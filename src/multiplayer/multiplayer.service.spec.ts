@@ -10,6 +10,7 @@ import { UserModule } from "../user/user.module";
 import { faker } from "@faker-js/faker";
 import { appConfigImports } from '../config/app';
 import { BattleResult, BattleResultSchema } from "./schemas/battleResult.schema";
+import { SocialChannel } from "../social/social.const";
 
 describe("MultiplayerService", () => {
   let service: MultiplayerService;
@@ -121,7 +122,7 @@ describe("MultiplayerService", () => {
       expect(
         result.every(
           (player) =>
-            !player.pvp.lastDefendDate || player.pvp.lastDefendDate < today,
+            !player.pvp?.lastDefendDate || player.pvp.lastDefendDate < today,
         ),
       ).toBe(true);
     });
@@ -138,6 +139,7 @@ describe("MultiplayerService", () => {
           username: "attacker",
           cashAmount: 10000,
           reputation: 10000,
+          socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
           pvp: {
             lastAttackDate: yesterday,
             attacksToday: 0,
@@ -216,6 +218,7 @@ describe("MultiplayerService", () => {
         createMockUser({
           id: faker.number.int(),
           reputation: 10000,
+          socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
           pvp: {
             lastAttackDate: yesterday,
             attacksToday: 0,
@@ -242,6 +245,7 @@ describe("MultiplayerService", () => {
       const attacker = await userModel.create(
         createMockUser({
           id: faker.number.int(),
+          socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
           reputation: 10000,
         }),
       );
@@ -268,6 +272,7 @@ describe("MultiplayerService", () => {
         createMockUser({
           id: faker.number.int(),
           reputation: 10000,
+          socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
           pvp: { lastAttackDate: today, attacksToday: 2 },
         }),
       );
@@ -293,6 +298,7 @@ describe("MultiplayerService", () => {
         createMockUser({
           id: faker.number.int(),
           reputation: 10000,
+          socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
         }),
       );
 

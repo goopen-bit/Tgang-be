@@ -129,7 +129,7 @@ export class MultiplayerService {
     if (!attacker.pvp) {
       this.setupPvp(attacker);
     }
-    if (defender instanceof User && !defender.pvp) {
+    if (!defender.pvp) {
       this.setupPvp(defender);
     }
 
@@ -202,7 +202,7 @@ export class MultiplayerService {
     };
   }
 
-  setupPvp(user: User) {
+  setupPvp(user: User | BotUser) {
     if (!user.pvp) {
       user.pvp = {
         victory: 0,

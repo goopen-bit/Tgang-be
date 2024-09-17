@@ -209,7 +209,7 @@ describe("UserService", () => {
       expect(
         result.every(
           (player) =>
-            !player.pvp.lastDefendDate ||
+            !player.pvp?.lastDefendDate ||
             player.pvp.lastDefendDate < new Date().setHours(0, 0, 0, 0),
         ),
       ).toBe(true);

@@ -2,11 +2,6 @@ import { Prop, Schema } from "@nestjs/mongoose";
 import { addSeconds } from "date-fns";
 import { shippingMethods } from "../../shipping/data/shipping";
 import { EShippingMethod } from "../../shipping/shipping.const";
-import {
-  SHIPPING_CAPACITY_PRICE_MULTIPLIER,
-  SHIPPING_TIME_MULTIPLIER,
-  SHIPPING_TIME_PRICE_MULTIPLIER,
-} from "../user.const";
 import { ShippingMethod } from "../../shipping/shipping.interface";
 import { Requirement } from "../../upgrade/upgrade.interface";
 import { setUserRequirements } from "../../upgrade/upgrade.util";
@@ -68,7 +63,7 @@ export class UserShipping {
       return Math.floor(
         ship.baseShippingTime *
           Math.pow(
-            SHIPPING_TIME_MULTIPLIER,
+            ship.shippingTimeMultiplier,
             -Math.log(this.shippingTimeLevel - 1),
           ),
       );
@@ -81,7 +76,7 @@ export class UserShipping {
     get: function () {
       const ship = shippingMethods[this.method] as ShippingMethod;
       return Math.floor(
-        Math.pow(this.capacityLevel + 1, SHIPPING_CAPACITY_PRICE_MULTIPLIER) *
+        Math.pow(this.capacityLevel + 1, ship.capacityPriceMultiplier) *
           ship.baseCapacityUpgradePrice,
       );
     },
@@ -110,7 +105,7 @@ export class UserShipping {
       return Math.floor(
         ship.baseShippingTime *
           Math.pow(
-            SHIPPING_TIME_MULTIPLIER,
+            ship.shippingTimeMultiplier,
             -Math.log(this.shippingTimeLevel + 1),
           ),
       );
@@ -123,7 +118,7 @@ export class UserShipping {
     get: function () {
       const ship = shippingMethods[this.method] as ShippingMethod;
       return Math.floor(
-        Math.pow(this.shippingTimeLevel + 1, SHIPPING_TIME_PRICE_MULTIPLIER) *
+        Math.pow(this.shippingTimeLevel + 1, ship.shippingTimePriceMultiplier) *
           ship.baseShippingTimeUpgradePrice,
       );
     },

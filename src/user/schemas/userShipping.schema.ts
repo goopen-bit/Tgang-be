@@ -62,9 +62,15 @@ export class UserShipping {
     virtual: true,
     get: function () {
       const ship = shippingMethods[this.method] as ShippingMethod;
+      if (this.shippingTimeLevel === 1) {
+        return ship.baseShippingTime;
+      }
       return Math.floor(
         ship.baseShippingTime *
-          Math.pow(SHIPPING_TIME_MULTIPLIER, -(this.shippingTimeLevel - 1))
+          Math.pow(
+            SHIPPING_TIME_MULTIPLIER,
+            -Math.log(this.shippingTimeLevel - 1),
+          ),
       );
     },
   })
@@ -76,7 +82,7 @@ export class UserShipping {
       const ship = shippingMethods[this.method] as ShippingMethod;
       return Math.floor(
         Math.pow(this.capacityLevel + 1, SHIPPING_CAPACITY_PRICE_MULTIPLIER) *
-          ship.baseCapacityUpgradePrice
+          ship.baseCapacityUpgradePrice,
       );
     },
   })
@@ -95,25 +101,34 @@ export class UserShipping {
     virtual: true,
     get: function () {
       const ship = shippingMethods[this.method] as ShippingMethod;
+      // Algorithm explanation:
+      // 1. Start with the base shipping time
+      // 2. Multiply it by SHIPPING_TIME_MULTIPLIER raised to the power of negative log(level + 1)
+      // 3. This calculates the shipping time for the next upgrade level
+      // 4. The formula is similar to shippingTime, but uses (level + 1) to preview the next level
+      // 5. Floor the result to get an integer value
       return Math.floor(
-        Math.pow(this.shippingTimeLevel + 1, SHIPPING_TIME_PRICE_MULTIPLIER) *
-          ship.baseShippingTimeUpgradePrice
+        ship.baseShippingTime *
+          Math.pow(
+            SHIPPING_TIME_MULTIPLIER,
+            -Math.log(this.shippingTimeLevel + 1),
+          ),
       );
     },
   })
-  upgradeShippingTimePrice?: number;
+  upgradeShippingTime?: number;
 
   @Prop({
     virtual: true,
     get: function () {
       const ship = shippingMethods[this.method] as ShippingMethod;
       return Math.floor(
-        ship.baseShippingTime *
-          Math.pow(SHIPPING_TIME_MULTIPLIER, -(this.shippingTimeLevel))
+        Math.pow(this.shippingTimeLevel + 1, SHIPPING_TIME_PRICE_MULTIPLIER) *
+          ship.baseShippingTimeUpgradePrice,
       );
     },
   })
-  upgradeShippingTime?: number;
+  upgradeShippingTimePrice?: number;
 
   @Prop()
   lastShipment?: Date;

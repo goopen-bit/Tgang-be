@@ -47,10 +47,10 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
   [EShippingMethod.TRUCK]: {
     title: EShippingMethod.TRUCK,
     description: "A slow truck that can carry a lot of goods.",
-    basePrice: 100000,
+    basePrice: 50000,
     baseCapacityUpgradePrice: 100000,
     capacityPriceMultiplier: 2,
-    baseCapacity: 5000,
+    baseCapacity: 10000,
     baseShippingTimeUpgradePrice: 100000,
     shippingTimePriceMultiplier: 1.8,
     baseShippingTime: 60 * 60 * 12,
@@ -61,20 +61,22 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
   [EShippingMethod.CONTAINER]: {
     title: EShippingMethod.CONTAINER,
     description: "Your own container on a ship. Slow but very efficient.",
-    basePrice: 250000,
+    basePrice: 200000,
     baseCapacityUpgradePrice: 250000,
     capacityPriceMultiplier: 2,
     baseCapacity: 7500,
     baseShippingTimeUpgradePrice: 250000,
     shippingTimePriceMultiplier: 1.8,
-    baseShippingTime: 60 * 60 * 24,
+    baseShippingTime: 60 * 60 * 18,
     shippingTimeMultiplier: 1.1,
     image: "/assets/shipping/container.webp",
-    requirements: [{
-      level: 2,
-      requirement: "referredUsers",
-      type: "fixed",
-    }],
+    requirements: [
+      {
+        level: 2,
+        requirement: "referredUsers",
+        type: "fixed",
+      },
+    ],
   },
   [EShippingMethod.PLANE]: {
     title: EShippingMethod.PLANE,
@@ -82,17 +84,19 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     basePrice: 500000,
     baseCapacityUpgradePrice: 500000,
     capacityPriceMultiplier: 2,
-    baseCapacity: 2000,
+    baseCapacity: 3000,
     baseShippingTimeUpgradePrice: 500000,
     shippingTimePriceMultiplier: 1.8,
     baseShippingTime: 60 * 60 * 8,
     shippingTimeMultiplier: 1.1,
     image: "/assets/shipping/plane.webp",
-    requirements: [{
-      level: 2,
-      requirement: "referredUsers",
-      type: "linear",
-    }],
+    requirements: [
+      {
+        level: 3,
+        requirement: "referredUsers",
+        type: "linear",
+      },
+    ],
   },
   [EShippingMethod.ROCKET]: {
     title: EShippingMethod.ROCKET,
@@ -100,16 +104,18 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     basePrice: 1000000,
     baseCapacityUpgradePrice: 1000000,
     capacityPriceMultiplier: 2,
-    baseCapacity: 1600,
+    baseCapacity: 5000,
     baseShippingTimeUpgradePrice: 1000000,
     shippingTimePriceMultiplier: 1.8,
     baseShippingTime: 60 * 60 * 2,
     shippingTimeMultiplier: 1.1,
     image: "/assets/shipping/rocket.webp",
-    requirements: [{
-      level: 5,
-      requirement: "referredUsers",
-      type: "linear",
-    }],
+    requirements: [
+      {
+        level: 5,
+        requirement: "referredUsers",
+        type: "linear",
+      },
+    ],
   },
 };

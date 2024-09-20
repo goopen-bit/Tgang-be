@@ -22,7 +22,7 @@ import { CacheModule } from '@nestjs/cache-manager';
       readPreference: 'secondaryPreferred',
     }),
     RedisModule.register({
-      url: redisUrl,
+      url: `${redisUrl}?family=0`,
       isGlobal: true,
     }),
     AnalyticsModule.register({

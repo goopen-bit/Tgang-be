@@ -64,7 +64,7 @@ export class UserShipping {
         ship.baseShippingTime *
           Math.pow(
             ship.shippingTimeMultiplier,
-            -Math.log(this.shippingTimeLevel - 1),
+            -Math.log(this.shippingTimeLevel)
           ),
       );
     },

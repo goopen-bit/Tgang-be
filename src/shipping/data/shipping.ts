@@ -50,7 +50,7 @@ export const shippingMethods: Record<EShippingMethod, ShippingMethod> = {
     basePrice: 50000,
     baseCapacityUpgradePrice: 100000,
     capacityPriceMultiplier: 2,
-    baseCapacity: 10000,
+    baseCapacity: 5000,
     baseShippingTimeUpgradePrice: 100000,
     shippingTimePriceMultiplier: 1.8,
     baseShippingTime: 60 * 60 * 12,

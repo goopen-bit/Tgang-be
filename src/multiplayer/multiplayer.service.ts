@@ -16,7 +16,7 @@ export class MultiplayerService {
     @InjectModel(BattleResult.name)
     private battleResultModel: Model<BattleResult>,
 
-    private readonly userService: UserService
+    private readonly userService: UserService,
   ) {}
 
   async searchPlayer(userId: number) {
@@ -41,7 +41,9 @@ export class MultiplayerService {
 
   private attackerProductGain(attacker: User, gain: Loot[]) {
     for (const product of gain) {
-      const userProduct = attacker.products.find((p) => p.name === product.name);
+      const userProduct = attacker.products.find(
+        (p) => p.name === product.name,
+      );
       if (userProduct) {
         userProduct.quantity += product.quantity;
       } else {
@@ -78,11 +80,21 @@ export class MultiplayerService {
         defenderHp,
         attackerDamage: 0,
         defenderDamage: 0,
+        attackerCritical: false,
+        defenderCritical: false,
       };
 
-      if (Math.random() * 100 < attacker.pvp.accuracy - defender.pvp.evasion) {
-        defenderHp -= attackerDamage;
-        roundResult.attackerDamage = attackerDamage;
+      if (
+        Math.random() * 100 <
+        attacker.pvp.accuracy - defender.pvp.evasion / 2
+      ) {
+        let damage = attackerDamage;
+        if (Math.random() * 100 < attacker.pvp.criticalChance) {
+          damage *= 2;
+          roundResult.attackerCritical = true;
+        }
+        defenderHp -= damage;
+        roundResult.attackerDamage = damage;
       }
 
       if (defenderHp <= 0) {
@@ -91,9 +103,17 @@ export class MultiplayerService {
         break;
       }
 
-      if (Math.random() * 100 < defender.pvp.accuracy - attacker.pvp.evasion) {
-        attackerHp -= defenderDamage;
-        roundResult.defenderDamage = defenderDamage;
+      if (
+        Math.random() * 100 <
+        defender.pvp.accuracy - attacker.pvp.evasion / 2
+      ) {
+        let damage = defenderDamage;
+        if (Math.random() * 100 < defender.pvp.criticalChance) {
+          damage *= 2;
+          roundResult.defenderCritical = true;
+        }
+        attackerHp -= damage;
+        roundResult.defenderDamage = damage;
       }
 
       if (attackerHp <= 0) {
@@ -119,7 +139,11 @@ export class MultiplayerService {
       this.userService.findDefender(opponentId, userId),
     ]);
 
-    if (!attacker.socials.find((s) => s.channel === SocialChannel.TELEGRAM_CHANNEL)) {
+    if (
+      !attacker.socials.find(
+        (s) => s.channel === SocialChannel.TELEGRAM_CHANNEL,
+      )
+    ) {
       throw new HttpException(
         "You must join our Telegram channel to participate in PvP",
         HttpStatus.BAD_REQUEST,
@@ -148,10 +172,16 @@ export class MultiplayerService {
     }
 
     if (defender.pvp.lastDefendDate >= today) {
-      throw new HttpException("This player has already been attacked today", HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        "This player has already been attacked today",
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    const { winner, rounds, roundResults } = await this.determineWinner(attacker, defender);
+    const { winner, rounds, roundResults } = await this.determineWinner(
+      attacker,
+      defender,
+    );
 
     attacker.pvp.attacksToday++;
     attacker.pvp.lastAttackDate = now;
@@ -168,13 +198,16 @@ export class MultiplayerService {
 
       // The remaining amount steal in cash, up to 5 % of the defender's cash
       const percentage = (5 - productLoot.length) / 100;
-      const maxCashLoot = Math.min(defender.cashAmount * percentage, MAX_CASH_LOOT);
+      const maxCashLoot = Math.min(
+        defender.cashAmount * percentage,
+        MAX_CASH_LOOT,
+      );
       loot = Math.floor(maxCashLoot * attacker.pvp.lootPower);
 
       attacker.cashAmount += loot;
       defender.cashAmount -= loot;
 
-      attacker.reputation += 1000;
+      attacker.reputation += 5000;
     } else {
       defender.pvp.victory++;
       attacker.pvp.defeat++;

@@ -29,6 +29,7 @@ import Redis from "ioredis";
 import { faker } from "@faker-js/faker";
 import { BotUser } from "./user.interface";
 import { reputationLevels } from "./data/reputationLevel";
+import { UserPvp } from './schemas/userPvp.schema';
 
 @Injectable()
 export class UserService {
@@ -122,6 +123,13 @@ export class UserService {
         },
       ],
       referredBy: referrer?.username,
+      pvp: {
+        victory: 0,
+        defeat: 0,
+        lastAttackDate: new Date(0),
+        attacksToday: 0,
+        lastDefendDate: new Date(0),
+      } as UserPvp,
     });
 
     // Set additional user properties

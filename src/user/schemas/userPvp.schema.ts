@@ -1,5 +1,5 @@
-import { Prop, Schema } from '@nestjs/mongoose';
-import { PVP_BASE_ATTACKS_PER_DAY } from '../user.const';
+import { Prop, Schema } from "@nestjs/mongoose";
+import { PVP_BASE_ATTACKS_PER_DAY } from "../user.const";
 
 @Schema({ _id: false })
 export class UserPvp {
@@ -55,9 +55,10 @@ export class UserPvp {
   })
   protection?: number;
 
-  @Prop({virtual: true,
+  @Prop({
+    virtual: true,
     get: function () {
-      return 10;
+      return 15;
     },
   })
   damage?: number;
@@ -85,4 +86,12 @@ export class UserPvp {
     },
   })
   lootPower?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      return 2;
+    },
+  })
+  criticalChance?: number;
 }

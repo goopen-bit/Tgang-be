@@ -10,8 +10,8 @@ import { MAX_CASH_LOOT, MAX_PRODUCT_LOOT } from "./multiplayer.const";
 import { SocialChannel } from "../social/social.const";
 import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
 import Redis from "ioredis";
-import { v4 } from 'uuid';
 import { BattleDto, LootDto, RoundResultDto } from "./dto/battle.dto";
+import { randomUUID } from "crypto";
 
 @Injectable()
 export class MultiplayerService {
@@ -101,6 +101,7 @@ export class MultiplayerService {
       attacker.save(),
       (defender as any).isBot ? Promise.resolve() : (defender as any).save(),
       this.battleResultModel.create({
+        battleId: batle.battleId,
         attackerId: attacker.id,
         defenderId: defender.id,
         winner: batle.winner,
@@ -215,6 +216,17 @@ export class MultiplayerService {
   }
 
   async startBattle(userId: number, opponentId: number) {
+    const [activeAttacker, activeDefender] = await Promise.all([
+      this.redis.get(this.getUserLockKey(userId)),
+      this.redis.get(this.getUserLockKey(opponentId)),
+    ]);
+    if (activeAttacker) {
+      throw new HttpException("You are already in a battle", HttpStatus.BAD_REQUEST);
+    }
+    if (activeDefender) {
+      throw new HttpException("This player is already in a battle", HttpStatus.BAD_REQUEST);
+    }
+
     const [attacker, defender] = await Promise.all([
       this.userService.findOne(userId),
       this.userService.findDefender(opponentId, userId),
@@ -257,11 +269,8 @@ export class MultiplayerService {
     // We set the attacker as defeated, if he wins, we will update the stats
     attacker.pvp.defeat++;
 
-    defender.pvp.lastDefendDate = now; // TODO: should be after the battle
-    // set as defeat
-
     // Lock attacker and defender and generate battle id
-    const battleId = v4();
+    const battleId = randomUUID();
     const battle: BattleDto = {
       battleId,
       attacker: {
@@ -278,7 +287,6 @@ export class MultiplayerService {
     
     await Promise.all([
       attacker.save(),
-      (defender as any).isBot ? Promise.resolve() : (defender as any).save(),
       this.redis.set(this.getBattleKey(battleId), JSON.stringify(battle), 'EX', 1800),
       this.redis.set(this.getUserLockKey(attacker.id), battleId, 'EX', 1800),
       this.redis.set(this.getUserLockKey(attacker.id), battleId, 'EX', 1800),

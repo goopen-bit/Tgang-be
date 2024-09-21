@@ -10,12 +10,15 @@ import { upgradesData } from "../upgrade/data/upgrades";
 import { STARTING_CASH } from "./user.const";
 import { subDays, subHours } from "date-fns";
 import { appConfigImports } from '../config/app';
+import { UniqueEnforcer } from 'enforce-unique';
+
+const uniqueEnforcerUserId = new UniqueEnforcer();
 
 export const createMockUser = (overrides = {}): Partial<User> => {
   const HERB = upgradesData.product[EProduct.HERB];
 
   return {
-    id: faker.number.int(),
+    id: uniqueEnforcerUserId.enforce(faker.number.int()),
     username: "testuser",
     isPremium: false,
     cashAmount: STARTING_CASH,

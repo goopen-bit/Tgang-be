@@ -11,6 +11,27 @@ import { faker } from "@faker-js/faker";
 import { appConfigImports } from '../config/app';
 import { BattleResult, BattleResultSchema } from "./schemas/battleResult.schema";
 import { SocialChannel } from "../social/social.const";
+import { BattleDto } from "./dto/battle.dto";
+
+
+function createMockBattle(battle: Partial<BattleDto>): BattleDto {
+  return {
+    battleId: faker.string.uuid(),
+    attacker: {
+      id: faker.number.int(),
+      ...battle.attacker,
+    },
+    defender: {
+      id: faker.number.int(),
+      ...battle.defender,
+    },
+    round: 0,
+    roundResults: [],
+    winner: undefined,
+    ...battle,
+  };
+}
+
 
 describe("MultiplayerService", () => {
   let service: MultiplayerService;
@@ -125,6 +146,219 @@ describe("MultiplayerService", () => {
             !player.pvp?.lastDefendDate || player.pvp.lastDefendDate < today,
         ),
       ).toBe(true);
+    });
+
+    describe("updatePvpStats", () => {
+      let attacker: Partial<User>;
+      let defender: Partial<User>;
+      beforeEach(async () => {
+        attacker = createMockUser({
+          username: "attacker",
+          cashAmount: 1000,
+          reputation: 10000,
+          socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
+          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0, lootPower: 1 },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
+        });
+        defender = createMockUser({
+          username: "defender",
+          cashAmount: 2000,
+          reputation: 10000,
+          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
+        });
+
+        await userModel.create({
+          ...attacker,
+        });
+        await userModel.create({
+          ...defender,
+        });
+      });
+
+      it("should update PvP stats for the attacker", async () => {
+        const battle = createMockBattle({
+          attacker: { id: attacker.id, ...attacker.pvp },
+          defender: { id: defender.id, ...defender.pvp },
+          winner: "attacker",
+        });
+
+        const res = await service['updatePvpStats'](battle);
+        expect(res).toBeDefined();
+        expect(res.cashLoot).toBeGreaterThan(0);
+        expect(res.productLoot).toHaveLength(1);
+      });
+
+      it("should update PvP stats for the defender", async () => {
+        const battle = createMockBattle({
+          attacker: { id: attacker.id, ...attacker.pvp },
+          defender: { id: defender.id, ...defender.pvp },
+          winner: "defender",
+        });
+
+        const res = await service['updatePvpStats'](battle);
+        expect(res).toBeDefined();
+        expect(res.cashLoot).toBe(0);
+        expect(res.productLoot).toHaveLength(0);
+      });
+    });
+
+    describe("performAttack", () => {
+      let attacker: Partial<User>;
+      let defender: Partial<User>;
+      beforeEach(async () => {
+        attacker = createMockUser({
+          username: "attacker",
+          cashAmount: 1000,
+          reputation: 10000,
+          socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
+          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0, lootPower: 1 },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
+        });
+        defender = createMockUser({
+          username: "defender",
+          cashAmount: 2000,
+          reputation: 10000,
+          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
+        });
+
+        await userModel.create({
+          ...attacker,
+        });
+        await userModel.create({
+          ...defender,
+        });
+      });
+
+      it("should perform an attack and update battle stats", async () => {
+        const battle = await service.startBattle(attacker.id, defender.id);
+
+        const result = await service.performAttack(attacker.id, battle.battleId);
+        expect(result).toBeDefined();
+        expect(result.round).toBe(1);
+        expect(result.roundResults).toHaveLength(1);
+      });
+
+      it("should not perform an attack if the battle does not exist", async () => {
+        await expect(service.performAttack(attacker.id, faker.string.uuid())).rejects.toThrow(
+          "Battle not found",
+        );
+      });
+
+      it("should not perform an attack if the attacker is not in the battle", async () => {
+        const battle = await service.startBattle(attacker.id, defender.id);
+        await expect(service.performAttack(faker.number.int(), battle.battleId)).rejects.toThrow(
+          "You are not the attacker",
+        );
+      });
+
+      it("should perform attacks until there is a winner", async () => {
+        let battle = await service.startBattle(attacker.id, defender.id);
+        const statSpy = jest.spyOn(service as any, "updatePvpStats");
+        
+        do {
+          battle = await service.performAttack(attacker.id, battle.battleId);
+        } while (!battle.winner)
+
+        expect(statSpy).toHaveBeenCalledTimes(1);
+        expect(battle.winner).toBeDefined();
+      });
+    });
+
+    describe("startBattle", () => {
+      let attacker: Partial<User>;
+      let defender: Partial<User>;
+      beforeEach(async () => {
+        attacker = createMockUser({
+          username: "attacker",
+          cashAmount: 1000,
+          reputation: 10000,
+          socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
+          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0, lootPower: 1 },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
+        });
+        defender = createMockUser({
+          username: "defender",
+          cashAmount: 2000,
+          reputation: 10000,
+          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
+        });
+
+        await userModel.create({
+          ...attacker,
+        });
+        await userModel.create({
+          ...defender,
+        });
+      });
+
+      it("should start a new battle", async () => {
+        const result = await service.startBattle(attacker.id, defender.id);
+        expect(result).toBeDefined();
+        expect(result.attacker.id).toBe(attacker.id);
+        expect(result.defender.id).toBe(defender.id);
+        expect(result.round).toBe(0);
+        expect(result.roundResults).toHaveLength(0);
+      });
+
+      it("should not start a new battle if the attacker is already in battle", async () => {
+        const newDefender = createMockUser({
+          username: "defender",
+          cashAmount: 2000,
+          reputation: 10000,
+          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
+        });
+
+        await userModel.create({
+          ...newDefender,
+        });
+
+        await service.startBattle(attacker.id, newDefender.id);
+        await expect(service.startBattle(attacker.id, newDefender.id)).rejects.toThrow(
+          "You are already in a battle",
+        );
+      });
+
+      it("should not start a new battle if the defender is already in battle", async () => {
+        const newAttacker = createMockUser({
+          username: "attacker",
+          cashAmount: 2000,
+          reputation: 10000,
+          socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
+          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
+        });
+
+        await userModel.create({
+          ...newAttacker,
+        });
+
+        await service.startBattle(newAttacker.id, defender.id);
+        await expect(service.startBattle(newAttacker.id, defender.id)).rejects.toThrow(
+          "You are already in a battle",
+        );
+      });
+
+      it("should not start a new if attacker did not join telegram channel", async () => {
+        const newAttacker = createMockUser({
+          username: "attacker",
+          cashAmount: 2000,
+          reputation: 10000,
+          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
+          products: [{ name: "Herb", quantity: 100, level: 1 }],
+        });
+
+        await userModel.create({
+          ...newAttacker,
+        });
+
+        await expect(service.startBattle(newAttacker.id, defender.id)).rejects.toThrow(
+          "You must join our Telegram channel to participate in PvP",
+        );
+      });
     });
   });
 });

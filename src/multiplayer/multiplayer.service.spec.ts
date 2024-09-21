@@ -178,8 +178,8 @@ describe("MultiplayerService", () => {
 
       it("should update PvP stats for the attacker", async () => {
         const battle = createMockBattle({
-          attacker: { id: attacker.id, ...attacker.pvp },
-          defender: { id: defender.id, ...defender.pvp },
+          attacker: { id: attacker.id, username: attacker.username, ...attacker.pvp },
+          defender: { id: defender.id, username: defender.username, ...defender.pvp },
           winner: "attacker",
         });
 
@@ -191,8 +191,8 @@ describe("MultiplayerService", () => {
 
       it("should update PvP stats for the defender", async () => {
         const battle = createMockBattle({
-          attacker: { id: attacker.id, ...attacker.pvp },
-          defender: { id: defender.id, ...defender.pvp },
+          attacker: { id: attacker.id, username: attacker.username, ...attacker.pvp },
+          defender: { id: defender.id, username: defender.username, ...defender.pvp },
           winner: "defender",
         });
 

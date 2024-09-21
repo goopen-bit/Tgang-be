@@ -45,7 +45,7 @@ export class UserPvp {
       return 100;
     },
   })
-  hp?: number;
+  healthPoints?: number;
 
   @Prop({
     virtual: true,

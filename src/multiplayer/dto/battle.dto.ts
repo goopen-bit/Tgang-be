@@ -5,6 +5,9 @@ import { UserPvp } from "../../user/schemas/userPvp.schema";
 export class BattleParticipantDto extends UserPvp {
   @IsNumber()
   id: number;
+
+  @IsString()
+  username: string;
 }
 
 export class RoundResultDto {

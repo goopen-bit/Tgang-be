@@ -284,7 +284,7 @@ export class UserService {
           lastAttackDate: new Date(0),
           attacksToday: 0,
           lastDefendDate: new Date(0),
-          baseHp: 100,
+          healthPoints: 100,
           protection: 0,
           damage: 10,
           accuracy: 50,

@@ -200,13 +200,13 @@ export class MultiplayerService {
     };
 
     battle.round++;
-    battle.attacker.hp -= defenderAttack.damage;
-    battle.defender.hp -= attackerAttack.damage;
+    battle.attacker.healthPoints -= defenderAttack.damage;
+    battle.defender.healthPoints -= attackerAttack.damage;
     battle.roundResults.push(roundResult);
 
-    if (battle.defender.hp <= 0) {
+    if (battle.defender.healthPoints <= 0) {
       battle.winner = "attacker";
-    } else if (battle.attacker.hp <= 0) {
+    } else if (battle.attacker.healthPoints <= 0) {
       battle.winner = "defender";
     }
 
@@ -284,10 +284,12 @@ export class MultiplayerService {
       battleId,
       attacker: {
         id: attacker.id,
+        username: attacker.username,
         ...attacker.pvp
       },
       defender: {
         id: defender.id,
+        username: attacker.username,
         ...defender.pvp
       },
       round: 0,

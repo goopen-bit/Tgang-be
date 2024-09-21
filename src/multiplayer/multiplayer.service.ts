@@ -24,9 +24,15 @@ export class MultiplayerService {
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
+  private async getDefendingPlayers() {
+    const keys = await this.redis.keys("defending:*");
+    return keys.map((key) => Number(key.split(":")[1]));
+  }
+
   async searchPlayer(userId: number) {
     const today = startOfDay(new Date());
-    return this.userService.findPvpPlayers(today, userId);
+    const exIds = await this.getDefendingPlayers();
+    return this.userService.findPvpPlayers(today, userId, exIds);
   }
 
   private defenderProductLoss(defender: User | BotUser) {
@@ -120,8 +126,12 @@ export class MultiplayerService {
     return `battle:${battleId}`;
   }
 
-  private getUserLockKey(userId: number) {
-    return `battling:${userId}`;
+  private getAttackerLockKey(userId: number) {
+    return `attacking:${userId}`;
+  }
+
+  private getDefenderLockKey(userId: number) {
+    return `defending:${userId}`;
   }
 
   private getAttackDamage(
@@ -203,8 +213,8 @@ export class MultiplayerService {
     if (battle.winner) {
       await Promise.all([
         this.redis.del(this.getBattleLockKey(battleId)),
-        this.redis.del(this.getUserLockKey(battle.attacker.id)),
-        this.redis.del(this.getUserLockKey(battle.defender.id)),
+        this.redis.del(this.getAttackerLockKey(battle.attacker.id)),
+        this.redis.del(this.getDefenderLockKey(battle.defender.id)),
       ]);
       return this.updatePvpStats(battle);
     } else {
@@ -216,8 +226,8 @@ export class MultiplayerService {
 
   async startBattle(userId: number, opponentId: number) {
     const [activeAttacker, activeDefender] = await Promise.all([
-      this.redis.get(this.getUserLockKey(userId)),
-      this.redis.get(this.getUserLockKey(opponentId)),
+      this.redis.get(this.getAttackerLockKey(userId)),
+      this.redis.get(this.getDefenderLockKey(opponentId)),
     ]);
     if (activeAttacker) {
       throw new HttpException("You are already in a battle", HttpStatus.BAD_REQUEST);
@@ -287,8 +297,8 @@ export class MultiplayerService {
     await Promise.all([
       attacker.save(),
       this.redis.set(this.getBattleLockKey(battleId), JSON.stringify(battle), 'EX', 1800),
-      this.redis.set(this.getUserLockKey(attacker.id), battleId, 'EX', 1800),
-      this.redis.set(this.getUserLockKey(attacker.id), battleId, 'EX', 1800),
+      this.redis.set(this.getAttackerLockKey(attacker.id), battleId, 'EX', 1800),
+      this.redis.set(this.getDefenderLockKey(attacker.id), battleId, 'EX', 1800),
     ]);
 
     return battle;

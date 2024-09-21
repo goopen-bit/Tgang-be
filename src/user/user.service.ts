@@ -271,7 +271,9 @@ export class UserService {
 
       bots.push({
         id: i,
-        username: faker.internet.userName(),
+        username: faker.internet.userName({
+          firstName: faker.person.firstName(),
+        }),
         cashAmount: Math.floor(Math.random() * 100000) + 10000,
         reputation: Math.floor(Math.random() * 100000) + 1000,
         products: products,
@@ -296,11 +298,11 @@ export class UserService {
     return bots as BotUser[];
   }
 
-  async findPvpPlayers(today: Date, excludeUserId: number) {
+  async findPvpPlayers(today: Date, userId: number, exIds: number[]) {
     const players = await this.userModel.aggregate([
       {
         $match: {
-          id: { $ne: excludeUserId },
+          id: { $nin: [userId, ...exIds] },
           reputation: { $gt: 1000 },
           $or: [
             { "pvp.lastDefendDate": { $lt: today } },
@@ -324,7 +326,7 @@ export class UserService {
     ]);
 
     if (players.length < 5) {
-      const bots = await this.createBots(PVP_NUMBER_OF_PLAYERS - players.length, excludeUserId)
+      const bots = await this.createBots(PVP_NUMBER_OF_PLAYERS - players.length, userId);
       players.push(...bots);
     }
 

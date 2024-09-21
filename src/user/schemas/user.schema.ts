@@ -181,7 +181,7 @@ export class User extends Document {
   @Prop()
   wallet?: string;
 
-  @Prop({ type: UserPvp })
+  @Prop({ type: UserPvp, default: () => new UserPvp() })
   pvp?: UserPvp;
 }
 

@@ -45,7 +45,7 @@ export class UserPvp {
       return 100;
     },
   })
-  baseHp?: number;
+  hp?: number;
 
   @Prop({
     virtual: true,
@@ -66,7 +66,7 @@ export class UserPvp {
   @Prop({
     virtual: true,
     get: function () {
-      return 50;
+      return 80;
     },
   })
   accuracy?: number;

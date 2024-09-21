@@ -14,11 +14,19 @@ export class MultiplayerController {
     return this.multiplayerService.searchPlayer(user.id);
   }
 
-  @Post("fight/:opponentId")
+  @Post("start/:opponentId")
   async startFight(
     @GetAuthToken() user: AuthTokenData,
     @Param("opponentId", new ParseIntPipe()) opponentId: number,
   ) {
-    return this.multiplayerService.startFight(user.id, opponentId);
+    return this.multiplayerService.startBattle(user.id, opponentId);
+  }
+
+  @Post("attack/:battleId")
+  async attack(
+    @GetAuthToken() user: AuthTokenData,
+    @Param("battleId") battleId: string,
+  ) {
+    return this.multiplayerService.performAttack(user.id, battleId);
   }
 }

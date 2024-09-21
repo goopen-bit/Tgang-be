@@ -3,12 +3,15 @@ import { UserService } from "../user/user.service";
 import { startOfDay } from "date-fns";
 import { User } from "../user/schemas/user.schema";
 import { BotUser } from "../user/user.interface";
-import { Loot } from "./multiplayer.interface";
 import { BattleResult } from "./schemas/battleResult.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { MAX_CASH_LOOT, MAX_PRODUCT_LOOT } from "./multiplayer.const";
 import { SocialChannel } from "../social/social.const";
+import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
+import Redis from "ioredis";
+import { v4 } from 'uuid';
+import { BattleDto, LootDto, RoundResultDto } from "./dto/battle.dto";
 
 @Injectable()
 export class MultiplayerService {
@@ -17,6 +20,8 @@ export class MultiplayerService {
     private battleResultModel: Model<BattleResult>,
 
     private readonly userService: UserService,
+
+    @InjectRedis() private readonly redis: Redis,
   ) {}
 
   async searchPlayer(userId: number) {
@@ -24,10 +29,9 @@ export class MultiplayerService {
     return this.userService.findPvpPlayers(today, userId);
   }
 
-  // Loop through the user list of products and steal 1% of the product from the defender
   private defenderProductLoss(defender: User | BotUser) {
     const products = defender.products;
-    const loss: Loot[] = [];
+    const loss: LootDto[] = [];
     for (const product of products) {
       const quantity = Math.floor(product.quantity * 0.01);
       if (quantity === 0) {
@@ -39,7 +43,7 @@ export class MultiplayerService {
     return loss;
   }
 
-  private attackerProductGain(attacker: User, gain: Loot[]) {
+  private attackerProductGain(attacker: User, gain: LootDto[]) {
     for (const product of gain) {
       const userProduct = attacker.products.find(
         (p) => p.name === product.name,
@@ -56,84 +60,161 @@ export class MultiplayerService {
     }
   }
 
-  private async determineWinner(attacker: User, defender: User | BotUser) {
-    const attackerDamage = Math.max(
-      0,
-      attacker.pvp.damage - defender.pvp.protection,
-    );
-    const defenderDamage = Math.max(
-      0,
-      defender.pvp.damage - attacker.pvp.protection,
-    );
+  private async updatePvpStats(batle: BattleDto) {
+    const [attacker, defender] = await Promise.all([
+      this.userService.findOne(batle.attacker.id),
+      this.userService.findDefender(batle.defender.id, batle.attacker.id),
+    ]);
 
-    let attackerHp = attacker.pvp.baseHp;
-    let defenderHp = defender.pvp.baseHp;
+    let cashLoot = 0;
+    let productLoot: LootDto[] = [];
 
-    let rounds = 0;
-    let winner: "attacker" | "defender" | null = null;
+    defender.pvp.lastDefendDate = new Date();
 
-    const roundResults = [];
-    while (attackerHp > 0 && defenderHp > 0 && rounds < 100) {
-      rounds++;
-      const roundResult = {
-        attackerHp,
-        defenderHp,
-        attackerDamage: 0,
-        defenderDamage: 0,
-        attackerCritical: false,
-        defenderCritical: false,
-      };
-
-      if (
-        Math.random() * 100 <
-        attacker.pvp.accuracy - defender.pvp.evasion / 2
-      ) {
-        let damage = attackerDamage;
-        if (Math.random() * 100 < attacker.pvp.criticalChance) {
-          damage *= 2;
-          roundResult.attackerCritical = true;
-        }
-        defenderHp -= damage;
-        roundResult.attackerDamage = damage;
-      }
-
-      if (defenderHp <= 0) {
-        winner = "attacker";
-        roundResults.push(roundResult);
-        break;
-      }
-
-      if (
-        Math.random() * 100 <
-        defender.pvp.accuracy - attacker.pvp.evasion / 2
-      ) {
-        let damage = defenderDamage;
-        if (Math.random() * 100 < defender.pvp.criticalChance) {
-          damage *= 2;
-          roundResult.defenderCritical = true;
-        }
-        attackerHp -= damage;
-        roundResult.defenderDamage = damage;
-      }
-
-      if (attackerHp <= 0) {
-        winner = "defender";
-        roundResults.push(roundResult);
-        break;
-      }
-
-      roundResults.push(roundResult);
+    if (batle.winner === "attacker") {
+      attacker.pvp.victory++;
+      // Update attacker defeat since we decreased it before the battle
+      attacker.pvp.defeat--;
+      defender.pvp.defeat++;
+    
+      // Steal 1% of each product from the defender
+      productLoot = this.defenderProductLoss(defender);
+      this.attackerProductGain(attacker, productLoot);
+  
+      // The remaining amount steal in cash, up to 5 % of the defender's cash
+      const percentage = (5 - productLoot.length) / 100;
+      const maxCashLoot = Math.min(
+        defender.cashAmount * percentage,
+        MAX_CASH_LOOT,
+      );
+      cashLoot = Math.floor(maxCashLoot * attacker.pvp.lootPower);
+  
+      attacker.cashAmount += cashLoot;
+      defender.cashAmount -= cashLoot;
+  
+      attacker.reputation += 5000;
+    } else {
+      defender.pvp.victory++;
     }
+    
+    await Promise.all([
+      attacker.save(),
+      (defender as any).isBot ? Promise.resolve() : (defender as any).save(),
+      this.battleResultModel.create({
+        attackerId: attacker.id,
+        defenderId: defender.id,
+        winner: batle.winner,
+        rounds: batle.round,
+        cashLoot: batle.winner === "attacker" ? cashLoot : 0,
+        productLoot: batle.winner === "attacker" ? productLoot : [],
+      }),
+    ]);
 
-    if (!winner) {
-      winner = attackerHp > defenderHp ? "attacker" : "defender";
-    }
+    batle.productLoot = productLoot;
+    batle.cashLoot = cashLoot;
 
-    return { winner, rounds, roundResults };
+    return batle;
   }
 
-  // Hell of a function need to be refactor to be more readable and maintainable size ^^
-  async startFight(userId: number, opponentId: number) {
+  private getBattleKey(battleId: string) {
+    return `battle:${battleId}`;
+  }
+
+  private getUserLockKey(userId: number) {
+    return `battling:${userId}`;
+  }
+
+  private getAttackDamage(
+    attackerDamage: number,
+    attackerAccuracy: number,
+    attackerCriticalChance: number,
+    defenderProtection: number,
+    defenderEvasion: number,
+  ) {
+    const randomFactor = Math.random() * 0.2 + 0.9; // Random factor between 0.9 and 1.1
+    const randomDamage = Math.round(attackerDamage * randomFactor);
+
+    let damage = Math.max(
+      0,
+      randomDamage - defenderProtection,
+    );
+    let critical = false;
+
+    if (
+      Math.random() * 100 <
+      attackerAccuracy - defenderEvasion
+    ) {
+      if (Math.random() * 100 < attackerCriticalChance) {
+        damage *= 2;
+        critical = true;
+      }
+    } else {
+      damage = 0;
+    }
+
+    return { damage, critical };
+  }
+
+  async performAttack(userId: number, battleId: string) {
+    const battleString = await this.redis.get(this.getBattleKey(battleId));
+    if (!battleString) {
+      throw new HttpException("Battle not found", HttpStatus.NOT_FOUND);
+    }
+    const battle: BattleDto = JSON.parse(battleString);
+    const { attacker, defender } = battle;
+
+    if (attacker.id !== userId) {
+      throw new HttpException("You are not the attacker", HttpStatus.FORBIDDEN);
+    }
+
+    const attackerAttack = this.getAttackDamage(
+      attacker.damage,
+      attacker.accuracy,
+      attacker.criticalChance,
+      defender.protection,
+      defender.evasion,
+    );
+    const defenderAttack = this.getAttackDamage(
+      defender.damage,
+      defender.accuracy,
+      defender.criticalChance,
+      attacker.protection,
+      attacker.evasion,
+    );
+
+    const roundResult: RoundResultDto = {
+      attackerDamage: attackerAttack.damage,
+      defenderDamage: defenderAttack.damage,
+      attackerCritical: attackerAttack.critical,
+      defenderCritical: defenderAttack.critical,
+    };
+
+    battle.round++;
+    battle.attacker.hp -= defenderAttack.damage;
+    battle.defender.hp -= attackerAttack.damage;
+    battle.roundResults.push(roundResult);
+
+    if (battle.defender.hp <= 0) {
+      battle.winner = "attacker";
+    } else if (battle.attacker.hp <= 0) {
+      battle.winner = "defender";
+    }
+
+    if (battle.winner) {
+      await Promise.all([
+        this.redis.del(this.getBattleKey(battleId)),
+        this.redis.del(this.getUserLockKey(battle.attacker.id)),
+        this.redis.del(this.getUserLockKey(battle.defender.id)),
+      ]);
+      return this.updatePvpStats(battle);
+    } else {
+      await this.redis.set(this.getBattleKey(battleId), JSON.stringify(battle), 'EX', 1800);
+    }
+
+    return battle;
+  }
+
+  async startBattle(userId: number, opponentId: number) {
     const [attacker, defender] = await Promise.all([
       this.userService.findOne(userId),
       this.userService.findDefender(opponentId, userId),
@@ -148,13 +229,6 @@ export class MultiplayerService {
         "You must join our Telegram channel to participate in PvP",
         HttpStatus.BAD_REQUEST,
       );
-    }
-
-    if (!attacker.pvp) {
-      this.setupPvp(attacker);
-    }
-    if (!defender.pvp) {
-      this.setupPvp(defender);
     }
 
     const now = new Date();
@@ -178,74 +252,38 @@ export class MultiplayerService {
       );
     }
 
-    const { winner, rounds, roundResults } = await this.determineWinner(
-      attacker,
-      defender,
-    );
-
     attacker.pvp.attacksToday++;
     attacker.pvp.lastAttackDate = now;
-    defender.pvp.lastDefendDate = now;
-    let loot = 0;
-    let productLoot: Loot[] = [];
-    if (winner === "attacker") {
-      attacker.pvp.victory++;
-      defender.pvp.defeat++;
+    // We set the attacker as defeated, if he wins, we will update the stats
+    attacker.pvp.defeat++;
 
-      // Steal 1% of each product from the defender
-      productLoot = this.defenderProductLoss(defender);
-      this.attackerProductGain(attacker, productLoot);
+    defender.pvp.lastDefendDate = now; // TODO: should be after the battle
+    // set as defeat
 
-      // The remaining amount steal in cash, up to 5 % of the defender's cash
-      const percentage = (5 - productLoot.length) / 100;
-      const maxCashLoot = Math.min(
-        defender.cashAmount * percentage,
-        MAX_CASH_LOOT,
-      );
-      loot = Math.floor(maxCashLoot * attacker.pvp.lootPower);
-
-      attacker.cashAmount += loot;
-      defender.cashAmount -= loot;
-
-      attacker.reputation += 5000;
-    } else {
-      defender.pvp.victory++;
-      attacker.pvp.defeat++;
+    // Lock attacker and defender and generate battle id
+    const battleId = v4();
+    const battle: BattleDto = {
+      battleId,
+      attacker: {
+        id: attacker.id,
+        ...attacker.pvp
+      },
+      defender: {
+        id: defender.id,
+        ...defender.pvp
+      },
+      round: 0,
+      roundResults: [],
     }
-
+    
     await Promise.all([
       attacker.save(),
       (defender as any).isBot ? Promise.resolve() : (defender as any).save(),
-      this.battleResultModel.create({
-        attackerId: attacker.id,
-        defenderId: defender.id,
-        winner,
-        rounds,
-        cashLoot: winner === "attacker" ? loot : 0,
-        productLoot: winner === "attacker" ? productLoot : [],
-      }),
+      this.redis.set(this.getBattleKey(battleId), JSON.stringify(battle), 'EX', 1800),
+      this.redis.set(this.getUserLockKey(attacker.id), battleId, 'EX', 1800),
+      this.redis.set(this.getUserLockKey(attacker.id), battleId, 'EX', 1800),
     ]);
 
-    return {
-      winner: winner === "attacker" ? attacker.username : defender.username,
-      loser: winner === "attacker" ? defender.username : attacker.username,
-      rounds,
-      roundResults,
-      loot: winner === "attacker" ? loot : 0,
-    };
-  }
-
-  setupPvp(user: User | BotUser) {
-    if (!user.pvp) {
-      user.pvp = {
-        victory: 0,
-        defeat: 0,
-        lastAttackDate: new Date(0),
-        attacksToday: 0,
-        lastDefendDate: new Date(0),
-      };
-    }
-
-    return user;
+    return battle;
   }
 }

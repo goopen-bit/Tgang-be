@@ -69,8 +69,6 @@ export class MultiplayerService {
     let cashLoot = 0;
     let productLoot: LootDto[] = [];
 
-    defender.pvp.lastDefendDate = new Date();
-
     if (batle.winner === "attacker") {
       attacker.pvp.victory++;
       // Update attacker defeat since we decreased it before the battle
@@ -96,6 +94,7 @@ export class MultiplayerService {
     } else {
       defender.pvp.victory++;
     }
+    defender.pvp.lastDefendDate = new Date();
     
     await Promise.all([
       attacker.save(),
@@ -117,7 +116,7 @@ export class MultiplayerService {
     return batle;
   }
 
-  private getBattleKey(battleId: string) {
+  private getBattleLockKey(battleId: string) {
     return `battle:${battleId}`;
   }
 
@@ -157,7 +156,7 @@ export class MultiplayerService {
   }
 
   async performAttack(userId: number, battleId: string) {
-    const battleString = await this.redis.get(this.getBattleKey(battleId));
+    const battleString = await this.redis.get(this.getBattleLockKey(battleId));
     if (!battleString) {
       throw new HttpException("Battle not found", HttpStatus.NOT_FOUND);
     }
@@ -203,13 +202,13 @@ export class MultiplayerService {
 
     if (battle.winner) {
       await Promise.all([
-        this.redis.del(this.getBattleKey(battleId)),
+        this.redis.del(this.getBattleLockKey(battleId)),
         this.redis.del(this.getUserLockKey(battle.attacker.id)),
         this.redis.del(this.getUserLockKey(battle.defender.id)),
       ]);
       return this.updatePvpStats(battle);
     } else {
-      await this.redis.set(this.getBattleKey(battleId), JSON.stringify(battle), 'EX', 1800);
+      await this.redis.set(this.getBattleLockKey(battleId), JSON.stringify(battle), 'EX', 1800);
     }
 
     return battle;
@@ -287,7 +286,7 @@ export class MultiplayerService {
     
     await Promise.all([
       attacker.save(),
-      this.redis.set(this.getBattleKey(battleId), JSON.stringify(battle), 'EX', 1800),
+      this.redis.set(this.getBattleLockKey(battleId), JSON.stringify(battle), 'EX', 1800),
       this.redis.set(this.getUserLockKey(attacker.id), battleId, 'EX', 1800),
       this.redis.set(this.getUserLockKey(attacker.id), battleId, 'EX', 1800),
     ]);

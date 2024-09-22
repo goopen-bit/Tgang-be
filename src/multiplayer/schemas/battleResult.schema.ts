@@ -24,10 +24,16 @@ export class BattleResult extends Document {
   attackerId: number;
 
   @Prop({ required: true })
+  attackerUsername: string;
+
+  @Prop({ required: true })
   defenderId: number;
 
   @Prop({ required: true })
-  winner: 'attacker' | 'defender';
+  defenderUsername: string;
+
+  @Prop({ required: true })
+  winner: "attacker" | "defender";
 
   @Prop({ required: true })
   rounds: number;

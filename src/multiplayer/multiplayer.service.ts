@@ -10,8 +10,14 @@ import { MAX_CASH_LOOT, MAX_PRODUCT_LOOT } from "./multiplayer.const";
 import { SocialChannel } from "../social/social.const";
 import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
 import Redis from "ioredis";
-import { BattleDto, LootDto, RoundResultDto } from "./dto/battle.dto";
+import {
+  BattleDto,
+  BattleParticipantDto,
+  LootDto,
+  RoundResultDto,
+} from "./dto/battle.dto";
 import { randomUUID } from "crypto";
+import { UserPvp } from "src/user/schemas/userPvp.schema";
 
 @Injectable()
 export class MultiplayerService {
@@ -80,11 +86,11 @@ export class MultiplayerService {
       // Update attacker defeat since we decreased it before the battle
       attacker.pvp.defeat--;
       defender.pvp.defeat++;
-    
+
       // Steal 1% of each product from the defender
       productLoot = this.defenderProductLoss(defender);
       this.attackerProductGain(attacker, productLoot);
-  
+
       // The remaining amount steal in cash, up to 5 % of the defender's cash
       const percentage = (5 - productLoot.length) / 100;
       const maxCashLoot = Math.min(
@@ -92,23 +98,25 @@ export class MultiplayerService {
         MAX_CASH_LOOT,
       );
       cashLoot = Math.floor(maxCashLoot * attacker.pvp.lootPower);
-  
+
       attacker.cashAmount += cashLoot;
       defender.cashAmount -= cashLoot;
-  
+
       attacker.reputation += 5000;
     } else {
       defender.pvp.victory++;
     }
     defender.pvp.lastDefendDate = new Date();
-    
+
     await Promise.all([
       attacker.save(),
       (defender as any).isBot ? Promise.resolve() : (defender as any).save(),
       this.battleResultModel.create({
         battleId: batle.battleId,
         attackerId: attacker.id,
+        attackerUsername: attacker.username,
         defenderId: defender.id,
+        defenderUsername: defender.username,
         winner: batle.winner,
         rounds: batle.round,
         cashLoot: batle.winner === "attacker" ? cashLoot : 0,
@@ -144,16 +152,10 @@ export class MultiplayerService {
     const randomFactor = Math.random() * 0.2 + 0.9; // Random factor between 0.9 and 1.1
     const randomDamage = Math.round(attackerDamage * randomFactor);
 
-    let damage = Math.max(
-      0,
-      randomDamage - defenderProtection,
-    );
+    let damage = Math.max(0, randomDamage - defenderProtection);
     let critical = false;
 
-    if (
-      Math.random() * 100 <
-      attackerAccuracy - defenderEvasion
-    ) {
+    if (Math.random() * 100 < attackerAccuracy - defenderEvasion) {
       if (Math.random() * 100 < attackerCriticalChance) {
         damage *= 2;
         critical = true;
@@ -198,7 +200,6 @@ export class MultiplayerService {
       attackerCritical: attackerAttack.critical,
       defenderCritical: defenderAttack.critical,
     };
-
     battle.round++;
     battle.attacker.healthPoints -= defenderAttack.damage;
     battle.defender.healthPoints -= attackerAttack.damage;
@@ -218,7 +219,12 @@ export class MultiplayerService {
       ]);
       return this.updatePvpStats(battle);
     } else {
-      await this.redis.set(this.getBattleLockKey(battleId), JSON.stringify(battle), 'EX', 1800);
+      await this.redis.set(
+        this.getBattleLockKey(battleId),
+        JSON.stringify(battle),
+        "EX",
+        1800,
+      );
     }
 
     return battle;
@@ -230,10 +236,16 @@ export class MultiplayerService {
       this.redis.get(this.getDefenderLockKey(opponentId)),
     ]);
     if (activeAttacker) {
-      throw new HttpException("You are already in a battle", HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        "You are already in a battle",
+        HttpStatus.UNAUTHORIZED,
+      );
     }
     if (activeDefender) {
-      throw new HttpException("This player is already in a battle", HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        "This player is already in a battle",
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     const [attacker, defender] = await Promise.all([
@@ -248,7 +260,7 @@ export class MultiplayerService {
     ) {
       throw new HttpException(
         "You must join our Telegram channel to participate in PvP",
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.PRECONDITION_FAILED,
       );
     }
 
@@ -262,14 +274,14 @@ export class MultiplayerService {
     if (attacker.pvp.attacksToday >= attacker.pvp.attacksAvailable) {
       throw new HttpException(
         "You have reached the maximum number of attacks for today",
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     }
 
     if (defender.pvp.lastDefendDate >= today) {
       throw new HttpException(
         "This player has already been attacked today",
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     }
 
@@ -285,24 +297,105 @@ export class MultiplayerService {
       attacker: {
         id: attacker.id,
         username: attacker.username,
-        ...attacker.pvp
+        ...this.extractPvpData(attacker.pvp),
       },
       defender: {
         id: defender.id,
-        username: attacker.username,
-        ...defender.pvp
+        username: defender.username,
+        ...this.extractPvpData(defender.pvp),
       },
       round: 0,
       roundResults: [],
-    }
-    
+    };
     await Promise.all([
       attacker.save(),
-      this.redis.set(this.getBattleLockKey(battleId), JSON.stringify(battle), 'EX', 1800),
-      this.redis.set(this.getAttackerLockKey(attacker.id), battleId, 'EX', 1800),
-      this.redis.set(this.getDefenderLockKey(attacker.id), battleId, 'EX', 1800),
+      this.redis.set(
+        this.getBattleLockKey(battleId),
+        JSON.stringify(battle),
+        "EX",
+        1800,
+      ),
+      this.redis.set(
+        this.getAttackerLockKey(attacker.id),
+        battleId,
+        "EX",
+        1800,
+      ),
+      this.redis.set(
+        this.getDefenderLockKey(attacker.id),
+        battleId,
+        "EX",
+        1800,
+      ),
     ]);
 
     return battle;
+  }
+
+  private extractPvpData(pvp: UserPvp): Omit<UserPvp, keyof Document> {
+    const {
+      victory,
+      defeat,
+      lastAttackDate,
+      attacksToday,
+      lastDefendDate,
+      healthPoints,
+      protection,
+      damage,
+      accuracy,
+      evasion,
+    } = pvp;
+
+    return {
+      victory,
+      defeat,
+      lastAttackDate,
+      attacksToday,
+      lastDefendDate,
+      healthPoints,
+      protection,
+      damage,
+      accuracy,
+      evasion,
+    };
+  }
+
+  async getBattleResults(userId: number): Promise<BattleDto[]> {
+    const battleResults = await this.battleResultModel
+      .find({
+        $or: [{ attackerId: userId }, { defenderId: userId }],
+      })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return battleResults.map((result) => ({
+      battleId: result.battleId,
+      attacker: this.createBattleParticipant(
+        result.attackerId,
+        result.attackerUsername,
+      ),
+      defender: this.createBattleParticipant(
+        result.defenderId,
+        result.defenderUsername,
+      ),
+      round: result.rounds,
+      roundResults: [],
+      winner:
+        result.winner === "attacker"
+          ? result.attackerId.toString()
+          : result.defenderId.toString(),
+      cashLoot: result.cashLoot,
+      productLoot: result.productLoot,
+    }));
+  }
+
+  private createBattleParticipant(
+    attackerId: number,
+    username: string,
+  ): BattleParticipantDto {
+    return {
+      id: attackerId,
+      username,
+    } as BattleParticipantDto;
   }
 }

@@ -29,4 +29,9 @@ export class MultiplayerController {
   ) {
     return this.multiplayerService.performAttack(user.id, battleId);
   }
+
+  @Get("battle-results")
+  async getBattleResults(@GetAuthToken() user: AuthTokenData) {
+    return this.multiplayerService.getBattleResults(user.id);
+  }
 }

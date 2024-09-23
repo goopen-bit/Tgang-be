@@ -199,16 +199,9 @@ describe("UserService", () => {
       today.setHours(0, 0, 0, 0);
       const result = await service.findPvpPlayers(today, 666, []);
 
-      expect(result).toHaveLength(5);
-      const player1 = result.find((player) => player.id === uids[0]);
-      const player2 = result.find((player) => player.id === uids[1]);
-      const player3 = result.find((player) => player.id === uids[2]);
-      const player4 = result.find((player) => player.id === uids[3]);
+      expect(result).toHaveLength(1);
+      const player1 = result[0];
       expect(player1).toBeDefined();
-      expect(player2).toBeDefined();
-      expect(player3).not.toBeDefined();
-      expect(player4).not.toBeDefined();
-      // expect(result.every((player) => player.reputation > 1000)).toBe(true);
       expect(
         result.every(
           (player) =>

@@ -6,7 +6,7 @@ import { BotUser } from "../user/user.interface";
 import { BattleResult } from "./schemas/battleResult.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { MAX_CASH_LOOT, MAX_PRODUCT_LOOT } from "./multiplayer.const";
+import { BASE_REPUTATION_GAIN, MAX_CASH_LOOT, MAX_PRODUCT_LOOT } from "./multiplayer.const";
 import { SocialChannel } from "../social/social.const";
 import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
 import Redis from "ioredis";
@@ -102,7 +102,7 @@ export class MultiplayerService {
       attacker.cashAmount += cashLoot;
       defender.cashAmount -= cashLoot;
 
-      attacker.reputation += 5000;
+      attacker.reputation += BASE_REPUTATION_GAIN;
     } else {
       defender.pvp.victory++;
     }
@@ -216,6 +216,7 @@ export class MultiplayerService {
         this.redis.del(this.getBattleLockKey(battleId)),
         this.redis.del(this.getAttackerLockKey(battle.attacker.id)),
         this.redis.del(this.getDefenderLockKey(battle.defender.id)),
+        this.redis.del(this.userService.getBotKey(battle.attacker.id)),
       ]);
       return this.updatePvpStats(battle);
     } else {
@@ -242,8 +243,6 @@ export class MultiplayerService {
         this.getBattleLockKey(activeAttacker),
       );
       if (existingBattleString) {
-        console.log(`JSON.parse(existingBattleString)`)
-        console.log(JSON.parse(existingBattleString))
         const existingBattle: BattleDto = JSON.parse(existingBattleString);
         const opponent = await this.userService.findDefender(existingBattle.defender.id, userId);
         return {
@@ -265,16 +264,16 @@ export class MultiplayerService {
       this.userService.findDefender(opponentId, userId),
     ]);
 
-    // if (
-    //   !attacker.socials.find(
-    //     (s) => s.channel === SocialChannel.TELEGRAM_CHANNEL,
-    //   )
-    // ) {
-    //   throw new HttpException(
-    //     "You must join our Telegram channel to participate in PvP",
-    //     HttpStatus.PRECONDITION_REQUIRED,
-    //   );
-    // }
+    if (
+      !attacker.socials.find(
+        (s) => s.channel === SocialChannel.TELEGRAM_CHANNEL,
+      )
+    ) {
+      throw new HttpException(
+        "You must join our Telegram channel to participate in PvP",
+        HttpStatus.PRECONDITION_REQUIRED,
+      );
+    }
 
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -334,7 +333,7 @@ export class MultiplayerService {
         1800,
       ),
       this.redis.set(
-        this.getDefenderLockKey(attacker.id),
+        this.getDefenderLockKey(defender.id),
         battleId,
         "EX",
         1800,

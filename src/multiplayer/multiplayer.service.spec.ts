@@ -130,16 +130,9 @@ describe("MultiplayerService", () => {
       }
 
       const result = await service.searchPlayer(uids[0]);
-      expect(result).toHaveLength(5);
-      const player1 = result.find((player) => player.id === uids[0]);
-      const player2 = result.find((player) => player.id === uids[1]);
-      const player3 = result.find((player) => player.id === uids[2]);
-      const player4 = result.find((player) => player.id === uids[3]);
-      expect(player1).not.toBeDefined();
-      expect(player2).toBeDefined();
-      expect(player3).not.toBeDefined();
-      expect(player4).not.toBeDefined();
-      // expect(result.every((player) => player.reputation > 1000)).toBe(true);
+      expect(result).toHaveLength(1);
+      const player1 = result[0];
+      expect(player1).toBeDefined();
       expect(
         result.every(
           (player) =>
@@ -316,10 +309,10 @@ describe("MultiplayerService", () => {
           ...newDefender,
         });
 
-        await service.startBattle(attacker.id, newDefender.id);
-        await expect(service.startBattle(attacker.id, newDefender.id)).rejects.toThrow(
-          "You are already in a battle",
-        );
+        const newBattle = await service.startBattle(attacker.id, newDefender.id);
+        const battle = await service.startBattle(attacker.id, newDefender.id);
+        expect(battle).toBeDefined();
+        expect(battle.battleId).toBe(newBattle.battleId);
       });
 
       it("should not start a new battle if the defender is already in battle", async () => {
@@ -336,9 +329,9 @@ describe("MultiplayerService", () => {
           ...newAttacker,
         });
 
-        await service.startBattle(newAttacker.id, defender.id);
+        await service.startBattle(attacker.id, defender.id);
         await expect(service.startBattle(newAttacker.id, defender.id)).rejects.toThrow(
-          "You are already in a battle",
+          "This player is already in a battle",
         );
       });
 

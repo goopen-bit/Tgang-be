@@ -13,6 +13,12 @@ import { EProduct } from "../market/market.const";
 import {
   PREMIUM_REFERRAL_CASH,
   PREMIUM_REFERRAL_REPUTATION,
+  PVP_BASE_ACCURACY,
+  PVP_BASE_CRITICAL_HIT_CHANCE,
+  PVP_BASE_DAMAGE,
+  PVP_BASE_EVASION,
+  PVP_BASE_HEALTH_POINTS,
+  PVP_BASE_PROTECTION,
   PVP_NUMBER_OF_PLAYERS,
   REFERRAL_CASH,
   REFERRAL_REPUTATION,
@@ -241,31 +247,27 @@ export class UserService {
   async findDefender(userId: number, attackerUserId: number) {
     let defender: User | BotUser = await this.userModel.findOne({ id: userId });
     if (!defender) {
-      console.log(`~~~~~~~~~~~~~~~~~~~~~~START`);
-      console.log(`attackerUserId`);
-      console.log(attackerUserId);
       const botsString = await this.redis.get(`bots:${attackerUserId}`);
-      console.log(`botsString`);
-      console.log(botsString);
-
       if (!botsString) {
         throw new NotFoundException("Defender not found");
       }
       const bots: BotUser[] = JSON.parse(botsString);
-      console.log(`bots`);
-      console.log(bots);
-
       defender = bots.find((bot) => bot.id === userId);
-      console.log(`defender`);
-      console.log(defender);
-
-      console.log(`~~~~~~~~~~~~~~~~~~~~~~END`);
     }
 
     return defender;
   }
 
+  getBotKey(userId: number) {
+    return `bots:${userId}`;
+  }
+
   private async createBots(numberOfBots: number, userId: number) {
+    const existingBots = await this.redis.get(this.getBotKey(userId));
+    if (existingBots) {
+      return JSON.parse(existingBots) as BotUser[];
+    }
+
     const bots = [];
     for (let i = 0; i < numberOfBots; i++) {
       const products = [];
@@ -292,22 +294,22 @@ export class UserService {
         products: products,
         userLevel: reputationLevels[Math.floor(Math.random() * 5)],
         pvp: {
-          victory: 0,
-          defeat: 0,
+          victory: Math.floor(Math.random() * 10),
+          defeat: Math.floor(Math.random() * 10),
           lastAttackDate: new Date(0),
           attacksToday: 0,
           lastDefendDate: new Date(0),
-          healthPoints: 100,
-          protection: 0,
-          damage: 10,
-          accuracy: 50,
-          evasion: 5,
+          healthPoints: PVP_BASE_HEALTH_POINTS,
+          protection: PVP_BASE_PROTECTION,
+          damage: PVP_BASE_DAMAGE,
+          accuracy: PVP_BASE_ACCURACY,
+          evasion: PVP_BASE_EVASION,
         },
         isBot: true,
       });
     }
 
-    await this.redis.set(`bots:${userId}`, JSON.stringify(bots), "EX", 900);
+    await this.redis.set(this.getBotKey(userId), JSON.stringify(bots), "EX", 1800);
     return bots as BotUser[];
   }
 
@@ -338,7 +340,7 @@ export class UserService {
       },
     ]);
 
-    if (players.length < 5) {
+    if (players.length < 1) {
       const bots = await this.createBots(
         PVP_NUMBER_OF_PLAYERS - players.length,
         userId,

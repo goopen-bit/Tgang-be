@@ -13,8 +13,9 @@ import { UserProduct } from "./userProduct.schema";
 import { UserShipping } from "./userShipping.schema";
 import { reputationLevels } from "../data/reputationLevel";
 import { IReputationLevel } from "../user.interface";
-import { dealerUpgrades } from "../../upgrade/data/dealerUpgrades";
 import { SocialChannel } from "../../social/social.const";
+import { UserPvp } from "./userPvp.schema";
+import { DbCollections } from "../../config/types";
 
 @Schema({ _id: false })
 export class LabPlot {
@@ -50,6 +51,7 @@ export class Social {
 }
 
 @Schema({
+  collection: DbCollections.USERS,
   toObject: {
     getters: true,
   },
@@ -89,27 +91,7 @@ export class User extends Document {
   @Prop({ type: [UserProduct], default: [] })
   products: UserProduct[];
 
-  @Prop({
-    type: [UserDealerUpgrade],
-    default: [],
-    set: function (upgrades: UserDealerUpgrade[]) {
-      return Object.entries(dealerUpgrades).map(([key, du]) => {
-        const userUpgrade = upgrades.find((u) => u.product === key);
-        return (
-          userUpgrade || {
-            product: key,
-            title: du.title,
-            description: du.description,
-            image: du.image,
-            level: 0,
-            upgradePrice: du.basePrice,
-            amount: 0,
-            upgradeAmount: du.amountMultiplier,
-          }
-        );
-      });
-    },
-  })
+  @Prop({ type: [UserDealerUpgrade], default: [] })
   dealerUpgrades: UserDealerUpgrade[];
 
   @Prop({ type: [UserShipping], default: [] })
@@ -198,6 +180,9 @@ export class User extends Document {
 
   @Prop()
   wallet?: string;
+
+  @Prop({ type: UserPvp, default: () => new UserPvp() })
+  pvp?: UserPvp;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

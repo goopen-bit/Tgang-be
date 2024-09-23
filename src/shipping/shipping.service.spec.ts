@@ -1,7 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ShippingService } from "./shipping.service";
-import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb, mixpanelToken } from "../config/env";
 import { MarketModule } from "../market/market.module";
 import { UserModule } from "../user/user.module";
 import { AuthTokenData } from "../config/types";
@@ -9,7 +7,7 @@ import { faker } from "@faker-js/faker";
 import { UserService } from "../user/user.service";
 import { EShippingMethod } from "./shipping.const";
 import { mockTokenData } from "../../test/utils/user";
-import { AnalyticsModule } from "../analytics/analytics.module";
+import { appConfigImports } from '../config/app';
 
 describe("ShippingService", () => {
   let service: ShippingService;
@@ -18,14 +16,7 @@ describe("ShippingService", () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
-        MongooseModule.forRoot(mongoUrl, {
-          dbName: mongoDb,
-          readPreference: "secondaryPreferred",
-        }),
-        AnalyticsModule.register({
-          mixpanelToken: mixpanelToken,
-          isGlobal: true,
-        }),
+        ...appConfigImports,
         UserModule,
         MarketModule,
       ],
@@ -77,7 +68,7 @@ describe("ShippingService", () => {
       u.referredUsers = [];
       await u.save();
       await expect(
-        service.buyShippingUpgrade(user.id, EShippingMethod.PLANE)
+        service.buyShippingUpgrade(user.id, EShippingMethod.CONTAINER)
       ).rejects.toThrow("Invite 2 users to upgrade");
     });
   });
@@ -116,7 +107,7 @@ describe("ShippingService", () => {
       await u.save();
       await expect(
         service.upgradeShippingCapacity(user.id, EShippingMethod.PLANE)
-      ).rejects.toThrow("Invite 2 users to upgrade");
+      ).rejects.toThrow("Upgrade not bought");
     });
   });
 
@@ -154,7 +145,7 @@ describe("ShippingService", () => {
       await u.save();
       await expect(
         service.upgradeShippingTime(user.id, EShippingMethod.PLANE)
-      ).rejects.toThrow("Invite 2 users to upgrade");
+      ).rejects.toThrow("Upgrade not bought");
     });
   });
 });

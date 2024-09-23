@@ -8,8 +8,6 @@ export enum EUpgradeCategory {
 
 export enum EDealerUpgrade {
   SOCIAL_MEDIA_CAMPAGIN = "social_media_campaign",
-  // STREET_PROMOTION_TEAM = "street_promotion_team",
-  // CLUB_PARTNERSHIP = "club_partnership",
   COMBO_PACKS = "combo_packs",
   HIGH_END_PACKAGING = "high_end_packaging",
   PARTY_PACKS = "party_packs",

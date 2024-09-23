@@ -6,13 +6,11 @@ import { faker } from "@faker-js/faker";
 import { BuyUpgradeDto } from "./dto/buy-upgrade.dto";
 import { upgradesData } from "./data/upgrades";
 import { User } from "../user/schemas/user.schema";
-import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb, mixpanelToken } from "../config/env";
 import { EUpgradeCategory } from "./upgrade.interface";
 import { EProduct } from "../market/market.const";
 import { mockTokenData } from "../../test/utils/user";
-import { AnalyticsModule } from "../analytics/analytics.module";
 import { MarketModule } from "../market/market.module";
+import { appConfigImports } from '../config/app';
 
 describe("UpgradeService", () => {
   let module: TestingModule;
@@ -24,14 +22,7 @@ describe("UpgradeService", () => {
   beforeEach(async () => {
     module = await Test.createTestingModule({
       imports: [
-        MongooseModule.forRoot(mongoUrl, {
-          dbName: mongoDb,
-          readPreference: "secondaryPreferred",
-        }),
-        AnalyticsModule.register({
-          mixpanelToken: mixpanelToken,
-          isGlobal: true,
-        }),
+        ...appConfigImports,
         MarketModule,
         UserModule,
       ],
@@ -74,7 +65,7 @@ describe("UpgradeService", () => {
     it("should buy an upgrade that has unlock requirement", async () => {
       const params: BuyUpgradeDto = {
         category: EUpgradeCategory.PRODUCT,
-        upgrade: EProduct.POWDER,
+        upgrade: EProduct.MUSHROOM,
       };
       await userService.update(user.id, {
         products: [
@@ -89,7 +80,7 @@ describe("UpgradeService", () => {
       await service.buyUpgrade(user.id, params);
       const updatedUser = await userService.findOne(user.id);
       const userUpgrade = updatedUser.products.find(
-        (u) => u.name === EProduct.POWDER
+        (u) => u.name === EProduct.MUSHROOM
       );
       expect(userUpgrade).toBeDefined();
       expect(userUpgrade.level).toBe(1);

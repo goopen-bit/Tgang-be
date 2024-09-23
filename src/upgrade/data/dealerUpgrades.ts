@@ -66,8 +66,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
   [EDealerUpgrade.FESTIVAL_BLOTTERS]: {
     product: EProduct.ACID,
     title: "🧪 Festival Blotters",
-    description:
-      "Offer blotters designed for festivals, encouraging larger purchases.",
+    description: "Offer blotters designed for festivals, encouraging larger purchases.",
     basePrice: 2000,
     upgradeMultiplier: 2,
     amountMultiplier: 1,

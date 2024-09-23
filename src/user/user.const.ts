@@ -13,3 +13,13 @@ export const LAB_PRODUCTION_MULTIPLIER = 2;
 
 export const ROBBERY_AMOUNT_PER_DAILY_STRIKE = 1000;
 export const ROBBERY_MAX_AMOUNT_PER_DAILY_STRIKE = 10000;
+
+export const PVP_NUMBER_OF_PLAYERS = 1;
+export const PVP_BASE_ATTACKS_PER_DAY = 2;
+export const PVP_BASE_HEALTH_POINTS = 100;
+export const PVP_BASE_PROTECTION = 0;
+export const PVP_BASE_DAMAGE = 15;
+export const PVP_BASE_ACCURACY = 80;
+export const PVP_BASE_EVASION = 5;
+export const PVP_BASE_LOOT_POWER = 0.1;
+export const PVP_BASE_CRITICAL_HIT_CHANCE = 2;

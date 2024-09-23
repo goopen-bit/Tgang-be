@@ -1,14 +1,12 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { MarketService } from "./market.service";
-import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb, mixpanelToken } from "../config/env";
 import { UserModule } from "../user/user.module";
 import { faker } from "@faker-js/faker";
 import { AuthTokenData } from "../config/types";
 import { EProduct } from "./market.const";
 import { UserService } from "../user/user.service";
 import { mockTokenData } from "../../test/utils/user";
-import { AnalyticsModule } from "../analytics/analytics.module";
+import { appConfigImports } from '../config/app';
 
 describe("MarketService", () => {
   let module: TestingModule;
@@ -18,14 +16,7 @@ describe("MarketService", () => {
   beforeEach(async () => {
     module = await Test.createTestingModule({
       imports: [
-        MongooseModule.forRoot(mongoUrl, {
-          dbName: mongoDb,
-          readPreference: "secondaryPreferred",
-        }),
-        AnalyticsModule.register({
-          mixpanelToken: mixpanelToken,
-          isGlobal: true,
-        }),
+        ...appConfigImports,
         UserModule,
       ],
       providers: [MarketService],

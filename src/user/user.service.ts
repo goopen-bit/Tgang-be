@@ -342,6 +342,15 @@ export class UserService {
       },
     ]);
 
+    players.forEach((player) => {
+      player.userLevel = reputationLevels.find(
+        (level) =>
+          player.reputation >= level.minReputation &&
+          player.reputation <= level.maxReputation,
+      );
+    });
+    console.log(JSON.stringify(players, null, 2));
+
     if (players.length < 1) {
       const bots = await this.createBots(
         PVP_NUMBER_OF_PLAYERS - players.length,

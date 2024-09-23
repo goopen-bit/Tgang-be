@@ -260,7 +260,7 @@ export class MultiplayerService {
     ) {
       throw new HttpException(
         "You must join our Telegram channel to participate in PvP",
-        HttpStatus.PRECONDITION_FAILED,
+        HttpStatus.PRECONDITION_REQUIRED,
       );
     }
 
@@ -274,7 +274,7 @@ export class MultiplayerService {
     if (attacker.pvp.attacksToday >= attacker.pvp.attacksAvailable) {
       throw new HttpException(
         "You have reached the maximum number of attacks for today",
-        HttpStatus.UNAUTHORIZED,
+        HttpStatus.PRECONDITION_FAILED,
       );
     }
 

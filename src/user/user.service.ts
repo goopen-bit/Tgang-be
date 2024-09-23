@@ -337,6 +337,7 @@ export class UserService {
           cashAmount: 1,
           products: 1,
           pvp: 1,
+          reputation: 1,
         },
       },
     ]);

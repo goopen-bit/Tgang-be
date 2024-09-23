@@ -286,7 +286,7 @@ export class UserService {
       }
 
       bots.push({
-        id: faker.number.bigInt(),
+        id: faker.number.int(),
         username: faker.internet.userName({
           firstName: faker.person.firstName(),
         }),

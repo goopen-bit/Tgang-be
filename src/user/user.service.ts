@@ -348,6 +348,20 @@ export class UserService {
           player.reputation >= level.minReputation &&
           player.reputation <= level.maxReputation,
       );
+      if (!player.pvp) {
+        player.pvp = {
+          victory: 0,
+          defeat: 0,
+          lastAttackDate: new Date(0),
+          attacksToday: 0,
+          lastDefendDate: new Date(0),
+          healthPoints: PVP_BASE_HEALTH_POINTS,
+          protection: PVP_BASE_PROTECTION,
+          damage: PVP_BASE_DAMAGE,
+          accuracy: PVP_BASE_ACCURACY,
+          evasion: PVP_BASE_EVASION,
+        };
+      }
     });
     console.log(JSON.stringify(players, null, 2));
 

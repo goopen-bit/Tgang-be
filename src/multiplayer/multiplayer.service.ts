@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { startOfDay } from "date-fns";
 import { User } from "../user/schemas/user.schema";
@@ -21,6 +21,8 @@ import { UserPvp } from "src/user/schemas/userPvp.schema";
 
 @Injectable()
 export class MultiplayerService {
+  private readonly logger = new Logger(this.constructor.name);
+
   constructor(
     @InjectModel(BattleResult.name)
     private battleResultModel: Model<BattleResult>,
@@ -172,7 +174,7 @@ export class MultiplayerService {
     if (!battleString) {
       throw new HttpException("Battle not found", HttpStatus.NOT_FOUND);
     }
-    const battle: BattleDto = JSON.parse(battleString);
+    let battle: BattleDto = JSON.parse(battleString);
     const { attacker, defender } = battle;
 
     if (attacker.id !== userId) {
@@ -212,19 +214,19 @@ export class MultiplayerService {
     }
 
     if (battle.winner) {
+      battle = await this.updatePvpStats(battle);
       await Promise.all([
         this.redis.del(this.getBattleLockKey(battleId)),
         this.redis.del(this.getAttackerLockKey(battle.attacker.id)),
         this.redis.del(this.getDefenderLockKey(battle.defender.id)),
         this.redis.del(this.userService.getBotKey(battle.attacker.id)),
       ]);
-      return this.updatePvpStats(battle);
     } else {
       await this.redis.set(
         this.getBattleLockKey(battleId),
         JSON.stringify(battle),
         "EX",
-        1800,
+        3600,
       );
     }
 

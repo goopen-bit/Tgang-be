@@ -235,12 +235,24 @@ export class MultiplayerService {
       this.redis.get(this.getAttackerLockKey(userId)),
       this.redis.get(this.getDefenderLockKey(opponentId)),
     ]);
+
+    // Check if the attacker is already in a battle
     if (activeAttacker) {
-      throw new HttpException(
-        "You are already in a battle",
-        HttpStatus.UNAUTHORIZED,
+      const existingBattleString = await this.redis.get(
+        this.getBattleLockKey(activeAttacker),
       );
+      if (existingBattleString) {
+        console.log(`JSON.parse(existingBattleString)`)
+        console.log(JSON.parse(existingBattleString))
+        const existingBattle: BattleDto = JSON.parse(existingBattleString);
+        const opponent = await this.userService.findDefender(existingBattle.defender.id, userId);
+        return {
+          ...existingBattle,
+          opponent: opponent,
+        };
+      }
     }
+
     if (activeDefender) {
       throw new HttpException(
         "This player is already in a battle",
@@ -253,16 +265,16 @@ export class MultiplayerService {
       this.userService.findDefender(opponentId, userId),
     ]);
 
-    if (
-      !attacker.socials.find(
-        (s) => s.channel === SocialChannel.TELEGRAM_CHANNEL,
-      )
-    ) {
-      throw new HttpException(
-        "You must join our Telegram channel to participate in PvP",
-        HttpStatus.PRECONDITION_REQUIRED,
-      );
-    }
+    // if (
+    //   !attacker.socials.find(
+    //     (s) => s.channel === SocialChannel.TELEGRAM_CHANNEL,
+    //   )
+    // ) {
+    //   throw new HttpException(
+    //     "You must join our Telegram channel to participate in PvP",
+    //     HttpStatus.PRECONDITION_REQUIRED,
+    //   );
+    // }
 
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());

@@ -29,7 +29,7 @@ import Redis from "ioredis";
 import { faker } from "@faker-js/faker";
 import { BotUser } from "./user.interface";
 import { reputationLevels } from "./data/reputationLevel";
-import { UserPvp } from './schemas/userPvp.schema';
+import { UserPvp } from "./schemas/userPvp.schema";
 
 @Injectable()
 export class UserService {
@@ -241,12 +241,25 @@ export class UserService {
   async findDefender(userId: number, attackerUserId: number) {
     let defender: User | BotUser = await this.userModel.findOne({ id: userId });
     if (!defender) {
+      console.log(`~~~~~~~~~~~~~~~~~~~~~~START`);
+      console.log(`attackerUserId`);
+      console.log(attackerUserId);
       const botsString = await this.redis.get(`bots:${attackerUserId}`);
+      console.log(`botsString`);
+      console.log(botsString);
+
       if (!botsString) {
         throw new NotFoundException("Defender not found");
       }
       const bots: BotUser[] = JSON.parse(botsString);
+      console.log(`bots`);
+      console.log(bots);
+
       defender = bots.find((bot) => bot.id === userId);
+      console.log(`defender`);
+      console.log(defender);
+
+      console.log(`~~~~~~~~~~~~~~~~~~~~~~END`);
     }
 
     return defender;
@@ -326,7 +339,10 @@ export class UserService {
     ]);
 
     if (players.length < 5) {
-      const bots = await this.createBots(PVP_NUMBER_OF_PLAYERS - players.length, userId);
+      const bots = await this.createBots(
+        PVP_NUMBER_OF_PLAYERS - players.length,
+        userId,
+      );
       players.push(...bots);
     }
 

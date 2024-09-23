@@ -29,13 +29,14 @@ import {
 import { upgradesData } from "../upgrade/data/upgrades";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 import { Mixpanel } from "mixpanel";
-import { subDays } from "date-fns";
+import { differenceInDays, subDays } from "date-fns";
 import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
 import Redis from "ioredis";
 import { faker } from "@faker-js/faker";
 import { BotUser } from "./user.interface";
 import { reputationLevels } from "./data/reputationLevel";
 import { UserPvp } from "./schemas/userPvp.schema";
+import { BOT_TIME_BASE } from "src/multiplayer/multiplayer.const";
 
 @Injectable()
 export class UserService {
@@ -294,8 +295,8 @@ export class UserService {
         products: products,
         userLevel: reputationLevels[Math.floor(Math.random() * 5)],
         pvp: {
-          victory: Math.floor(Math.random() * 10),
-          defeat: Math.floor(Math.random() * 10),
+          victory: Math.floor(Math.random() * differenceInDays(new Date(), BOT_TIME_BASE)),
+          defeat: Math.floor(Math.random() * differenceInDays(new Date(), BOT_TIME_BASE)),
           lastAttackDate: new Date(0),
           attacksToday: 0,
           lastDefendDate: new Date(0),
@@ -309,7 +310,7 @@ export class UserService {
       });
     }
 
-    await this.redis.set(this.getBotKey(userId), JSON.stringify(bots), "EX", 1800);
+    await this.redis.set(this.getBotKey(userId), JSON.stringify(bots), "EX", 3600);
     return bots as BotUser[];
   }
 

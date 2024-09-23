@@ -324,19 +324,19 @@ export class MultiplayerService {
         this.getBattleLockKey(battleId),
         JSON.stringify(battle),
         "EX",
-        1800,
+        3600,
       ),
       this.redis.set(
         this.getAttackerLockKey(attacker.id),
         battleId,
         "EX",
-        1800,
+        3600,
       ),
       this.redis.set(
         this.getDefenderLockKey(defender.id),
         battleId,
         "EX",
-        1800,
+        3600,
       ),
     ]);
 

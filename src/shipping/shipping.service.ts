@@ -64,11 +64,12 @@ export class ShippingService {
 
     const user = await this.userService.findOne(userId);
     const userShipping = user.shipping.find((u) => u.method === upgrade);
-    checkRequirements(user, userShipping.requirements);
 
     if (!userShipping) {
       throw new HttpException("Upgrade not bought", 400);
     }
+
+    checkRequirements(user, userShipping.requirements);
 
     if (user.cashAmount < userShipping.upgradeCapacityPrice) {
       throw new HttpException("Not enough cash", 400);
@@ -91,11 +92,12 @@ export class ShippingService {
 
     const user = await this.userService.findOne(userId);
     const userShipping = user.shipping.find((u) => u.method === upgrade);
-    checkRequirements(user, userShipping.requirements);
 
     if (!userShipping) {
       throw new HttpException("Upgrade not bought", 400);
     }
+
+    checkRequirements(user, userShipping.requirements);
 
     if (user.cashAmount < userShipping.upgradeShippingTimePrice) {
       throw new HttpException("Not enough cash", 400);

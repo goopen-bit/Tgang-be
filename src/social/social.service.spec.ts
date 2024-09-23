@@ -1,13 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SocialService } from './social.service';
-import { MongooseModule } from '@nestjs/mongoose';
-import { mongoUrl, mongoDb, mixpanelToken } from '../config/env';
 import { UserModule } from '../user/user.module';
-import { AnalyticsModule } from '../analytics/analytics.module';
 import { UserService } from '../user/user.service';
 import { mockTokenData } from '../../test/utils/user';
 import { faker } from '@faker-js/faker';
 import { SocialChannel } from './social.const';
+import { appConfigImports } from '../config/app';
 
 describe('SocialService', () => {
   let module: TestingModule;
@@ -17,14 +15,7 @@ describe('SocialService', () => {
   beforeEach(async () => {
     module = await Test.createTestingModule({
       imports: [
-        MongooseModule.forRoot(mongoUrl, {
-          dbName: mongoDb,
-          readPreference: "secondaryPreferred",
-        }),
-        AnalyticsModule.register({
-          mixpanelToken: mixpanelToken,
-          isGlobal: true,
-        }),
+        ...appConfigImports,
         UserModule,
       ],
       providers: [SocialService],
@@ -39,7 +30,7 @@ describe('SocialService', () => {
   });
 
   let subscribedUserId = 475680949;
-  let unsubscribedUserId = 123;
+  let unsubscribedUserId = faker.number.int();
   beforeEach(async () => {
     const subscribedUser = mockTokenData({ id: subscribedUserId });
     await userService.findOneOrCreate(subscribedUser, faker.internet.ip());

@@ -13,6 +13,13 @@ import { EProduct } from "../market/market.const";
 import {
   PREMIUM_REFERRAL_CASH,
   PREMIUM_REFERRAL_REPUTATION,
+  PVP_BASE_ACCURACY,
+  PVP_BASE_CRITICAL_HIT_CHANCE,
+  PVP_BASE_DAMAGE,
+  PVP_BASE_EVASION,
+  PVP_BASE_HEALTH_POINTS,
+  PVP_BASE_PROTECTION,
+  PVP_NUMBER_OF_PLAYERS,
   REFERRAL_CASH,
   REFERRAL_REPUTATION,
   ROBBERY_AMOUNT_PER_DAILY_STRIKE,
@@ -22,7 +29,14 @@ import {
 import { upgradesData } from "../upgrade/data/upgrades";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 import { Mixpanel } from "mixpanel";
-import { subDays } from "date-fns";
+import { differenceInDays, subDays } from "date-fns";
+import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
+import Redis from "ioredis";
+import { faker } from "@faker-js/faker";
+import { BotUser } from "./user.interface";
+import { reputationLevels } from "./data/reputationLevel";
+import { UserPvp } from "./schemas/userPvp.schema";
+import { BOT_TIME_BASE } from "src/multiplayer/multiplayer.const";
 
 @Injectable()
 export class UserService {
@@ -31,6 +45,9 @@ export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
+
+    @InjectRedis() private readonly redis: Redis,
+
     @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
@@ -56,7 +73,7 @@ export class UserService {
       {
         $name: user.username,
         $created: new Date(),
-        HERB: 1,
+        HERB: 100,
       },
       {
         $ip: ip,
@@ -113,6 +130,13 @@ export class UserService {
         },
       ],
       referredBy: referrer?.username,
+      pvp: {
+        victory: 0,
+        defeat: 0,
+        lastAttackDate: new Date(0),
+        attacksToday: 0,
+        lastDefendDate: new Date(0),
+      } as UserPvp,
     });
 
     // Set additional user properties
@@ -220,5 +244,135 @@ export class UserService {
         },
       },
     ]);
+  }
+
+  async findDefender(userId: number, attackerUserId: number) {
+    let defender: User | BotUser = await this.userModel.findOne({ id: userId });
+    if (!defender) {
+      const botsString = await this.redis.get(`bots:${attackerUserId}`);
+      if (!botsString) {
+        throw new NotFoundException("Defender not found");
+      }
+      const bots: BotUser[] = JSON.parse(botsString);
+      defender = bots.find((bot) => bot.id === userId);
+    }
+
+    return defender;
+  }
+
+  getBotKey(userId: number) {
+    return `bots:${userId}`;
+  }
+
+  private async createBots(numberOfBots: number, userId: number) {
+    const existingBots = await this.redis.get(this.getBotKey(userId));
+    if (existingBots) {
+      return JSON.parse(existingBots) as BotUser[];
+    }
+
+    const bots = [];
+    for (let i = 0; i < numberOfBots; i++) {
+      const products = [];
+      for (let j = 0; j < Math.floor(Math.random() * 3) + 1; j++) {
+        const product = Object.keys(upgradesData.product)[
+          Math.floor(Math.random() * Object.keys(upgradesData.product).length)
+        ];
+        products.push({
+          name: product,
+          quantity: Math.floor(Math.random() * 400) + 100,
+          title: upgradesData.product[product].title,
+          image: upgradesData.product[product].image,
+          level: 1,
+        });
+      }
+
+      bots.push({
+        id: faker.number.int(),
+        username: faker.internet.userName({
+          firstName: faker.person.firstName(),
+        }),
+        cashAmount: Math.floor(Math.random() * 100000) + 10000,
+        reputation: Math.floor(Math.random() * 100000) + 1000,
+        products: products,
+        userLevel: reputationLevels[Math.floor(Math.random() * 5)],
+        pvp: {
+          victory: Math.floor(Math.random() * differenceInDays(new Date(), BOT_TIME_BASE)),
+          defeat: Math.floor(Math.random() * differenceInDays(new Date(), BOT_TIME_BASE)),
+          lastAttackDate: new Date(0),
+          attacksToday: 0,
+          lastDefendDate: new Date(0),
+          healthPoints: PVP_BASE_HEALTH_POINTS,
+          protection: PVP_BASE_PROTECTION,
+          damage: PVP_BASE_DAMAGE,
+          accuracy: PVP_BASE_ACCURACY,
+          evasion: PVP_BASE_EVASION,
+        },
+        isBot: true,
+      });
+    }
+
+    await this.redis.set(this.getBotKey(userId), JSON.stringify(bots), "EX", 3600);
+    return bots as BotUser[];
+  }
+
+  async findPvpPlayers(today: Date, userId: number, exIds: number[]) {
+    const players = await this.userModel.aggregate([
+      {
+        $match: {
+          id: { $nin: [userId, ...exIds] },
+          reputation: { $gt: 1000 },
+          $or: [
+            { "pvp.lastDefendDate": { $lt: today } },
+            { "pvp.lastDefendDate": { $exists: false } },
+            { "pvp.lastDefendDate": null },
+          ],
+        },
+      },
+      {
+        $sample: { size: PVP_NUMBER_OF_PLAYERS },
+      },
+      {
+        $project: {
+          id: 1,
+          username: 1,
+          cashAmount: 1,
+          products: 1,
+          pvp: 1,
+          reputation: 1,
+        },
+      },
+    ]);
+
+    players.forEach((player) => {
+      player.userLevel = reputationLevels.find(
+        (level) =>
+          player.reputation >= level.minReputation &&
+          player.reputation <= level.maxReputation,
+      );
+      if (!player.pvp) {
+        player.pvp = {
+          victory: 0,
+          defeat: 0,
+          lastAttackDate: new Date(0),
+          attacksToday: 0,
+          lastDefendDate: new Date(0),
+          healthPoints: PVP_BASE_HEALTH_POINTS,
+          protection: PVP_BASE_PROTECTION,
+          damage: PVP_BASE_DAMAGE,
+          accuracy: PVP_BASE_ACCURACY,
+          evasion: PVP_BASE_EVASION,
+        };
+      }
+    });
+
+    if (players.length < 1) {
+      const bots = await this.createBots(
+        PVP_NUMBER_OF_PLAYERS - players.length,
+        userId,
+      );
+      players.push(...bots);
+    }
+
+    return players;
   }
 }

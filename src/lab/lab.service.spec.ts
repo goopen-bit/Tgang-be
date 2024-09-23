@@ -1,6 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb, redisUrl, mixpanelToken } from "../config/env";
 import { LabService } from "./lab.service";
 import { UserModule } from "../user/user.module";
 import { User, UserSchema } from "../user/schemas/user.schema";
@@ -9,9 +8,8 @@ import { AuthTokenData } from "../config/types";
 import { UserService } from "../user/user.service";
 import { EProduct } from "../market/market.const";
 import { subHours } from "date-fns";
-import { RedisModule } from "@goopen/nestjs-ioredis-provider";
 import { mockTokenData } from "../../test/utils/user";
-import { AnalyticsModule } from "../analytics/analytics.module";
+import { appConfigImports } from '../config/app';
 
 describe("LabService", () => {
   let module: TestingModule;
@@ -21,18 +19,7 @@ describe("LabService", () => {
   beforeEach(async () => {
     module = await Test.createTestingModule({
       imports: [
-        MongooseModule.forRoot(mongoUrl, {
-          dbName: mongoDb,
-          readPreference: "secondaryPreferred",
-        }),
-        RedisModule.register({
-          url: redisUrl,
-          isGlobal: true,
-        }),
-        AnalyticsModule.register({
-          mixpanelToken: mixpanelToken,
-          isGlobal: true,
-        }),
+        ...appConfigImports,
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         UserModule,
       ],

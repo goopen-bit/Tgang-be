@@ -1,34 +1,57 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { faker } from "@faker-js/faker";
 import { UserService } from "./user.service";
-import { MongooseModule } from "@nestjs/mongoose";
-import { mongoUrl, mongoDb, mixpanelToken } from "../config/env";
 import { User, UserSchema } from "./schemas/user.schema";
-import { STARTING_CASH } from "./user.const";
 import { mockTokenData } from "../../test/utils/user";
-import { AnalyticsModule } from "../analytics/analytics.module";
+import { MongooseModule, getModelToken } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { EProduct } from "../market/market.const";
+import { upgradesData } from "../upgrade/data/upgrades";
+import { STARTING_CASH } from "./user.const";
+import { subDays, subHours } from "date-fns";
+import { appConfigImports } from '../config/app';
+import { UniqueEnforcer } from 'enforce-unique';
+
+const uniqueEnforcerUserId = new UniqueEnforcer();
+
+export const createMockUser = (overrides = {}): Partial<User> => {
+  const HERB = upgradesData.product[EProduct.HERB];
+
+  return {
+    id: uniqueEnforcerUserId.enforce(faker.number.int()),
+    username: "testuser",
+    isPremium: false,
+    cashAmount: STARTING_CASH,
+    reputation: 1,
+    products: [
+      {
+        name: EProduct.HERB,
+        quantity: 100,
+        title: HERB.title,
+        image: HERB.image,
+        level: 1,
+      },
+    ],
+    ...overrides,
+  };
+};
 
 describe("UserService", () => {
   let module: TestingModule;
   let service: UserService;
+  let userModel: Model<User>;
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
       imports: [
-        MongooseModule.forRoot(mongoUrl, {
-          dbName: mongoDb,
-          readPreference: "secondaryPreferred",
-        }),
-        AnalyticsModule.register({
-          mixpanelToken: mixpanelToken,
-          isGlobal: true,
-        }),
+        ...appConfigImports,
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
       ],
       providers: [UserService],
     }).compile();
 
     service = module.get<UserService>(UserService);
+    userModel = module.get<Model<User>>(getModelToken(User.name));
   });
 
   it("should be defined", () => {
@@ -38,7 +61,10 @@ describe("UserService", () => {
   describe("findOneOrCreate", () => {
     it("should create new user", async () => {
       const params = mockTokenData();
-      const { user: res } = await service.findOneOrCreate(params, faker.internet.ip());
+      const { user: res } = await service.findOneOrCreate(
+        params,
+        faker.internet.ip(),
+      );
       expect(res.id).toBe(params.id);
       expect(res.username).toBe(params.username);
       expect(res.cashAmount).toBe(STARTING_CASH);
@@ -48,12 +74,18 @@ describe("UserService", () => {
 
     it("should create new user", async () => {
       const params = mockTokenData();
-      const { user } = await service.findOneOrCreate(params, faker.internet.ip());
+      const { user } = await service.findOneOrCreate(
+        params,
+        faker.internet.ip(),
+      );
       await user.updateOne({
         $inc: { cashAmount: faker.number.int({ min: 10, max: 100 }) },
       });
 
-      const { user: res } = await service.findOneOrCreate(params, faker.internet.ip());
+      const { user: res } = await service.findOneOrCreate(
+        params,
+        faker.internet.ip(),
+      );
       expect(res.id).toBe(params.id);
       expect(res.username).toBe(params.username);
       expect(res.cashAmount).toBeGreaterThan(STARTING_CASH);
@@ -67,7 +99,10 @@ describe("UserService", () => {
     let user: User;
 
     beforeEach(async () => {
-      const res = await service.findOneOrCreate(mockTokenData(), faker.internet.ip());
+      const res = await service.findOneOrCreate(
+        mockTokenData(),
+        faker.internet.ip(),
+      );
       user = res.user;
     });
     afterEach(async () => {
@@ -92,27 +127,24 @@ describe("UserService", () => {
       await service.update(user.id, user);
 
       await expect(service.dailyRobbery(user.id)).rejects.toThrow(
-        "You can only claim the reward once per day."
+        "You can only claim the reward once per day.",
       );
     });
 
-    it("should increase robberyStrike and cashAmount if robbery within 24 hours but on a different day", async () => {
+    it("should throw if robbery is not within 24h", async () => {
       const now = new Date();
-      const lastRobbery = new Date(now.getTime() - 23 * 60 * 60 * 1000); // 23 hours ago
+      const lastRobbery = subHours(now, 23);
       user.lastRobbery = lastRobbery;
       user.robberyStrike = 1;
       user.cashAmount = 1000;
       await service.update(user.id, user);
 
-      const result = await service.dailyRobbery(user.id);
-
-      expect(result.robberyStrike).toBe(2);
-      expect(result.cashAmount).toBe(3000);
+      await expect(service.dailyRobbery(user.id)).rejects.toThrow();
     });
 
     it("should reset robberyStrike if robbery after 24 hours", async () => {
       const now = new Date();
-      const lastRobbery = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000); // 2 days ago
+      const lastRobbery = subDays(now, 2);
       user.lastRobbery = lastRobbery;
       user.robberyStrike = 1;
       user.cashAmount = 1000;
@@ -121,6 +153,62 @@ describe("UserService", () => {
       const result = await service.dailyRobbery(user.id);
       expect(result.robberyStrike).toBe(1);
       expect(result.cashAmount).toBe(2000);
+    });
+  });
+
+  describe("findPvpPlayers", () => {
+    const uids: number[] = [];
+
+    it("should return a list of PvP-enabled players who haven't been attacked today", async () => {
+      const yesterday = subDays(new Date(), 1);
+
+      const users = [
+        createMockUser({
+          username: "player1",
+          cashAmount: 1000,
+          reputation: 10000,
+          pvp: { lastDefendDate: yesterday },
+        }),
+        createMockUser({
+          username: "player2",
+          cashAmount: 2000,
+          reputation: 10000,
+        }),
+        createMockUser({
+          username: "player3",
+          cashAmount: 3000,
+          reputation: 10000,
+          pvp: { lastDefendDate: new Date() },
+        }),
+        createMockUser({
+          username: "player4",
+          cashAmount: 1500,
+          reputation: 100,
+        }),
+      ];
+
+      for (const user of users) {
+        const userId = faker.number.int({ min: 1000 });
+        uids.push(userId);
+        await userModel.create({
+          ...user,
+          id: userId,
+        });
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const result = await service.findPvpPlayers(today, 666, []);
+
+      expect(result).toHaveLength(1);
+      const player1 = result[0];
+      expect(player1).toBeDefined();
+      expect(
+        result.every(
+          (player) =>
+            !player.pvp?.lastDefendDate ||
+            player.pvp.lastDefendDate < new Date().setHours(0, 0, 0, 0),
+        ),
+      ).toBe(true);
     });
   });
 

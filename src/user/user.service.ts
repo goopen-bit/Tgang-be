@@ -363,7 +363,6 @@ export class UserService {
         };
       }
     });
-    console.log(JSON.stringify(players, null, 2));
 
     if (players.length < 1) {
       const bots = await this.createBots(

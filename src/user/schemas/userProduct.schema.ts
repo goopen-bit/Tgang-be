@@ -1,6 +1,6 @@
-import { Prop, Schema } from '@nestjs/mongoose';
-import { productUpgrades } from '../../upgrade/data/dealerUpgrades';
-import { EProduct } from '../../market/market.const';
+import { Prop, Schema } from "@nestjs/mongoose";
+import { productUpgrades } from "../../upgrade/data/dealerUpgrades";
+import { EProduct } from "../../market/market.const";
 
 @Schema({ _id: false })
 export class UserProduct {
@@ -9,7 +9,7 @@ export class UserProduct {
 
   @Prop({ required: true })
   quantity: number;
-  
+
   @Prop({
     virtual: true,
     get: function () {
@@ -55,12 +55,11 @@ export class UserProduct {
     virtual: true,
     get: function () {
       const upgrade = productUpgrades[this.name];
-      if (this.level === 0) {
-        return upgrade.baseDiscount;
-      }
-      return upgrade.baseDiscount + 
-        (60 - upgrade.baseDiscount) * 
-        (Math.log(this.level) / Math.log(1000));
+      return (
+        upgrade.baseDiscount +
+        (60 - upgrade.baseDiscount) *
+          (Math.log(this.level + 1) / Math.log(100000))
+      );
     },
   })
   marketDiscount?: number;
@@ -69,9 +68,11 @@ export class UserProduct {
     virtual: true,
     get: function () {
       const upgrade = productUpgrades[this.name];
-      return upgrade.baseDiscount + 
-        (60 - upgrade.baseDiscount) * 
-        (Math.log(this.level + 1) / Math.log(1000));
+      return (
+        upgrade.baseDiscount +
+        (60 - upgrade.baseDiscount) *
+          (Math.log(this.level + 2) / Math.log(100000))
+      );
     },
   })
   upgradeMarketDiscount?: number;

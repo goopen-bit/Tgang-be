@@ -40,7 +40,9 @@ export class MultiplayerService {
   async searchPlayer(userId: number) {
     const today = startOfDay(new Date());
     const exIds = await this.getDefendingPlayers();
-    return this.userService.findPvpPlayers(today, userId, exIds);
+    const player = await this.userService.findPvpPlayers(today, userId, exIds);
+    player.forEach((p) => delete (p as any).isBot);
+    return player;
   }
 
   private defenderProductLoss(defender: User | BotUser) {

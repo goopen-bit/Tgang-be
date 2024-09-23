@@ -21,5 +21,5 @@ export const PVP_BASE_PROTECTION = 0;
 export const PVP_BASE_DAMAGE = 15;
 export const PVP_BASE_ACCURACY = 80;
 export const PVP_BASE_EVASION = 5;
-export const PVP_BASE_LOOT_POWER = 0.1;
+export const PVP_BASE_LOOT_POWER = 1;
 export const PVP_BASE_CRITICAL_HIT_CHANCE = 2;

@@ -23,7 +23,9 @@ import {
   RoundResultDto,
 } from "./dto/battle.dto";
 import { randomUUID } from "crypto";
-import { UserPvp } from "src/user/schemas/userPvp.schema";
+import { UserPvp } from "../user/schemas/userPvp.schema";
+import { AttackDto } from "./dto/attack.dto";
+import { EProduct } from "../market/market.const";
 
 @Injectable()
 export class MultiplayerService {
@@ -179,7 +181,43 @@ export class MultiplayerService {
     return { damage, critical };
   }
 
-  async performAttack(userId: number, battleId: string) {
+  async useProduct(product: EProduct, attacker: BattleParticipantDto) {
+    const user = await this.userService.findOne(attacker.id);
+    const userProduct = user.products.find((p) => p.name === product);
+    if (!userProduct) {
+      throw new HttpException("Product not found", HttpStatus.NOT_FOUND);
+    }
+    if (userProduct.quantity <= 0) {
+      throw new HttpException("Product out of stock", HttpStatus.PRECONDITION_FAILED);
+    }
+
+    switch (product) {
+      case EProduct.HERB:
+        attacker.healthPoints += 10;
+        break;
+      case EProduct.PILL:
+        attacker.protection += 1;
+        break;
+      case EProduct.POWDER:
+        attacker.damage += 2;
+        break;
+      case EProduct.CRYSTAL:
+        attacker.criticalChance += 1;
+        break;
+      case EProduct.MUSHROOM:
+        attacker.evasion += 3;
+        break;
+      case EProduct.ACID:
+        attacker.accuracy += 10;
+        break;
+      default:
+        throw new HttpException("Product not found", HttpStatus.NOT_FOUND);
+    }
+
+    return attacker;
+  }
+
+  async performAttack(userId: number, battleId: string, params?: AttackDto): Promise<BattleDto> {
     const battleString = await this.redis.get(this.getBattleLockKey(battleId));
     if (!battleString) {
       throw new HttpException("Battle not found", HttpStatus.NOT_FOUND);
@@ -191,13 +229,21 @@ export class MultiplayerService {
       throw new HttpException("You are not the attacker", HttpStatus.FORBIDDEN);
     }
 
-    const attackerAttack = this.getAttackDamage(
-      attacker.damage,
-      attacker.accuracy,
-      attacker.criticalChance,
-      defender.protection,
-      defender.evasion,
-    );
+    let attackerAttack = { damage: 0, critical: false };
+
+    if (params?.product) {
+      const buffedAttacker = await this.useProduct(params.product, attacker);
+      battle.attacker = buffedAttacker;
+    } else {
+      attackerAttack = this.getAttackDamage(
+        attacker.damage,
+        attacker.accuracy,
+        attacker.criticalChance,
+        defender.protection,
+        defender.evasion,
+      );
+    }
+  
     const defenderAttack = this.getAttackDamage(
       defender.damage,
       defender.accuracy,
@@ -211,6 +257,7 @@ export class MultiplayerService {
       defenderDamage: defenderAttack.damage,
       attackerCritical: attackerAttack.critical,
       defenderCritical: defenderAttack.critical,
+      usedProduct: params?.product,
     };
     battle.round++;
     battle.attacker.healthPoints -= defenderAttack.damage;
@@ -219,17 +266,25 @@ export class MultiplayerService {
 
     if (battle.defender.healthPoints <= 0) {
       battle.winner = "attacker";
-    } else if (battle.attacker.healthPoints <= 0) {
-      battle.winner = "defender";
-    }
 
-    if (battle.winner) {
       this.mixpanel.track("Pvp", {
         distinct_id: userId,
         opponent_id: defender.id,
-        type: 'DeathMatch',
+        type: 'Raid',
         value: 'win',
       });
+    } else if (battle.attacker.healthPoints <= 0) {
+      battle.winner = "defender";
+
+      this.mixpanel.track("Pvp", {
+        distinct_id: userId,
+        opponent_id: defender.id,
+        type: 'Raid',
+        value: 'lost',
+      });
+    }
+
+    if (battle.winner) {
       battle = await this.updatePvpStats(battle);
       await Promise.all([
         this.redis.del(this.getBattleLockKey(battleId)),
@@ -238,12 +293,6 @@ export class MultiplayerService {
         this.redis.del(this.userService.getBotKey(battle.attacker.id)),
       ]);
     } else {
-      this.mixpanel.track("Pvp", {
-        distinct_id: userId,
-        opponent_id: defender.id,
-        type: 'DeathMatch',
-        value: 'lost',
-      });
       await this.redis.set(
         this.getBattleLockKey(battleId),
         JSON.stringify(battle),
@@ -299,7 +348,7 @@ export class MultiplayerService {
       this.mixpanel.track("Pvp", {
         distinct_id: userId,
         opponent_id: opponentId,
-        type: 'DeathMatch',
+        type: 'Raid',
         value: 'failed',
         condition: 'telegram',
       });
@@ -320,7 +369,7 @@ export class MultiplayerService {
       this.mixpanel.track("Pvp", {
         distinct_id: userId,
         opponent_id: opponentId,
-        type: 'DeathMatch',
+        type: 'Raid',
         value: 'failed',
         condition: 'maxAttack',
       });
@@ -334,7 +383,7 @@ export class MultiplayerService {
       this.mixpanel.track("Pvp", {
         distinct_id: userId,
         opponent_id: opponentId,
-        type: 'DeathMatch',
+        type: 'Raid',
         value: 'failed',
         condition: 'maxDefence',
       });
@@ -346,7 +395,7 @@ export class MultiplayerService {
     this.mixpanel.track("Pvp", {
       distinct_id: userId,
       opponent_id: opponentId,
-      type: 'DeathMatch',
+      type: 'Raid',
       value: 'start',
     });
     attacker.pvp.attacksToday++;

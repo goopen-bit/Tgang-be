@@ -2,7 +2,15 @@ import { Prop, Schema } from "@nestjs/mongoose";
 import { productUpgrades } from "../../upgrade/data/dealerUpgrades";
 import { EProduct } from "../../market/market.const";
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class UserProduct {
   @Prop({ required: true })
   name: EProduct;

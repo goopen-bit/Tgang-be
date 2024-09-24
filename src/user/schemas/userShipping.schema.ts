@@ -6,7 +6,15 @@ import { ShippingMethod } from "../../shipping/shipping.interface";
 import { Requirement } from "../../upgrade/upgrade.interface";
 import { setUserRequirements } from "../../upgrade/upgrade.util";
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class UserShipping {
   @Prop({ required: true })
   method: EShippingMethod;

@@ -1,8 +1,9 @@
-import { Controller, Post, Get, Param, ParseIntPipe } from "@nestjs/common";
+import { Controller, Post, Get, Param, ParseIntPipe, Body } from "@nestjs/common";
 import { MultiplayerService } from "./multiplayer.service";
 import { Auth } from "../decorators/auth.decorator";
 import { GetAuthToken } from "../decorators/get-auth-token.decorator";
 import { AuthTokenData } from "../config/types";
+import { AttackDto } from "./dto/attack.dto";
 
 @Auth()
 @Controller("multiplayer")
@@ -26,8 +27,9 @@ export class MultiplayerController {
   async attack(
     @GetAuthToken() user: AuthTokenData,
     @Param("battleId") battleId: string,
+    @Body() body: AttackDto,
   ) {
-    return this.multiplayerService.performAttack(user.id, battleId);
+    return this.multiplayerService.performAttack(user.id, battleId, body);
   }
 
   @Get("battle-results")

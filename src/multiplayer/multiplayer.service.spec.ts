@@ -11,7 +11,9 @@ import { faker } from "@faker-js/faker";
 import { appConfigImports } from '../config/app';
 import { BattleResult, BattleResultSchema } from "./schemas/battleResult.schema";
 import { SocialChannel } from "../social/social.const";
-import { BattleDto } from "./dto/battle.dto";
+import { BattleDto, BattleParticipantDto } from "./dto/battle.dto";
+import { EProduct } from "../market/market.const";
+import { PVP_BASE_ACCURACY, PVP_BASE_CRITICAL_HIT_CHANCE, PVP_BASE_DAMAGE, PVP_BASE_EVASION, PVP_BASE_HEALTH_POINTS, PVP_BASE_PROTECTION } from "../user/user.const";
 
 
 function createMockBattle(battle: Partial<BattleDto>): BattleDto {
@@ -256,6 +258,140 @@ describe("MultiplayerService", () => {
 
         expect(statSpy).toHaveBeenCalledTimes(1);
         expect(battle.winner).toBeDefined();
+      });
+
+      it("should use product to increase attack power", async () => {
+        await userModel.updateOne({
+          id: attacker.id,
+        }, {
+          $set: {
+            products: [{ name: EProduct.POWDER, quantity: 100, level: 2 }],
+          },
+        });
+
+        const battle = await service.startBattle(attacker.id, defender.id);
+        const result = await service.performAttack(attacker.id, battle.battleId, { product: EProduct.POWDER });
+        expect(result).toBeDefined();
+        expect(result.round).toBe(1);
+        expect(result.roundResults[0].usedProduct).toBe(EProduct.POWDER);
+        expect(result.attacker.damage).toBeGreaterThan(PVP_BASE_DAMAGE);
+      });
+    });
+
+    describe("useProduct", () => {
+      let attacker: BattleParticipantDto;
+      beforeEach(async () => {
+        const user = await userModel.create({
+          ...createMockUser({
+            username: "attacker",
+            cashAmount: 1000,
+            reputation: 10000,
+            socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
+            products: [{ name: EProduct.HERB, quantity: 100, level: 1 }],
+          }),
+        });
+
+        attacker = {
+          id: user.id,
+          username: user.username,
+          ...user.toObject().pvp,
+        };
+      });
+
+      it("should use product to increase attack power", async () => {
+        await userModel.updateOne({
+          id: attacker.id,
+        }, {
+          $set: {
+            products: [{ name: EProduct.POWDER, quantity: 100, level: 2 }],
+          },
+        });
+
+        const result = await service.useProduct(EProduct.POWDER, attacker);
+        expect(result).toBeDefined();
+        expect(result.damage).toBeGreaterThan(PVP_BASE_DAMAGE);
+      });
+
+      it("should use product to increase health points", async () => {
+        const result = await service.useProduct(EProduct.HERB, attacker);
+        expect(result).toBeDefined();
+        expect(result.healthPoints).toBeGreaterThan(PVP_BASE_HEALTH_POINTS);
+      });
+
+      it("should use product to increase protection", async () => {
+        await userModel.updateOne({
+          id: attacker.id,
+        }, {
+          $set: {
+            products: [{ name: EProduct.PILL, quantity: 100, level: 2 }],
+          },
+        });
+
+        const result = await service.useProduct(EProduct.PILL, attacker);
+        expect(result).toBeDefined();
+        expect(result.protection).toBeGreaterThan(PVP_BASE_PROTECTION);
+      });
+
+      it("should use product to increase evasion", async () => {
+        await userModel.updateOne({
+          id: attacker.id,
+        }, {
+          $set: {
+            products: [{ name: EProduct.MUSHROOM, quantity: 100, level: 2 }],
+          },
+        });
+
+        const result = await service.useProduct(EProduct.MUSHROOM, attacker);
+        expect(result).toBeDefined();
+        expect(result.evasion).toBeGreaterThan(PVP_BASE_EVASION);
+      });
+
+      it("should use product to increase critical chance", async () => {
+        await userModel.updateOne({
+          id: attacker.id,
+        }, {
+          $set: {
+            products: [{ name: EProduct.CRYSTAL, quantity: 100, level: 2 }],
+          },
+        });
+
+        const result = await service.useProduct(EProduct.CRYSTAL, attacker);
+        expect(result).toBeDefined();
+        expect(result.criticalChance).toBeGreaterThan(PVP_BASE_CRITICAL_HIT_CHANCE);
+      });
+
+      it("should use product to increase accuracy", async () => {
+        await userModel.updateOne({
+          id: attacker.id,
+        }, {
+          $set: {
+            products: [{ name: EProduct.ACID, quantity: 100, level: 2 }],
+          },
+        });
+
+        const result = await service.useProduct(EProduct.ACID, attacker);
+        expect(result).toBeDefined();
+        expect(result.accuracy).toBeGreaterThan(PVP_BASE_ACCURACY);
+      });
+
+      it("should not use product if the attacker does not have the product", async () => {
+        await expect(service.useProduct(EProduct.POWDER, attacker)).rejects.toThrow(
+          "Product not found",
+        );
+      });
+
+      it("should not use product if the attacker is out of stock", async () => {
+        await userModel.updateOne({
+          id: attacker.id,
+        }, {
+          $set: {
+            products: [{ name: EProduct.POWDER, quantity: 0, level: 2 }],
+          },
+        });
+
+        await expect(service.useProduct(EProduct.POWDER, attacker)).rejects.toThrow(
+          "Product out of stock",
+        );
       });
     });
 

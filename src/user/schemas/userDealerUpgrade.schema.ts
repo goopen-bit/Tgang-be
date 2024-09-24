@@ -4,7 +4,15 @@ import { DealerUpgrade, EDealerUpgrade, Requirement } from '../../upgrade/upgrad
 import { EProduct } from '../../market/market.const';
 import { setUserRequirements } from '../../upgrade/upgrade.util';
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class UserDealerUpgrade {
   @Prop({ required: true })
   upgrade: EDealerUpgrade;

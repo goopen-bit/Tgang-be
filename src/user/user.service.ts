@@ -14,7 +14,6 @@ import {
   PREMIUM_REFERRAL_CASH,
   PREMIUM_REFERRAL_REPUTATION,
   PVP_BASE_ACCURACY,
-  PVP_BASE_CRITICAL_HIT_CHANCE,
   PVP_BASE_DAMAGE,
   PVP_BASE_EVASION,
   PVP_BASE_HEALTH_POINTS,
@@ -36,7 +35,7 @@ import { faker } from "@faker-js/faker";
 import { BotUser } from "./user.interface";
 import { reputationLevels } from "./data/reputationLevel";
 import { UserPvp } from "./schemas/userPvp.schema";
-import { BOT_TIME_BASE } from "src/multiplayer/multiplayer.const";
+import { BOT_TIME_BASE } from "../multiplayer/multiplayer.const";
 
 @Injectable()
 export class UserService {

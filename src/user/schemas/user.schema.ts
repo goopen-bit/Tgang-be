@@ -17,7 +17,15 @@ import { SocialChannel } from "../../social/social.const";
 import { UserPvp } from "./userPvp.schema";
 import { DbCollections } from "../../config/types";
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class LabPlot {
   @Prop({ required: true })
   plotId: number;
@@ -26,7 +34,15 @@ export class LabPlot {
   lab?: UserLab;
 }
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class ReferredUsers {
   @Prop({ required: true })
   id: number;
@@ -38,7 +54,15 @@ export class ReferredUsers {
   reward: number;
 }
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class Social {
   @Prop({ required: true })
   channel: SocialChannel;

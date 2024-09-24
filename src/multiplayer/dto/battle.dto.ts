@@ -22,6 +22,9 @@ export class RoundResultDto {
 
   @IsBoolean()
   defenderCritical: boolean;
+
+  @IsEnum(EProduct)
+  usedProduct?: EProduct;
 }
 
 export class LootDto {

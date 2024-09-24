@@ -7,7 +7,15 @@ import { EProduct } from '../../market/market.const';
 import { labs } from '../../lab/data/labs';
 import { getUnixTime } from 'date-fns';
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class UserLab {
   @Prop({ required: true })
   product: EProduct;

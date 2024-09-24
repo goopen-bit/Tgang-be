@@ -62,12 +62,29 @@ export class UserService {
   ) {
     const existingUser = await this.userModel.findOne({ id: user.id });
     if (existingUser) {
+      let needsSave = false;
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      // Check and reset PVP attacks if necessary
+      if (existingUser.pvp && existingUser.pvp.lastAttackDate < today) {
+        existingUser.pvp.attacksToday = 0;
+        existingUser.pvp.lastAttackDate = today;
+        needsSave = true;
+      }
+
       if (existingUser.isPremium !== user.isPremium) {
         existingUser.isPremium = user.isPremium;
+        needsSave = true;
+      }
+
+      if (needsSave) {
         await existingUser.save();
       }
+
       return { user: existingUser, signup: false };
     }
+
     this.mixpanel.people.set(
       user.id.toString(),
       {

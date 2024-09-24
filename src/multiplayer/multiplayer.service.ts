@@ -6,9 +6,15 @@ import { BotUser } from "../user/user.interface";
 import { BattleResult } from "./schemas/battleResult.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { BASE_REPUTATION_GAIN, MAX_CASH_LOOT, MAX_PRODUCT_LOOT } from "./multiplayer.const";
+import {
+  BASE_REPUTATION_GAIN,
+  MAX_CASH_LOOT,
+  MAX_PRODUCT_LOOT,
+} from "./multiplayer.const";
 import { SocialChannel } from "../social/social.const";
 import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
+import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
+import { Mixpanel } from "mixpanel";
 import Redis from "ioredis";
 import {
   BattleDto,
@@ -30,6 +36,8 @@ export class MultiplayerService {
     private readonly userService: UserService,
 
     @InjectRedis() private readonly redis: Redis,
+
+    @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
   private async getDefendingPlayers() {
@@ -216,6 +224,12 @@ export class MultiplayerService {
     }
 
     if (battle.winner) {
+      this.mixpanel.track("Pvp", {
+        distinct_id: userId,
+        opponent_id: defender.id,
+        type: 'DeathMatch',
+        value: 'win',
+      });
       battle = await this.updatePvpStats(battle);
       await Promise.all([
         this.redis.del(this.getBattleLockKey(battleId)),
@@ -224,6 +238,12 @@ export class MultiplayerService {
         this.redis.del(this.userService.getBotKey(battle.attacker.id)),
       ]);
     } else {
+      this.mixpanel.track("Pvp", {
+        distinct_id: userId,
+        opponent_id: defender.id,
+        type: 'DeathMatch',
+        value: 'lost',
+      });
       await this.redis.set(
         this.getBattleLockKey(battleId),
         JSON.stringify(battle),
@@ -248,7 +268,10 @@ export class MultiplayerService {
       );
       if (existingBattleString) {
         const existingBattle: BattleDto = JSON.parse(existingBattleString);
-        const opponent = await this.userService.findDefender(existingBattle.defender.id, userId);
+        const opponent = await this.userService.findDefender(
+          existingBattle.defender.id,
+          userId,
+        );
         return {
           ...existingBattle,
           opponent: opponent,
@@ -273,6 +296,13 @@ export class MultiplayerService {
         (s) => s.channel === SocialChannel.TELEGRAM_CHANNEL,
       )
     ) {
+      this.mixpanel.track("Pvp", {
+        distinct_id: userId,
+        opponent_id: opponentId,
+        type: 'DeathMatch',
+        value: 'failed',
+        condition: 'telegram',
+      });
       throw new HttpException(
         "You must join our Telegram channel to participate in PvP",
         HttpStatus.PRECONDITION_REQUIRED,
@@ -287,6 +317,13 @@ export class MultiplayerService {
     }
 
     if (attacker.pvp.attacksToday >= attacker.pvp.attacksAvailable) {
+      this.mixpanel.track("Pvp", {
+        distinct_id: userId,
+        opponent_id: opponentId,
+        type: 'DeathMatch',
+        value: 'failed',
+        condition: 'maxAttack',
+      });
       throw new HttpException(
         "You have reached the maximum number of attacks for today",
         HttpStatus.PRECONDITION_FAILED,
@@ -294,12 +331,24 @@ export class MultiplayerService {
     }
 
     if (defender.pvp.lastDefendDate >= today) {
+      this.mixpanel.track("Pvp", {
+        distinct_id: userId,
+        opponent_id: opponentId,
+        type: 'DeathMatch',
+        value: 'failed',
+        condition: 'maxDefence',
+      });
       throw new HttpException(
         "This player has already been attacked today",
         HttpStatus.UNAUTHORIZED,
       );
     }
-
+    this.mixpanel.track("Pvp", {
+      distinct_id: userId,
+      opponent_id: opponentId,
+      type: 'DeathMatch',
+      value: 'start',
+    });
     attacker.pvp.attacksToday++;
     attacker.pvp.lastAttackDate = now;
     // We set the attacker as defeated, if he wins, we will update the stats

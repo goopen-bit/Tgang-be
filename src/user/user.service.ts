@@ -378,6 +378,17 @@ export class UserService {
           damage: PVP_BASE_DAMAGE,
           accuracy: PVP_BASE_ACCURACY,
           evasion: PVP_BASE_EVASION,
+          criticalChance: PVP_BASE_CRITICAL_HIT_CHANCE,
+        };
+      } else {
+        player.pvp = {
+          ...player.pvp,
+          healthPoints: player.pvp.healthPoints || PVP_BASE_HEALTH_POINTS,
+          protection: player.pvp.protection || PVP_BASE_PROTECTION,
+          damage: player.pvp.damage || PVP_BASE_DAMAGE,
+          accuracy: player.pvp.accuracy || PVP_BASE_ACCURACY,
+          evasion: player.pvp.evasion || PVP_BASE_EVASION,
+          criticalChance: player.pvp.criticalChance || PVP_BASE_CRITICAL_HIT_CHANCE,
         };
       }
     });

@@ -42,8 +42,13 @@ export class UpgradeService {
         level: 1,
       });
     } else {
+      if (p.nextUpgrade > new Date()) {
+        throw new HttpException("Upgrade not available yet", 400);
+      }
+
       price = p.upgradePrice;
       p.level += 1;
+      p.lastUpgrade = new Date();
     }
 
     if (user.cashAmount < price) {
@@ -74,8 +79,13 @@ export class UpgradeService {
         level: 1,
       });
     } else {
+      if (du.nextUpgrade > new Date()) {
+        throw new HttpException("Upgrade not available yet", 400);
+      }
+
       price = du.upgradePrice;
       du.level += 1;
+      du.lastUpgrade = new Date();
     }
 
     if (user.cashAmount < price) {

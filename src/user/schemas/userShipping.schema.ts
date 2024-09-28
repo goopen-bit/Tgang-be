@@ -5,6 +5,7 @@ import { EShippingMethod } from "../../shipping/shipping.const";
 import { ShippingMethod } from "../../shipping/shipping.interface";
 import { Requirement } from "../../upgrade/upgrade.interface";
 import { setUserRequirements } from "../../upgrade/upgrade.util";
+import { BASE_UPGRADE_TIME_SECONDS } from "../user.const";
 
 @Schema({ _id: false })
 export class UserShipping {
@@ -92,6 +93,24 @@ export class UserShipping {
   })
   upgradeCapacity?: number;
 
+  @Prop({ default: new Date(0) })
+  lastCapacityUpgrade?: Date;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const ship = shippingMethods[this.method] as ShippingMethod;
+      if (!ship.capacityUpgradeTimeMultiplier) {
+        return new Date(0);
+      }
+      const nextUpgrade =  Math.floor(
+        BASE_UPGRADE_TIME_SECONDS * Math.pow(this.capacityLevel, ship.capacityUpgradeTimeMultiplier),
+      );
+      return addSeconds(this.lastCapacityUpgrade, nextUpgrade);
+    },
+  })
+  nextCapacityUpgrade?: Date;
+
   @Prop({
     virtual: true,
     get: function () {
@@ -124,6 +143,25 @@ export class UserShipping {
     },
   })
   upgradeShippingTimePrice?: number;
+
+  @Prop({ default: new Date(0) })
+  lastShippingTimeUpgrade?: Date;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      const ship = shippingMethods[this.method] as ShippingMethod;
+      if (!ship.shippingTimeUpgradeTimeMultiplier) {
+        return new Date(0);
+      }
+      const nextUpgrade = Math.floor(
+        BASE_UPGRADE_TIME_SECONDS *
+          Math.pow(this.shippingTimeLevel, ship.shippingTimeUpgradeTimeMultiplier),
+      );
+      return addSeconds(this.lastShippingTimeUpgrade, nextUpgrade);
+    },
+  })
+  nextShippingTimeUpgrade?: Date;
 
   @Prop()
   lastShipment?: Date;

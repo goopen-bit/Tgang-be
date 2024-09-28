@@ -36,7 +36,7 @@ import { faker } from "@faker-js/faker";
 import { BotUser } from "./user.interface";
 import { reputationLevels } from "./data/reputationLevel";
 import { UserPvp } from "./schemas/userPvp.schema";
-import { BOT_TIME_BASE } from "src/multiplayer/multiplayer.const";
+import { BOT_TIME_BASE } from "../multiplayer/multiplayer.const";
 
 @Injectable()
 export class UserService {
@@ -313,8 +313,12 @@ export class UserService {
         products: products,
         userLevel: reputationLevels[Math.floor(Math.random() * 5)],
         pvp: {
-          victory: Math.floor(Math.random() * differenceInDays(new Date(), BOT_TIME_BASE)),
-          defeat: Math.floor(Math.random() * differenceInDays(new Date(), BOT_TIME_BASE)),
+          victory: Math.floor(
+            Math.random() * differenceInDays(new Date(), BOT_TIME_BASE),
+          ),
+          defeat: Math.floor(
+            Math.random() * differenceInDays(new Date(), BOT_TIME_BASE),
+          ),
           lastAttackDate: new Date(0),
           attacksToday: 0,
           lastDefendDate: new Date(0),
@@ -328,7 +332,12 @@ export class UserService {
       });
     }
 
-    await this.redis.set(this.getBotKey(userId), JSON.stringify(bots), "EX", 3600);
+    await this.redis.set(
+      this.getBotKey(userId),
+      JSON.stringify(bots),
+      "EX",
+      3600,
+    );
     return bots as BotUser[];
   }
 
@@ -388,7 +397,8 @@ export class UserService {
           damage: player.pvp.damage || PVP_BASE_DAMAGE,
           accuracy: player.pvp.accuracy || PVP_BASE_ACCURACY,
           evasion: player.pvp.evasion || PVP_BASE_EVASION,
-          criticalChance: player.pvp.criticalChance || PVP_BASE_CRITICAL_HIT_CHANCE,
+          criticalChance:
+            player.pvp.criticalChance || PVP_BASE_CRITICAL_HIT_CHANCE,
         };
       }
     });

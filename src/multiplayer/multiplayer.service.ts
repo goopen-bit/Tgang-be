@@ -227,8 +227,8 @@ export class MultiplayerService {
       this.mixpanel.track("Pvp", {
         distinct_id: userId,
         opponent_id: defender.id,
-        type: 'DeathMatch',
-        value: 'win',
+        type: "DeathMatch",
+        value: "win",
       });
       battle = await this.updatePvpStats(battle);
       await Promise.all([
@@ -241,8 +241,8 @@ export class MultiplayerService {
       this.mixpanel.track("Pvp", {
         distinct_id: userId,
         opponent_id: defender.id,
-        type: 'DeathMatch',
-        value: 'lost',
+        type: "DeathMatch",
+        value: "lost",
       });
       await this.redis.set(
         this.getBattleLockKey(battleId),
@@ -299,9 +299,9 @@ export class MultiplayerService {
       this.mixpanel.track("Pvp", {
         distinct_id: userId,
         opponent_id: opponentId,
-        type: 'DeathMatch',
-        value: 'failed',
-        condition: 'telegram',
+        type: "DeathMatch",
+        value: "failed",
+        condition: "telegram",
       });
       throw new HttpException(
         "You must join our Telegram channel to participate in PvP",
@@ -320,9 +320,9 @@ export class MultiplayerService {
       this.mixpanel.track("Pvp", {
         distinct_id: userId,
         opponent_id: opponentId,
-        type: 'DeathMatch',
-        value: 'failed',
-        condition: 'maxAttack',
+        type: "DeathMatch",
+        value: "failed",
+        condition: "maxAttack",
       });
       throw new HttpException(
         "You have reached the maximum number of attacks for today",
@@ -334,9 +334,9 @@ export class MultiplayerService {
       this.mixpanel.track("Pvp", {
         distinct_id: userId,
         opponent_id: opponentId,
-        type: 'DeathMatch',
-        value: 'failed',
-        condition: 'maxDefence',
+        type: "DeathMatch",
+        value: "failed",
+        condition: "maxDefence",
       });
       throw new HttpException(
         "This player has already been attacked today",
@@ -346,8 +346,8 @@ export class MultiplayerService {
     this.mixpanel.track("Pvp", {
       distinct_id: userId,
       opponent_id: opponentId,
-      type: 'DeathMatch',
-      value: 'start',
+      type: "DeathMatch",
+      value: "start",
     });
     attacker.pvp.attacksToday++;
     attacker.pvp.lastAttackDate = now;

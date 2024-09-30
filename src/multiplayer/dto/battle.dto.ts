@@ -1,13 +1,24 @@
-import { IsArray, IsBoolean, IsEnum, IsNumber, IsObject, IsString } from "class-validator";
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsObject,
+  IsString,
+} from "class-validator";
 import { EProduct } from "../../market/market.const";
 import { UserPvp } from "../../user/schemas/userPvp.schema";
+import { ECRAFTABLE_ITEM } from "../../lab/craftable_item.const";
 
-export class BattleParticipantDto extends UserPvp {
+export class BattleParticipantDto {
   @IsNumber()
   id: number;
 
   @IsString()
   username: string;
+
+  @IsObject()
+  pvp: UserPvp;
 }
 
 export class RoundResultDto {
@@ -23,8 +34,16 @@ export class RoundResultDto {
   @IsBoolean()
   defenderCritical: boolean;
 
-  @IsEnum(EProduct)
-  usedProduct?: EProduct;
+  @IsEnum(ECRAFTABLE_ITEM)
+  usedItem?: ECRAFTABLE_ITEM;
+}
+
+export class AttackItemEffect {
+  @IsObject()
+  player: BattleParticipantDto;
+
+  @IsNumber()
+  quantity: number;
 }
 
 export class LootDto {

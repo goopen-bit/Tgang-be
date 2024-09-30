@@ -24,8 +24,8 @@ import {
 } from "./dto/battle.dto";
 import { randomUUID } from "crypto";
 import { UserPvp } from "../user/schemas/userPvp.schema";
-import { AttackDto } from "./dto/attack.dto";
-import { EProduct } from "../market/market.const";
+import { CRAFTABLE_ITEMS, ECRAFTABLE_ITEM, PvpEffect } from "../lab/craftable_item.const";
+import { AttackDto } from './dto/attack.dto';
 
 @Injectable()
 export class MultiplayerService {
@@ -34,11 +34,8 @@ export class MultiplayerService {
   constructor(
     @InjectModel(BattleResult.name)
     private battleResultModel: Model<BattleResult>,
-
     private readonly userService: UserService,
-
     @InjectRedis() private readonly redis: Redis,
-
     @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
@@ -181,43 +178,57 @@ export class MultiplayerService {
     return { damage, critical };
   }
 
-  async useProduct(product: EProduct, attacker: BattleParticipantDto) {
-    const user = await this.userService.findOne(attacker.id);
-    const userProduct = user.products.find((p) => p.name === product);
-    if (!userProduct) {
-      throw new HttpException("Product not found", HttpStatus.NOT_FOUND);
-    }
-    if (userProduct.quantity <= 0) {
-      throw new HttpException("Product out of stock", HttpStatus.PRECONDITION_FAILED);
+
+  // TODO check if we lock the item before the fight maybe we don't fetch the user object
+  private async useCraftedItem(userId: number, itemId: ECRAFTABLE_ITEM, player: BattleParticipantDto) {
+    const user = await this.userService.findOne(userId);
+
+    const craftedItem = user.craftedItems.find(item => item.itemId === itemId);
+    if (!craftedItem || craftedItem.quantity <= 0) {
+      throw new HttpException("Item not found or out of stock", HttpStatus.BAD_REQUEST);
     }
 
-    switch (product) {
-      case EProduct.HERB:
-        attacker.healthPoints += 10;
-        break;
-      case EProduct.PILL:
-        attacker.protection += 1;
-        break;
-      case EProduct.POWDER:
-        attacker.damage += 2;
-        break;
-      case EProduct.CRYSTAL:
-        attacker.criticalChance += 1;
-        break;
-      case EProduct.MUSHROOM:
-        attacker.evasion += 3;
-        break;
-      case EProduct.ACID:
-        attacker.accuracy += 10;
-        break;
-      default:
-        throw new HttpException("Product not found", HttpStatus.NOT_FOUND);
+    const item = CRAFTABLE_ITEMS[itemId];
+    if (!item) {
+      throw new HttpException("Invalid item", HttpStatus.BAD_REQUEST);
     }
 
-    return attacker;
+    player.pvp.activeEffects.push({
+      itemId: item.itemId,
+      effect: item.pvpEffect,
+      remainingRounds: item.duration,
+    });
+
+    // Decrease item quantity
+    craftedItem.quantity--;
+    if (craftedItem.quantity === 0) {
+      user.craftedItems = user.craftedItems.filter(item => item.itemId !== itemId);
+    }
+    await user.save();
+
+    return player;
   }
 
-  async performAttack(userId: number, battleId: string, params?: AttackDto): Promise<BattleDto> {
+  private applyActiveEffects(player: BattleParticipantDto) {
+    for (const activeEffect of player.pvp.activeEffects) {
+      for (const [stat, value] of Object.entries(activeEffect.effect)) {
+        player.pvp[stat] += value;
+      }
+    }
+  }
+
+  private decreaseEffectDuration(player: BattleParticipantDto) {
+    player.pvp.activeEffects = player.pvp.activeEffects
+      .map(effect => ({ ...effect, remainingRounds: effect.remainingRounds - 1 }))
+      .filter(effect => effect.remainingRounds > 0);
+  }
+
+  private clearActiveEffects(player: BattleParticipantDto) {
+    player.pvp.activeEffects = [];
+  }
+
+
+  async performAttack(userId: number, battleId: string, body: AttackDto): Promise<BattleDto> {
     const battleString = await this.redis.get(this.getBattleLockKey(battleId));
     if (!battleString) {
       throw new HttpException("Battle not found", HttpStatus.NOT_FOUND);
@@ -229,27 +240,30 @@ export class MultiplayerService {
       throw new HttpException("You are not the attacker", HttpStatus.FORBIDDEN);
     }
 
+
+    if (body.itemId) {
+      await this.useCraftedItem(userId, body.itemId, attacker);
+    }
+
+    this.applyActiveEffects(attacker);
+    this.applyActiveEffects(defender);
+
     let attackerAttack = { damage: 0, critical: false };
 
-    if (params?.product) {
-      const buffedAttacker = await this.useProduct(params.product, attacker);
-      battle.attacker = buffedAttacker;
-    } else {
-      attackerAttack = this.getAttackDamage(
-        attacker.damage,
-        attacker.accuracy,
-        attacker.criticalChance,
-        defender.protection,
-        defender.evasion,
-      );
-    }
-  
+    attackerAttack = this.getAttackDamage(
+      attacker.pvp.damage,
+      attacker.pvp.accuracy,
+      attacker.pvp.criticalChance,
+      defender.pvp.protection,
+      defender.pvp.evasion,
+    );
+
     const defenderAttack = this.getAttackDamage(
-      defender.damage,
-      defender.accuracy,
-      defender.criticalChance,
-      attacker.protection,
-      attacker.evasion,
+      defender.pvp.damage,
+      defender.pvp.accuracy,
+      defender.pvp.criticalChance,
+      attacker.pvp.protection,
+      attacker.pvp.evasion,
     );
 
     const roundResult: RoundResultDto = {
@@ -257,14 +271,14 @@ export class MultiplayerService {
       defenderDamage: defenderAttack.damage,
       attackerCritical: attackerAttack.critical,
       defenderCritical: defenderAttack.critical,
-      usedProduct: params?.product,
+      usedItem: body.itemId,
     };
     battle.round++;
-    battle.attacker.healthPoints -= defenderAttack.damage;
-    battle.defender.healthPoints -= attackerAttack.damage;
+    battle.attacker.pvp.healthPoints -= defenderAttack.damage;
+    battle.defender.pvp.healthPoints -= attackerAttack.damage;
     battle.roundResults.push(roundResult);
 
-    if (battle.defender.healthPoints <= 0) {
+    if (battle.defender.pvp.healthPoints <= 0) {
       battle.winner = "attacker";
 
       this.mixpanel.track("Pvp", {
@@ -273,7 +287,7 @@ export class MultiplayerService {
         type: "DeathMatch",
         value: "win",
       });
-    } else if (battle.attacker.healthPoints <= 0) {
+    } else if (battle.attacker.pvp.healthPoints <= 0) {
       battle.winner = "defender";
 
       this.mixpanel.track("Pvp", {
@@ -284,7 +298,12 @@ export class MultiplayerService {
       });
     }
 
+    this.decreaseEffectDuration(attacker);
+    this.decreaseEffectDuration(defender);
+
     if (battle.winner) {
+      this.clearActiveEffects(attacker);
+      this.clearActiveEffects(defender);
       battle = await this.updatePvpStats(battle);
       await Promise.all([
         this.redis.del(this.getBattleLockKey(battleId)),
@@ -306,7 +325,6 @@ export class MultiplayerService {
         3600,
       );
     }
-
     return battle;
   }
 
@@ -416,12 +434,12 @@ export class MultiplayerService {
       attacker: {
         id: attacker.id,
         username: attacker.username,
-        ...this.extractPvpData(attacker.pvp),
+        pvp: attacker.pvp,
       },
       defender: {
         id: defender.id,
         username: defender.username,
-        ...this.extractPvpData(defender.pvp),
+        pvp: defender.pvp,
       },
       round: 0,
       roundResults: [],
@@ -449,34 +467,6 @@ export class MultiplayerService {
     ]);
 
     return battle;
-  }
-
-  private extractPvpData(pvp: UserPvp): Omit<UserPvp, keyof Document> {
-    const {
-      victory,
-      defeat,
-      lastAttackDate,
-      attacksToday,
-      lastDefendDate,
-      healthPoints,
-      protection,
-      damage,
-      accuracy,
-      evasion,
-    } = pvp;
-
-    return {
-      victory,
-      defeat,
-      lastAttackDate,
-      attacksToday,
-      lastDefendDate,
-      healthPoints,
-      protection,
-      damage,
-      accuracy,
-      evasion,
-    };
   }
 
   async getBattleResults(userId: number): Promise<BattleDto[]> {
@@ -515,6 +505,7 @@ export class MultiplayerService {
     return {
       id: attackerId,
       username,
-    } as BattleParticipantDto;
+      pvp: new UserPvp(), // You might want to initialize this with default values
+    };
   }
 }

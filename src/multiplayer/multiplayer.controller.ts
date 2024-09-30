@@ -24,10 +24,10 @@ export class MultiplayerController {
   }
 
   @Post("attack/:battleId")
-  async attack(
+  async performAttack(
     @GetAuthToken() user: AuthTokenData,
     @Param("battleId") battleId: string,
-    @Body() body: AttackDto,
+    @Body() body: AttackDto
   ) {
     return this.multiplayerService.performAttack(user.id, battleId, body);
   }

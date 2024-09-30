@@ -1,7 +1,8 @@
-import { IsEnum } from "class-validator";
-import { EProduct } from "../../market/market.const";
+import { IsEnum, IsOptional } from "class-validator";
+import { ECRAFTABLE_ITEM } from "../../lab/craftable_item.const";
 
 export class AttackDto {
-  @IsEnum(EProduct)
-  product?: EProduct;
+  @IsEnum(ECRAFTABLE_ITEM)
+  @IsOptional()
+  itemId?: ECRAFTABLE_ITEM;
 }

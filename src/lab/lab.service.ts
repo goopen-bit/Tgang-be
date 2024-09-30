@@ -8,6 +8,8 @@ import { Mixpanel } from "mixpanel";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
 import Redis from "ioredis";
+import { CraftItemDto } from "./dto/craft-item.dto";
+import { ECRAFTABLE_ITEM, CraftableItem, CRAFTABLE_ITEMS } from './craftable_item.const';
 
 @Injectable()
 export class LabService {
@@ -171,5 +173,46 @@ export class LabService {
       production,
     });
     return user;
+  }
+
+  async craftItem(userId: number, itemId: ECRAFTABLE_ITEM, quantity: number = 1) {
+    const user = await this.userService.findOne(userId);
+    const craftableItem = this.getCraftableItem(itemId);
+
+    for (const [product, requiredAmount] of Object.entries(craftableItem.requirements)) {
+      const userProduct = user.products.find(p => p.name === product);
+      if (!userProduct || userProduct.quantity < requiredAmount * quantity) {
+        throw new HttpException(`Not enough ${product}`, HttpStatus.BAD_REQUEST);
+      }
+    }
+
+    for (const [product, requiredAmount] of Object.entries(craftableItem.requirements)) {
+      const userProduct = user.products.find(p => p.name === product);
+      userProduct.quantity -= requiredAmount * quantity;
+    }
+
+    const existingCraftedItem = user.craftedItems.find(item => item.itemId === itemId);
+    if (existingCraftedItem) {
+      existingCraftedItem.quantity += quantity;
+    } else {
+      user.craftedItems.push({ itemId, quantity });
+    }
+    await user.save();
+
+    this.mixpanel.track("Item Crafted", {
+      distinct_id: user.id,
+      item: itemId,
+      quantity: quantity,
+    });
+
+    return user;
+  }
+
+  private getCraftableItem(itemId: ECRAFTABLE_ITEM): CraftableItem {
+    const craftableItem = CRAFTABLE_ITEMS[itemId];
+    if (!craftableItem) {
+      throw new HttpException("Invalid craftable item", HttpStatus.BAD_REQUEST);
+    }
+    return craftableItem;
   }
 }

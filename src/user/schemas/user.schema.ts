@@ -16,6 +16,7 @@ import { IReputationLevel } from "../user.interface";
 import { SocialChannel } from "../../social/social.const";
 import { UserPvp } from "./userPvp.schema";
 import { DbCollections } from "../../config/types";
+import { ECRAFTABLE_ITEM } from "../../lab/craftable_item.const";
 
 @Schema({
   _id: false,
@@ -32,6 +33,23 @@ export class LabPlot {
 
   @Prop({ type: UserLab, required: false })
   lab?: UserLab;
+}
+
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
+export class CraftedItem {
+  @Prop({ type: String, enum: ECRAFTABLE_ITEM, required: true })
+  itemId: ECRAFTABLE_ITEM;
+
+  @Prop({ required: true, min: 0 })
+  quantity: number;
 }
 
 @Schema({
@@ -207,6 +225,9 @@ export class User extends Document {
 
   @Prop({ type: UserPvp, default: () => new UserPvp() })
   pvp?: UserPvp;
+
+  @Prop({ type: [CraftedItem], default: [] })
+  craftedItems: CraftedItem[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

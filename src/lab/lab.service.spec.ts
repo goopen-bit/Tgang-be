@@ -10,6 +10,7 @@ import { EProduct } from "../market/market.const";
 import { subHours } from "date-fns";
 import { mockTokenData } from "../../test/utils/user";
 import { appConfigImports } from '../config/app';
+import { ECRAFTABLE_ITEM } from './craftable_item.const';
 
 describe("LabService", () => {
   let module: TestingModule;
@@ -222,6 +223,55 @@ describe("LabService", () => {
         (p) => p.name === EProduct.HERB
       );
       expect(product.quantity).toBe(160);
+    });
+  });
+
+  describe("craftItem", () => {
+    let user: AuthTokenData;
+    beforeEach(async () => {
+      user = mockTokenData();
+      const { user: u } = await userService.findOneOrCreate(user, faker.internet.ip());
+      u.products = [
+        {
+          name: EProduct.HERB, quantity: 10,
+          level: 0
+        },
+        {
+          name: EProduct.MUSHROOM, quantity: 10,
+          level: 0
+        },
+      ];
+      await u.save();
+    });
+
+    it("should craft an item", async () => {
+      await service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, 2);
+      const updatedUser = await userService.findOne(user.id);
+      
+      const craftedItem = updatedUser.craftedItems.find(item => item.itemId === ECRAFTABLE_ITEM.BOOSTER_ATTACK_2);
+      expect(craftedItem).toBeDefined();
+      expect(craftedItem.quantity).toBe(2);
+
+      const herb = updatedUser.products.find(p => p.name === EProduct.HERB);
+      expect(herb.quantity).toBe(6); // 10 - (2 * 2)
+
+      const mushroom = updatedUser.products.find(p => p.name === EProduct.MUSHROOM);
+      expect(mushroom.quantity).toBe(8); // 10 - (1 * 2)
+    });
+
+    it("should stack crafted items", async () => {
+      await service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, 1);
+      await service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, 2);
+
+      const updatedUser = await userService.findOne(user.id);
+      const craftedItem = updatedUser.craftedItems.find(item => item.itemId === ECRAFTABLE_ITEM.BOOSTER_ATTACK_2);
+      expect(craftedItem.quantity).toBe(3);
+    });
+
+    it("should throw error if not enough resources", async () => {
+      await expect(service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, 10)).rejects.toThrow(
+        "Not enough Herb"
+      );
     });
   });
 

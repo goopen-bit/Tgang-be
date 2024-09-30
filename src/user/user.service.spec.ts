@@ -9,8 +9,16 @@ import { EProduct } from "../market/market.const";
 import { upgradesData } from "../upgrade/data/upgrades";
 import { STARTING_CASH } from "./user.const";
 import { subDays, subHours } from "date-fns";
-import { appConfigImports } from '../config/app';
-import { UniqueEnforcer } from 'enforce-unique';
+import { appConfigImports } from "../config/app";
+import { UniqueEnforcer } from "enforce-unique";
+import {
+  PVP_BASE_HEALTH_POINTS,
+  PVP_BASE_PROTECTION,
+  PVP_BASE_DAMAGE,
+  PVP_BASE_ACCURACY,
+  PVP_BASE_EVASION,
+  PVP_BASE_CRITICAL_HIT_CHANCE,
+} from "./user.const";
 
 const uniqueEnforcerUserId = new UniqueEnforcer();
 
@@ -209,6 +217,74 @@ describe("UserService", () => {
             player.pvp.lastDefendDate < new Date().setHours(0, 0, 0, 0),
         ),
       ).toBe(true);
+    });
+
+    it("should return player with all PvP fields", async () => {
+      const yesterday = subDays(new Date(), 1);
+
+      const users = [
+        createMockUser({
+          username: "player1",
+          cashAmount: 1000,
+          reputation: 10001,
+          pvp: { lastDefendDate: yesterday },
+        }),
+        createMockUser({
+          username: "player2",
+          cashAmount: 2000,
+          reputation: 10000,
+        }),
+      ];
+
+      for (const user of users) {
+        const userId = faker.number.int({ min: 1000 });
+        uids.push(userId);
+        await userModel.create({
+          ...user,
+          id: userId,
+        });
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const result = await service.findPvpPlayers(today, 666, []);
+      expect(result).toHaveLength(1);
+
+      expect(result[0]).toHaveProperty("userLevel");
+      expect(result[0].pvp).toBeDefined();
+      expect(result[0].pvp).toMatchObject({
+        victory: expect.any(Number),
+        defeat: expect.any(Number),
+        lastAttackDate: expect.any(Date),
+        attacksToday: expect.any(Number),
+        lastDefendDate: expect.any(Date),
+        healthPoints: expect.any(Number),
+        protection: expect.any(Number),
+        damage: expect.any(Number),
+        accuracy: expect.any(Number),
+        evasion: expect.any(Number),
+        criticalChance: expect.any(Number),
+      });
+
+      // Check that default values are used when fields are missing
+      if (!result[0].pvp.healthPoints) {
+        expect(result[0].pvp.healthPoints).toBe(PVP_BASE_HEALTH_POINTS);
+      }
+      if (!result[0].pvp.protection) {
+        expect(result[0].pvp.protection).toBe(PVP_BASE_PROTECTION);
+      }
+      if (!result[0].pvp.damage) {
+        expect(result[0].pvp.damage).toBe(PVP_BASE_DAMAGE);
+      }
+      if (!result[0].pvp.accuracy) {
+        expect(result[0].pvp.accuracy).toBe(PVP_BASE_ACCURACY);
+      }
+      if (!result[0].pvp.evasion) {
+        expect(result[0].pvp.evasion).toBe(PVP_BASE_EVASION);
+      }
+      if (!result[0].pvp.criticalChance) {
+        expect(result[0].pvp.criticalChance).toBe(PVP_BASE_CRITICAL_HIT_CHANCE);
+      }
     });
   });
 

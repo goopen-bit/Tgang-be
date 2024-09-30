@@ -312,8 +312,12 @@ export class UserService {
         products: products,
         userLevel: reputationLevels[Math.floor(Math.random() * 5)],
         pvp: {
-          victory: Math.floor(Math.random() * differenceInDays(new Date(), BOT_TIME_BASE)),
-          defeat: Math.floor(Math.random() * differenceInDays(new Date(), BOT_TIME_BASE)),
+          victory: Math.floor(
+            Math.random() * differenceInDays(new Date(), BOT_TIME_BASE),
+          ),
+          defeat: Math.floor(
+            Math.random() * differenceInDays(new Date(), BOT_TIME_BASE),
+          ),
           lastAttackDate: new Date(0),
           attacksToday: 0,
           lastDefendDate: new Date(0),
@@ -327,7 +331,12 @@ export class UserService {
       });
     }
 
-    await this.redis.set(this.getBotKey(userId), JSON.stringify(bots), "EX", 3600);
+    await this.redis.set(
+      this.getBotKey(userId),
+      JSON.stringify(bots),
+      "EX",
+      3600,
+    );
     return bots as BotUser[];
   }
 
@@ -377,6 +386,18 @@ export class UserService {
           damage: PVP_BASE_DAMAGE,
           accuracy: PVP_BASE_ACCURACY,
           evasion: PVP_BASE_EVASION,
+          criticalChance: PVP_BASE_CRITICAL_HIT_CHANCE,
+        };
+      } else {
+        player.pvp = {
+          ...player.pvp,
+          healthPoints: player.pvp.healthPoints || PVP_BASE_HEALTH_POINTS,
+          protection: player.pvp.protection || PVP_BASE_PROTECTION,
+          damage: player.pvp.damage || PVP_BASE_DAMAGE,
+          accuracy: player.pvp.accuracy || PVP_BASE_ACCURACY,
+          evasion: player.pvp.evasion || PVP_BASE_EVASION,
+          criticalChance:
+            player.pvp.criticalChance || PVP_BASE_CRITICAL_HIT_CHANCE,
         };
       }
     });

@@ -300,13 +300,15 @@ describe("UserService", () => {
         {
           id: EAchievement.OG,
           name: "OG Achievement",
-          description: "Reached level 4 and invited at least 1 user",
+          requirements: "Reached level 4 and invited at least 1 user",
+          description: "unlock exclusive rewardr",
           checkRequirement: jest.fn().mockReturnValue(true),
           timeLimit: new Date("2024-10-31T23:59:59Z"),
+          image: "mock.png",
         },
       ];
-      Object.defineProperty(service, 'achievements', {
-        get: () => mockAchievements
+      Object.defineProperty(service, "achievements", {
+        get: () => mockAchievements,
       });
     });
 
@@ -332,8 +334,11 @@ describe("UserService", () => {
       mockAchievements[0].checkRequirement = jest.fn().mockReturnValue(false);
       mockAchievements[0].timeLimit = addDays(new Date(), 1);
 
-      const result = await service.unlockAchievement(user.id, achievementId);
-      expect(result.achievements[achievementId]).toBeUndefined();
+      await expect(
+        service.unlockAchievement(user.id, achievementId),
+      ).rejects.toThrow(
+        new HttpException("Requirements not reached", HttpStatus.BAD_REQUEST),
+      );
     });
 
     it("should not unlock an achievement that is already unlocked", async () => {
@@ -397,7 +402,8 @@ describe("UserService", () => {
       const ogAchievement = achievements.find((a) => a.id === EAchievement.OG);
       expect(ogAchievement).toBeDefined();
       expect(ogAchievement.name).toBe("OG Achievement");
-      expect(ogAchievement.description).toBe(
+      expect(ogAchievement.description).toBe("Unlock Game Content");
+      expect(ogAchievement.requirements).toBe(
         "Reached level 4 and invited at least 1 user",
       );
     });

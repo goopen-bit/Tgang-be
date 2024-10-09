@@ -426,11 +426,16 @@ export class UserService {
   }
 
   getAllAchievements(): AchievementResponse[] {
-    return this.achievements.map(({ id, name, description }) => ({
-      id,
-      name,
-      description,
-    }));
+    return this.achievements.map(
+      ({ id, name, description, requirements, image, timeLimit }) => ({
+        id,
+        name,
+        description,
+        requirements,
+        image,
+        timeLimit,
+      }),
+    );
   }
 
   async unlockAchievement(
@@ -442,16 +447,20 @@ export class UserService {
     if (!achievement) {
       throw new NotFoundException("Achievement not found");
     }
-    
+
     const now = new Date();
     if (achievement.timeLimit && now > achievement.timeLimit) {
-      throw new HttpException("Achievement time limit has passed", HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        "Achievement time limit has passed",
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     if (
-      achievement.checkRequirement(user) &&
-      !user.achievements[achievementId]
+      achievement.checkRequirement(user)
     ) {
+      if (user.achievements[achievementId])
+        return user;
       user.achievements[achievementId] = true;
       await user.save();
 
@@ -459,8 +468,8 @@ export class UserService {
         distinct_id: user.id.toString(),
         achievement: achievement.name,
       });
+      return user;
     }
-
-    return user;
+    throw new NotFoundException("Requirements not reached");
   }
 }

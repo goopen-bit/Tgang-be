@@ -9,6 +9,8 @@ export interface Achievement {
   id: EAchievement;
   name: string;
   description: string;
+  requirements: string;
+  image: string;
   checkRequirement: (user: User) => boolean;
   timeLimit?: Date;
 }
@@ -17,7 +19,9 @@ export const achievements: Achievement[] = [
   {
     id: EAchievement.OG,
     name: "OG Achievement",
-    description: "Reached level 4 and invited at least 1 user",
+    description: "Unlock Game Content",
+    requirements: "Reached level 4 and invited at least 1 user",
+    image: "/assets/social/achievement_og.png",
     checkRequirement: (user) => {
       const userLevel = reputationLevels.find(
         (level) =>
@@ -26,7 +30,7 @@ export const achievements: Achievement[] = [
       );
       return userLevel.level >= 4 && user.referredUsers.length >= 1;
     },
-    timeLimit: new Date("2024-10-31T23:59:59Z"),
+    timeLimit: new Date("2024-10-19T23:59:59Z"),
   },
 ];
 

@@ -37,6 +37,12 @@ import { BotUser } from "./user.interface";
 import { reputationLevels } from "./data/reputationLevel";
 import { UserPvp } from "./schemas/userPvp.schema";
 import { BOT_TIME_BASE } from "../multiplayer/multiplayer.const";
+import {
+  achievements,
+  EAchievement,
+  Achievement,
+  AchievementResponse,
+} from "./data/achievements";
 
 @Injectable()
 export class UserService {
@@ -412,5 +418,38 @@ export class UserService {
     }
 
     return players;
+  }
+
+  getAllAchievements(): AchievementResponse[] {
+    return achievements.map(({ id, name, description }) => ({
+      id,
+      name,
+      description,
+    }));
+  }
+
+  async unlockAchievement(
+    userId: number,
+    achievementId: EAchievement,
+  ): Promise<User> {
+    const user = await this.findOne(userId);
+    const achievement = achievements.find((a) => a.id === achievementId);
+    if (!achievement) {
+      throw new NotFoundException("Achievement not found");
+    }
+    if (
+      achievement.checkRequirement(user) &&
+      !user.achievements[achievementId]
+    ) {
+      user.achievements[achievementId] = true;
+      await user.save();
+
+      this.mixpanel.track("Achievement Unlocked", {
+        distinct_id: user.id.toString(),
+        achievement: achievement.name,
+      });
+    }
+
+    return user;
   }
 }

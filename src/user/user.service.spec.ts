@@ -19,6 +19,8 @@ import {
   PVP_BASE_EVASION,
   PVP_BASE_CRITICAL_HIT_CHANCE,
 } from "./user.const";
+import { EAchievement } from "./data/achievements";
+import { Achievement } from "./data/achievements";
 
 const uniqueEnforcerUserId = new UniqueEnforcer();
 
@@ -285,6 +287,86 @@ describe("UserService", () => {
       if (!result[0].pvp.criticalChance) {
         expect(result[0].pvp.criticalChance).toBe(PVP_BASE_CRITICAL_HIT_CHANCE);
       }
+    });
+  });
+
+  describe("unlockAchievement", () => {
+    let user: User;
+
+    beforeEach(async () => {
+      user = await userModel.create(createMockUser());
+    });
+
+    afterEach(async () => {
+      await userModel.deleteOne({ id: user.id });
+    });
+
+    it("should unlock OG achievement for a user", async () => {
+      const achievementId = EAchievement.OG;
+      user.reputation = 20001;
+      user.referredUsers = [{ id: 123, username: "referredUser", reward: 100 }];
+      await user.save();
+
+      const result = await service.unlockAchievement(user.id, achievementId);
+      expect(result.achievements[achievementId]).toBe(true);
+    });
+
+    it("should not unlock an achievement if requirements are not met", async () => {
+      const achievementId = EAchievement.OG;
+      user.reputation = 100;
+      user.referredUsers = [];
+      await user.save();
+      const result = await service.unlockAchievement(user.id, achievementId);
+      expect(result.achievements[achievementId]).toBeUndefined();
+    });
+
+    it("should not unlock an achievement that is already unlocked", async () => {
+      const achievementId = EAchievement.OG;
+
+      user.reputation = 20001;
+      user.referredUsers = [{ id: 123, username: "referredUser", reward: 100 }];
+      user.achievements = { [achievementId]: true };
+      await user.save();
+
+      const saveSpy = jest.spyOn(userModel.prototype, "save");
+
+      const result = await service.unlockAchievement(user.id, achievementId);
+
+      expect(result.achievements[achievementId]).toBe(true);
+      expect(saveSpy).not.toHaveBeenCalled();
+
+      const updatedUser = await userModel.findOne({ id: user.id });
+      expect(updatedUser.achievements[achievementId]).toBe(true);
+    });
+
+    it("should throw an error for non-existent achievement", async () => {
+      const nonExistentAchievementId = 999 as EAchievement;
+      await expect(
+        service.unlockAchievement(user.id, nonExistentAchievementId),
+      ).rejects.toThrow("Achievement not found");
+    });
+  });
+
+  describe("getAllAchievements", () => {
+    it("should return all achievements", () => {
+      const achievements = service.getAllAchievements();
+
+      expect(Array.isArray(achievements)).toBe(true);
+      expect(achievements.length).toBeGreaterThan(0);
+
+      achievements.forEach((achievement) => {
+        expect(achievement).toHaveProperty("id");
+        expect(achievement).toHaveProperty("name");
+        expect(achievement).toHaveProperty("description");
+        expect(achievement).not.toHaveProperty("checkRequirement");
+      });
+
+      const ogAchievement = achievements.find((a) => a.id === EAchievement.OG);
+      expect(ogAchievement).toBeDefined();
+      expect(ogAchievement.name).toBe("OG Achievement");
+      expect(ogAchievement.description).toBe(
+        "Reached level 4 and invited at least 1 user",
+      );
     });
   });
 

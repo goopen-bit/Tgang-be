@@ -1,10 +1,19 @@
-import { Body, Controller, Get, Post, UseInterceptors } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UseInterceptors,
+} from "@nestjs/common";
 import { UserService } from "./user.service";
 import { Auth } from "../decorators/auth.decorator";
 import { AuthTokenData } from "../config/types";
 import { GetAuthToken } from "../decorators/get-auth-token.decorator";
 import { setWalletDto } from "./dto/set-wallet.dto";
 import { CacheInterceptor, CacheTTL } from "@nestjs/cache-manager";
+import { AchievementResponse, EAchievement } from "./data/achievements";
+import { Achievement } from "./data/achievements";
 
 @Auth()
 @Controller("users")
@@ -33,5 +42,18 @@ export class UserController {
     return this.userService.update(user.id, {
       wallet: body.tonWalletAddress,
     });
+  }
+
+  @Get("/achievements")
+  getAllAchievements(): AchievementResponse[] {
+    return this.userService.getAllAchievements();
+  }
+
+  @Get("/unlock-achievement/:achievementId")
+  unlockAchievement(
+    @GetAuthToken() user: AuthTokenData,
+    @Param("achievementId") achievementId: EAchievement,
+  ) {
+    return this.userService.unlockAchievement(user.id, achievementId);
   }
 }

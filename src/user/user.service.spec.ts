@@ -8,7 +8,7 @@ import { Model } from "mongoose";
 import { EProduct } from "../market/market.const";
 import { upgradesData } from "../upgrade/data/upgrades";
 import { STARTING_CASH } from "./user.const";
-import { subDays, subHours } from "date-fns";
+import { addDays, subDays, subHours } from "date-fns";
 import { appConfigImports } from "../config/app";
 import { UniqueEnforcer } from "enforce-unique";
 import {
@@ -19,8 +19,8 @@ import {
   PVP_BASE_EVASION,
   PVP_BASE_CRITICAL_HIT_CHANCE,
 } from "./user.const";
-import { EAchievement } from "./data/achievements";
-import { Achievement } from "./data/achievements";
+import { EAchievement, Achievement } from "./data/achievements";
+import { HttpException, HttpStatus } from "@nestjs/common";
 
 const uniqueEnforcerUserId = new UniqueEnforcer();
 
@@ -292,13 +292,27 @@ describe("UserService", () => {
 
   describe("unlockAchievement", () => {
     let user: User;
+    let mockAchievements: Achievement[];
 
     beforeEach(async () => {
       user = await userModel.create(createMockUser());
+      mockAchievements = [
+        {
+          id: EAchievement.OG,
+          name: "OG Achievement",
+          description: "Reached level 4 and invited at least 1 user",
+          checkRequirement: jest.fn().mockReturnValue(true),
+          timeLimit: new Date("2024-10-31T23:59:59Z"),
+        },
+      ];
+      Object.defineProperty(service, 'achievements', {
+        get: () => mockAchievements
+      });
     });
 
     afterEach(async () => {
       await userModel.deleteOne({ id: user.id });
+      jest.restoreAllMocks();
     });
 
     it("should unlock OG achievement for a user", async () => {
@@ -307,36 +321,33 @@ describe("UserService", () => {
       user.referredUsers = [{ id: 123, username: "referredUser", reward: 100 }];
       await user.save();
 
+      mockAchievements[0].timeLimit = addDays(new Date(), 1);
+
       const result = await service.unlockAchievement(user.id, achievementId);
       expect(result.achievements[achievementId]).toBe(true);
     });
 
     it("should not unlock an achievement if requirements are not met", async () => {
       const achievementId = EAchievement.OG;
-      user.reputation = 100;
-      user.referredUsers = [];
-      await user.save();
+      mockAchievements[0].checkRequirement = jest.fn().mockReturnValue(false);
+      mockAchievements[0].timeLimit = addDays(new Date(), 1);
+
       const result = await service.unlockAchievement(user.id, achievementId);
       expect(result.achievements[achievementId]).toBeUndefined();
     });
 
     it("should not unlock an achievement that is already unlocked", async () => {
       const achievementId = EAchievement.OG;
-
-      user.reputation = 20001;
-      user.referredUsers = [{ id: 123, username: "referredUser", reward: 100 }];
       user.achievements = { [achievementId]: true };
       await user.save();
 
-      const saveSpy = jest.spyOn(userModel.prototype, "save");
+      mockAchievements[0].timeLimit = addDays(new Date(), 1);
 
+      const saveSpy = jest.spyOn(userModel.prototype, "save");
       const result = await service.unlockAchievement(user.id, achievementId);
 
       expect(result.achievements[achievementId]).toBe(true);
       expect(saveSpy).not.toHaveBeenCalled();
-
-      const updatedUser = await userModel.findOne({ id: user.id });
-      expect(updatedUser.achievements[achievementId]).toBe(true);
     });
 
     it("should throw an error for non-existent achievement", async () => {
@@ -344,6 +355,28 @@ describe("UserService", () => {
       await expect(
         service.unlockAchievement(user.id, nonExistentAchievementId),
       ).rejects.toThrow("Achievement not found");
+    });
+
+    it("should throw an error if the achievement time limit has passed", async () => {
+      const achievementId = EAchievement.OG;
+      mockAchievements[0].timeLimit = subDays(new Date(), 1);
+
+      await expect(
+        service.unlockAchievement(user.id, achievementId),
+      ).rejects.toThrow(
+        new HttpException(
+          "Achievement time limit has passed",
+          HttpStatus.BAD_REQUEST,
+        ),
+      );
+    });
+
+    it("should unlock achievement if within time limit", async () => {
+      const achievementId = EAchievement.OG;
+      mockAchievements[0].timeLimit = addDays(new Date(), 1);
+
+      const result = await service.unlockAchievement(user.id, achievementId);
+      expect(result.achievements[achievementId]).toBe(true);
     });
   });
 

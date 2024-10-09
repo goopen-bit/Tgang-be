@@ -10,6 +10,7 @@ export interface Achievement {
   name: string;
   description: string;
   checkRequirement: (user: User) => boolean;
+  timeLimit?: Date;
 }
 
 export const achievements: Achievement[] = [
@@ -25,6 +26,8 @@ export const achievements: Achievement[] = [
       );
       return userLevel.level >= 4 && user.referredUsers.length >= 1;
     },
+    timeLimit: new Date("2024-10-31T23:59:59Z"),
   },
 ];
+
 export type AchievementResponse = Omit<Achievement, "checkRequirement">;

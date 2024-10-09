@@ -38,7 +38,7 @@ import { reputationLevels } from "./data/reputationLevel";
 import { UserPvp } from "./schemas/userPvp.schema";
 import { BOT_TIME_BASE } from "../multiplayer/multiplayer.const";
 import {
-  achievements,
+  achievements as importedAchievements,
   EAchievement,
   Achievement,
   AchievementResponse,
@@ -47,6 +47,11 @@ import {
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(this.constructor.name);
+  private _achievements: Achievement[] = importedAchievements;
+
+  get achievements(): Achievement[] {
+    return this._achievements;
+  }
 
   constructor(
     @InjectModel(User.name)
@@ -421,7 +426,7 @@ export class UserService {
   }
 
   getAllAchievements(): AchievementResponse[] {
-    return achievements.map(({ id, name, description }) => ({
+    return this.achievements.map(({ id, name, description }) => ({
       id,
       name,
       description,
@@ -433,10 +438,16 @@ export class UserService {
     achievementId: EAchievement,
   ): Promise<User> {
     const user = await this.findOne(userId);
-    const achievement = achievements.find((a) => a.id === achievementId);
+    const achievement = this.achievements.find((a) => a.id === achievementId);
     if (!achievement) {
       throw new NotFoundException("Achievement not found");
     }
+    
+    const now = new Date();
+    if (achievement.timeLimit && now > achievement.timeLimit) {
+      throw new HttpException("Achievement time limit has passed", HttpStatus.BAD_REQUEST);
+    }
+
     if (
       achievement.checkRequirement(user) &&
       !user.achievements[achievementId]

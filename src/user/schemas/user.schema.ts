@@ -16,6 +16,13 @@ import { IReputationLevel } from "../user.interface";
 import { SocialChannel } from "../../social/social.const";
 import { UserPvp } from "./userPvp.schema";
 import { DbCollections } from "../../config/types";
+import { EAchievement } from "../data/achievements";
+
+@Schema({ _id: false })
+export class UserAchievements {
+  @Prop({ type: Object, default: {} })
+  achievements: { [key in EAchievement]?: boolean };
+}
 
 @Schema({ _id: false })
 export class LabPlot {
@@ -79,7 +86,7 @@ export class User extends Document {
       return reputationLevels.find(
         (level) =>
           this.reputation >= level.minReputation &&
-          this.reputation <= level.maxReputation
+          this.reputation <= level.maxReputation,
       );
     },
   })
@@ -105,7 +112,7 @@ export class User extends Document {
     get: function () {
       return Math.floor(
         Math.pow(this.labPlots.length + 1, LAB_PLOT_PRICE_MULTIPLIER) *
-          BASE_LAB_PLOT_PRICE
+          BASE_LAB_PLOT_PRICE,
       );
     },
   })
@@ -118,7 +125,7 @@ export class User extends Document {
     virtual: true,
     get: function () {
       const socialMediaCampaign = this.dealerUpgrades.find(
-        (u) => u.upgrade === EDealerUpgrade.SOCIAL_MEDIA_CAMPAGIN
+        (u) => u.upgrade === EDealerUpgrade.SOCIAL_MEDIA_CAMPAGIN,
       );
       // const streetPromotionTeam = this.dealerUpgrades.find(
       //   (u) => u.product === EDealerUpgrade.STREET_PROMOTION_TEAM
@@ -128,10 +135,9 @@ export class User extends Document {
       // );
 
       const customerAmountMax =
-        BASE_CUSTOMER_LIMIT +
-        (socialMediaCampaign?.amount || 0);
-        // (streetPromotionTeam?.amount || 0) +
-        // (clubPartnership?.amount || 0);
+        BASE_CUSTOMER_LIMIT + (socialMediaCampaign?.amount || 0);
+      // (streetPromotionTeam?.amount || 0) +
+      // (clubPartnership?.amount || 0);
       return customerAmountMax;
     },
   })
@@ -146,7 +152,7 @@ export class User extends Document {
 
       return Math.min(
         this.customerAmountRemaining + newCustomers,
-        this.customerAmountMax
+        this.customerAmountMax,
       );
     },
   })
@@ -183,6 +189,9 @@ export class User extends Document {
 
   @Prop({ type: UserPvp, default: () => new UserPvp() })
   pvp?: UserPvp;
+
+  @Prop({ type: Object, default: {} })
+  achievements: { [key in EAchievement]?: boolean };
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

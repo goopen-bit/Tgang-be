@@ -11,6 +11,8 @@ import { ShippingModule } from './shipping/shipping.module';
 import { SocialModule } from './social/social.module';
 import { MultiplayerModule } from './multiplayer/multiplayer.module';
 import { appConfigImports } from './config/app';
+import { AchievementsService } from './achievements/achievements.service';
+import { AchievementsModule } from './achievements/achievements.module';
 
 @Module({
   imports: [
@@ -24,8 +26,9 @@ import { appConfigImports } from './config/app';
     ShippingModule,
     SocialModule,
     MultiplayerModule,
+    AchievementsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AchievementsService],
 })
 export class AppModule {}

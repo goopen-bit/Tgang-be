@@ -43,17 +43,4 @@ export class UserController {
       wallet: body.tonWalletAddress,
     });
   }
-
-  @Get("/achievements")
-  getAllAchievements(): AchievementResponse[] {
-    return this.userService.getAllAchievements();
-  }
-
-  @Get("/unlock-achievement/:achievementId")
-  unlockAchievement(
-    @GetAuthToken() user: AuthTokenData,
-    @Param("achievementId") achievementId: EAchievement,
-  ) {
-    return this.userService.unlockAchievement(user.id, achievementId);
-  }
 }

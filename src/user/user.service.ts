@@ -37,21 +37,10 @@ import { BotUser } from "./user.interface";
 import { reputationLevels } from "./data/reputationLevel";
 import { UserPvp } from "./schemas/userPvp.schema";
 import { BOT_TIME_BASE } from "../multiplayer/multiplayer.const";
-import {
-  achievements as importedAchievements,
-  EAchievement,
-  Achievement,
-  AchievementResponse,
-} from "./data/achievements";
 
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(this.constructor.name);
-  private _achievements: Achievement[] = importedAchievements;
-
-  get achievements(): Achievement[] {
-    return this._achievements;
-  }
 
   constructor(
     @InjectModel(User.name)

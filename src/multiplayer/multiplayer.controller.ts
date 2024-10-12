@@ -4,6 +4,7 @@ import { Auth } from "../decorators/auth.decorator";
 import { GetAuthToken } from "../decorators/get-auth-token.decorator";
 import { AuthTokenData } from "../config/types";
 import { AttackDto } from "./dto/attack.dto";
+import { StartBattleDto } from "./dto/battle.dto";
 
 @Auth()
 @Controller("multiplayer")
@@ -19,8 +20,9 @@ export class MultiplayerController {
   async startFight(
     @GetAuthToken() user: AuthTokenData,
     @Param("opponentId", new ParseIntPipe()) opponentId: number,
+    @Body() body: StartBattleDto
   ) {
-    return this.multiplayerService.startBattle(user.id, opponentId);
+    return this.multiplayerService.startBattle(user.id, opponentId, body.selectedItemIds);
   }
 
   @Post("attack/:battleId")

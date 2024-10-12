@@ -1,14 +1,24 @@
 import {
+  ArrayMaxSize,
   IsArray,
   IsBoolean,
   IsEnum,
   IsNumber,
   IsObject,
   IsString,
+  IsOptional,
 } from "class-validator";
 import { EProduct } from "../../market/market.const";
 import { UserPvp } from "../../user/schemas/userPvp.schema";
 import { ECRAFTABLE_ITEM } from "../../lab/craftable_item.const";
+
+export class StartBattleDto {
+  @IsArray()
+  @IsEnum(ECRAFTABLE_ITEM, { each: true })
+  @ArrayMaxSize(2)
+  @IsOptional()
+  selectedItemIds?: ECRAFTABLE_ITEM[];
+}
 
 export class BattleParticipantDto {
   @IsNumber()
@@ -19,6 +29,9 @@ export class BattleParticipantDto {
 
   @IsObject()
   pvp: UserPvp;
+
+  @IsArray()
+  selectedItems?: { itemId: ECRAFTABLE_ITEM; quantity: number }[];
 }
 
 export class RoundResultDto {

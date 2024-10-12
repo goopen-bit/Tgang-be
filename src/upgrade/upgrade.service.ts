@@ -87,7 +87,6 @@ export class UpgradeService {
       du.level += 1;
       du.lastUpgrade = new Date();
     }
-
     if (user.cashAmount < price) {
       throw new HttpException("Not enough cash", 400);
     }

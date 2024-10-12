@@ -24,8 +24,8 @@ import {
 } from "./dto/battle.dto";
 import { randomUUID } from "crypto";
 import { UserPvp } from "../user/schemas/userPvp.schema";
-import { CRAFTABLE_ITEMS, ECRAFTABLE_ITEM, PvpEffect } from "../lab/craftable_item.const";
-import { AttackDto } from './dto/attack.dto';
+import { CRAFTABLE_ITEMS, ECRAFTABLE_ITEM } from "../lab/craftable_item.const";
+import { AttackDto } from "./dto/attack.dto";
 
 @Injectable()
 export class MultiplayerService {
@@ -38,6 +38,166 @@ export class MultiplayerService {
     @InjectRedis() private readonly redis: Redis,
     @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
+  /*******************************************************************
+                                Mixpanel event
+  ********************************************************************/
+
+  private trackFailedPvp(userId: number, condition: string) {
+    this.mixpanel.track("Pvp", {
+      distinct_id: userId,
+      type: "DeathMatch",
+      value: "failed",
+      condition: condition,
+    });
+  }
+  private trackPvpResult(
+    attackerId: number,
+    defenderId: number,
+    result: string,
+  ) {
+    this.mixpanel.track("Pvp", {
+      distinct_id: attackerId,
+      opponent_id: defenderId,
+      type: "DeathMatch",
+      value: result,
+    });
+  }
+
+  /*******************************************************************
+                                Validation
+  ********************************************************************/
+
+  private validateTelegramChannel(attacker: User) {
+    if (
+      !attacker.socials.find(
+        (s) => s.channel === SocialChannel.TELEGRAM_CHANNEL,
+      )
+    ) {
+      this.trackFailedPvp(attacker.id, "telegram");
+      throw new HttpException(
+        "You must join our Telegram channel to participate in PvP",
+        HttpStatus.PRECONDITION_REQUIRED,
+      );
+    }
+  }
+
+  private validateAttacksAvailable(attacker: User) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (attacker.pvp.lastAttackDate < today) {
+      attacker.pvp.attacksToday = 0;
+    }
+
+    if (attacker.pvp.attacksToday >= attacker.pvp.attacksAvailable) {
+      this.trackFailedPvp(attacker.id, "maxAttack");
+      throw new HttpException(
+        "You have reached the maximum number of attacks for today",
+        HttpStatus.PRECONDITION_FAILED,
+      );
+    }
+  }
+
+  private validateDefenderAvailability(defender: User | BotUser) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (defender.pvp.lastDefendDate >= today) {
+      this.trackFailedPvp(defender.id, "maxDefence");
+      throw new HttpException(
+        "This player has already been attacked today",
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+  }
+
+  private async validateBattleConditions(
+    attacker: User,
+    defender: User | BotUser,
+  ) {
+    this.validateTelegramChannel(attacker);
+    this.validateAttacksAvailable(attacker);
+    this.validateDefenderAvailability(defender);
+
+    attacker.pvp.attacksToday++;
+    attacker.pvp.lastAttackDate = new Date();
+    attacker.pvp.defeat++;
+    await attacker.save();
+  }
+
+  private async checkExistingBattles(userId: number, opponentId: number) {
+    const [activeAttacker, activeDefender] = await Promise.all([
+      this.redis.get(this.getAttackerLockKey(userId)),
+      this.redis.get(this.getDefenderLockKey(opponentId)),
+    ]);
+
+    if (activeAttacker) {
+      const existingBattle = await this.getExistingBattle(
+        activeAttacker,
+        userId,
+      );
+      if (existingBattle) return existingBattle;
+    }
+
+    if (activeDefender) {
+      throw new HttpException(
+        "This player is already in a battle",
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+  }
+
+  private async getBattleAndValidate(
+    userId: number,
+    battleId: string,
+  ): Promise<BattleDto> {
+    const battleString = await this.redis.get(this.getBattleLockKey(battleId));
+    if (!battleString) {
+      throw new HttpException("Battle not found", HttpStatus.NOT_FOUND);
+    }
+    const battle: BattleDto = JSON.parse(battleString);
+
+    if (battle.attacker.id !== userId) {
+      throw new HttpException("You are not the attacker", HttpStatus.FORBIDDEN);
+    }
+
+    return battle;
+  }
+
+  /*******************************************************************
+                                GETTER
+  ********************************************************************/
+
+  private getBattleLockKey(battleId: string) {
+    return `battle:${battleId}`;
+  }
+
+  private getAttackerLockKey(userId: number) {
+    return `attacking:${userId}`;
+  }
+
+  private getDefenderLockKey(userId: number) {
+    return `defending:${userId}`;
+  }
+
+  private async getExistingBattle(battleId: string, userId: number) {
+    const existingBattleString = await this.redis.get(
+      this.getBattleLockKey(battleId),
+    );
+    if (existingBattleString) {
+      const existingBattle: BattleDto = JSON.parse(existingBattleString);
+      const opponent = await this.userService.findDefender(
+        existingBattle.defender.id,
+        userId,
+      );
+      return { ...existingBattle, opponent };
+    }
+    return null;
+  }
+
+  /*******************************************************************
+                                SearchPlayer
+  ********************************************************************/
 
   private async getDefendingPlayers() {
     const keys = await this.redis.keys("defending:*");
@@ -50,6 +210,253 @@ export class MultiplayerService {
     const player = await this.userService.findPvpPlayers(today, userId, exIds);
     player.forEach((p) => delete (p as any).isBot);
     return player;
+  }
+
+  /*******************************************************************
+                                StartBattle
+  ********************************************************************/
+
+  private async validateAndGetItems(
+    userId: number,
+    itemIds: ECRAFTABLE_ITEM[] = [],
+  ) {
+    const user = await this.userService.findOne(userId);
+    return itemIds.map((itemId) => {
+      const item = user.craftedItems.find((i) => i.itemId === itemId);
+      if (!item || item.quantity <= 0) {
+        throw new HttpException(
+          `Item ${itemId} not available`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      return { itemId, quantity: item.quantity };
+    });
+  }
+
+  private createBattle(
+    attacker: User,
+    defender: User | BotUser,
+    selectedItems: { itemId: ECRAFTABLE_ITEM; quantity: number }[],
+  ): BattleDto {
+    const battleId = randomUUID();
+    return {
+      battleId,
+      attacker: {
+        id: attacker.id,
+        username: attacker.username,
+        pvp: attacker.pvp,
+        selectedItems,
+      },
+      defender: {
+        id: defender.id,
+        username: defender.username,
+        pvp: defender.pvp,
+      },
+      round: 0,
+      roundResults: [],
+    };
+  }
+
+  private async lockBattleParticipants(battle: BattleDto) {
+    await Promise.all([
+      this.redis.set(
+        this.getBattleLockKey(battle.battleId),
+        JSON.stringify(battle),
+        "EX",
+        3600,
+      ),
+      this.redis.set(
+        this.getAttackerLockKey(battle.attacker.id),
+        battle.battleId,
+        "EX",
+        3600,
+      ),
+      this.redis.set(
+        this.getDefenderLockKey(battle.defender.id),
+        battle.battleId,
+        "EX",
+        3600,
+      ),
+    ]);
+  }
+
+  async startBattle(
+    userId: number,
+    opponentId: number,
+    selectedItemIds?: ECRAFTABLE_ITEM[],
+  ) {
+    await this.checkExistingBattles(userId, opponentId);
+
+    const [attacker, defender] = await Promise.all([
+      this.userService.findOne(userId),
+      this.userService.findDefender(opponentId, userId),
+    ]);
+    await this.validateBattleConditions(attacker, defender);
+
+    const selectedItems = selectedItemIds
+      ? await this.validateAndGetItems(userId, selectedItemIds)
+      : [];
+    const battle = this.createBattle(attacker, defender, selectedItems);
+    await this.lockBattleParticipants(battle);
+
+    return battle;
+  }
+
+  /*******************************************************************
+                                PerformAttack
+  ********************************************************************/
+
+  private async useCraftedItem(
+    userId: number,
+    itemId: ECRAFTABLE_ITEM,
+    player: BattleParticipantDto,
+  ) {
+    const user = await this.userService.findOne(userId);
+
+    const craftedItem = user.craftedItems.find(
+      (item) => item.itemId === itemId,
+    );
+    if (!craftedItem || craftedItem.quantity <= 0) {
+      throw new HttpException(
+        "Item not found or out of stock",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const item = CRAFTABLE_ITEMS[itemId];
+    if (!item) {
+      throw new HttpException("Invalid item", HttpStatus.BAD_REQUEST);
+    }
+
+    player.pvp.activeEffects.push({
+      itemId: item.itemId,
+      effect: item.pvpEffect,
+      remainingRounds: item.duration,
+    });
+
+    craftedItem.quantity--;
+    if (craftedItem.quantity === 0) {
+      user.craftedItems = user.craftedItems.filter(
+        (item) => item.itemId !== itemId,
+      );
+    }
+    await user.save();
+
+    return player;
+  }
+
+  private applyActiveEffects(player: BattleParticipantDto) {
+    for (const activeEffect of player.pvp.activeEffects) {
+      for (const [stat, value] of Object.entries(activeEffect.effect)) {
+        player.pvp[stat] += value;
+      }
+    }
+  }
+
+  private getAttackDamage(
+    attackerDamage: number,
+    attackerAccuracy: number,
+    attackerCriticalChance: number,
+    defenderProtection: number,
+    defenderEvasion: number,
+  ) {
+    const randomFactor = Math.random() * 0.2 + 0.9;
+    const randomDamage = Math.round(attackerDamage * randomFactor);
+
+    let damage = Math.max(0, randomDamage - defenderProtection);
+    let critical = false;
+
+    if (Math.random() * 100 < attackerAccuracy - defenderEvasion) {
+      if (Math.random() * 100 < attackerCriticalChance) {
+        damage *= 2;
+        critical = true;
+      }
+    } else {
+      damage = 0;
+    }
+
+    return { damage, critical };
+  }
+  private applyEffectsAndPerformAttacks(
+    attacker: BattleParticipantDto,
+    defender: BattleParticipantDto,
+    usedItemId?: ECRAFTABLE_ITEM,
+  ) {
+    this.applyActiveEffects(attacker);
+    this.applyActiveEffects(defender);
+
+    const attackerAttack = this.getAttackDamage(
+      attacker.pvp.damage,
+      attacker.pvp.accuracy,
+      attacker.pvp.criticalChance,
+      defender.pvp.protection,
+      defender.pvp.evasion,
+    );
+
+    const defenderAttack = this.getAttackDamage(
+      defender.pvp.damage,
+      defender.pvp.accuracy,
+      defender.pvp.criticalChance,
+      attacker.pvp.protection,
+      attacker.pvp.evasion,
+    );
+
+    attacker.pvp.healthPoints -= defenderAttack.damage;
+    defender.pvp.healthPoints -= attackerAttack.damage;
+
+    return { attackerAttack, defenderAttack, usedItemId };
+  }
+
+  private clearActiveEffects(player: BattleParticipantDto) {
+    player.pvp.activeEffects = [];
+  }
+
+  private decreaseEffectDuration(player: BattleParticipantDto) {
+    player.pvp.activeEffects = player.pvp.activeEffects
+      .map((effect) => ({
+        ...effect,
+        remainingRounds: effect.remainingRounds - 1,
+      }))
+      .filter((effect) => effect.remainingRounds > 0);
+  }
+
+  private updateBattleStatus(
+    battle: BattleDto,
+    attackResult: {
+      attackerAttack: { damage: number; critical: boolean };
+      defenderAttack: { damage: number; critical: boolean };
+      usedItemId?: ECRAFTABLE_ITEM;
+    },
+  ) {
+    const { attacker, defender } = battle;
+    const roundResult: RoundResultDto = {
+      attackerDamage: attackResult.attackerAttack.damage,
+      defenderDamage: attackResult.defenderAttack.damage,
+      attackerCritical: attackResult.attackerAttack.critical,
+      defenderCritical: attackResult.defenderAttack.critical,
+      usedItem: attackResult.usedItemId,
+    };
+    battle.roundResults.push(roundResult);
+
+    if (defender.pvp.healthPoints <= 0) {
+      battle.winner = "attacker";
+      this.trackPvpResult(attacker.id, defender.id, "win");
+    } else if (attacker.pvp.healthPoints <= 0) {
+      battle.winner = "defender";
+      this.trackPvpResult(attacker.id, defender.id, "lost");
+    }
+
+    this.decreaseEffectDuration(attacker);
+    this.decreaseEffectDuration(defender);
+  }
+
+  private async clearBattleLocks(battle: BattleDto) {
+    await Promise.all([
+      this.redis.del(this.getBattleLockKey(battle.battleId)),
+      this.redis.del(this.getAttackerLockKey(battle.attacker.id)),
+      this.redis.del(this.getDefenderLockKey(battle.defender.id)),
+      this.redis.del(this.userService.getBotKey(battle.attacker.id)),
+    ]);
   }
 
   private defenderProductLoss(defender: User | BotUser) {
@@ -141,332 +548,68 @@ export class MultiplayerService {
     return batle;
   }
 
-  private getBattleLockKey(battleId: string) {
-    return `battle:${battleId}`;
-  }
-
-  private getAttackerLockKey(userId: number) {
-    return `attacking:${userId}`;
-  }
-
-  private getDefenderLockKey(userId: number) {
-    return `defending:${userId}`;
-  }
-
-  private getAttackDamage(
-    attackerDamage: number,
-    attackerAccuracy: number,
-    attackerCriticalChance: number,
-    defenderProtection: number,
-    defenderEvasion: number,
-  ) {
-    const randomFactor = Math.random() * 0.2 + 0.9; // Random factor between 0.9 and 1.1
-    const randomDamage = Math.round(attackerDamage * randomFactor);
-
-    let damage = Math.max(0, randomDamage - defenderProtection);
-    let critical = false;
-
-    if (Math.random() * 100 < attackerAccuracy - defenderEvasion) {
-      if (Math.random() * 100 < attackerCriticalChance) {
-        damage *= 2;
-        critical = true;
-      }
+  private async handleBattleEnd(battle: BattleDto) {
+    if (battle.winner) {
+      this.clearActiveEffects(battle.attacker);
+      this.clearActiveEffects(battle.defender);
+      battle = await this.updatePvpStats(battle);
+      await this.clearBattleLocks(battle);
     } else {
-      damage = 0;
-    }
-
-    return { damage, critical };
-  }
-
-
-  // TODO check if we lock the item before the fight maybe we don't fetch the user object
-  private async useCraftedItem(userId: number, itemId: ECRAFTABLE_ITEM, player: BattleParticipantDto) {
-    const user = await this.userService.findOne(userId);
-
-    const craftedItem = user.craftedItems.find(item => item.itemId === itemId);
-    if (!craftedItem || craftedItem.quantity <= 0) {
-      throw new HttpException("Item not found or out of stock", HttpStatus.BAD_REQUEST);
-    }
-
-    const item = CRAFTABLE_ITEMS[itemId];
-    if (!item) {
-      throw new HttpException("Invalid item", HttpStatus.BAD_REQUEST);
-    }
-
-    player.pvp.activeEffects.push({
-      itemId: item.itemId,
-      effect: item.pvpEffect,
-      remainingRounds: item.duration,
-    });
-
-    // Decrease item quantity
-    craftedItem.quantity--;
-    if (craftedItem.quantity === 0) {
-      user.craftedItems = user.craftedItems.filter(item => item.itemId !== itemId);
-    }
-    await user.save();
-
-    return player;
-  }
-
-  private applyActiveEffects(player: BattleParticipantDto) {
-    for (const activeEffect of player.pvp.activeEffects) {
-      for (const [stat, value] of Object.entries(activeEffect.effect)) {
-        player.pvp[stat] += value;
-      }
+      this.trackPvpResult(battle.attacker.id, battle.defender.id, "ongoing");
+      await this.redis.set(
+        this.getBattleLockKey(battle.battleId),
+        JSON.stringify(battle),
+        "EX",
+        3600,
+      );
     }
   }
 
-  private decreaseEffectDuration(player: BattleParticipantDto) {
-    player.pvp.activeEffects = player.pvp.activeEffects
-      .map(effect => ({ ...effect, remainingRounds: effect.remainingRounds - 1 }))
-      .filter(effect => effect.remainingRounds > 0);
-  }
-
-  private clearActiveEffects(player: BattleParticipantDto) {
-    player.pvp.activeEffects = [];
-  }
-
-
-  async performAttack(userId: number, battleId: string, body: AttackDto): Promise<BattleDto> {
-    const battleString = await this.redis.get(this.getBattleLockKey(battleId));
-    if (!battleString) {
-      throw new HttpException("Battle not found", HttpStatus.NOT_FOUND);
-    }
-    let battle: BattleDto = JSON.parse(battleString);
+  async performAttack(
+    userId: number,
+    battleId: string,
+    body: AttackDto,
+  ): Promise<BattleDto> {
+    const battle = await this.getBattleAndValidate(userId, battleId);
     const { attacker, defender } = battle;
 
-    if (attacker.id !== userId) {
-      throw new HttpException("You are not the attacker", HttpStatus.FORBIDDEN);
-    }
-
-
     if (body.itemId) {
-      await this.useCraftedItem(userId, body.itemId, attacker);
-    }
-
-    this.applyActiveEffects(attacker);
-    this.applyActiveEffects(defender);
-
-    let attackerAttack = { damage: 0, critical: false };
-
-    attackerAttack = this.getAttackDamage(
-      attacker.pvp.damage,
-      attacker.pvp.accuracy,
-      attacker.pvp.criticalChance,
-      defender.pvp.protection,
-      defender.pvp.evasion,
-    );
-
-    const defenderAttack = this.getAttackDamage(
-      defender.pvp.damage,
-      defender.pvp.accuracy,
-      defender.pvp.criticalChance,
-      attacker.pvp.protection,
-      attacker.pvp.evasion,
-    );
-
-    const roundResult: RoundResultDto = {
-      attackerDamage: attackerAttack.damage,
-      defenderDamage: defenderAttack.damage,
-      attackerCritical: attackerAttack.critical,
-      defenderCritical: defenderAttack.critical,
-      usedItem: body.itemId,
-    };
-    battle.round++;
-    battle.attacker.pvp.healthPoints -= defenderAttack.damage;
-    battle.defender.pvp.healthPoints -= attackerAttack.damage;
-    battle.roundResults.push(roundResult);
-
-    if (battle.defender.pvp.healthPoints <= 0) {
-      battle.winner = "attacker";
-
-      this.mixpanel.track("Pvp", {
-        distinct_id: userId,
-        opponent_id: defender.id,
-        type: "DeathMatch",
-        value: "win",
-      });
-    } else if (battle.attacker.pvp.healthPoints <= 0) {
-      battle.winner = "defender";
-
-      this.mixpanel.track("Pvp", {
-        distinct_id: userId,
-        opponent_id: defender.id,
-        type: 'Raid',
-        value: 'lost',
-      });
-    }
-
-    this.decreaseEffectDuration(attacker);
-    this.decreaseEffectDuration(defender);
-
-    if (battle.winner) {
-      this.clearActiveEffects(attacker);
-      this.clearActiveEffects(defender);
-      battle = await this.updatePvpStats(battle);
-      await Promise.all([
-        this.redis.del(this.getBattleLockKey(battleId)),
-        this.redis.del(this.getAttackerLockKey(battle.attacker.id)),
-        this.redis.del(this.getDefenderLockKey(battle.defender.id)),
-        this.redis.del(this.userService.getBotKey(battle.attacker.id)),
-      ]);
-    } else {
-      this.mixpanel.track("Pvp", {
-        distinct_id: userId,
-        opponent_id: defender.id,
-        type: "DeathMatch",
-        value: "lost",
-      });
-      await this.redis.set(
-        this.getBattleLockKey(battleId),
-        JSON.stringify(battle),
-        "EX",
-        3600,
+      const selectedItem = attacker.selectedItems.find(
+        (item) => item.itemId === body.itemId,
       );
+      if (!selectedItem || selectedItem.quantity <= 0) {
+        throw new HttpException(
+          "Item not available for this battle",
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      await this.useCraftedItem(userId, body.itemId, attacker);
+      selectedItem.quantity--;
     }
+
+    const attackResult = this.applyEffectsAndPerformAttacks(
+      attacker,
+      defender,
+      body.itemId,
+    );
+
+    battle.round++;
+    this.updateBattleStatus(battle, attackResult);
+
+    await this.handleBattleEnd(battle);
+
     return battle;
   }
 
-  async startBattle(userId: number, opponentId: number) {
-    const [activeAttacker, activeDefender] = await Promise.all([
-      this.redis.get(this.getAttackerLockKey(userId)),
-      this.redis.get(this.getDefenderLockKey(opponentId)),
-    ]);
-
-    // Check if the attacker is already in a battle
-    if (activeAttacker) {
-      const existingBattleString = await this.redis.get(
-        this.getBattleLockKey(activeAttacker),
-      );
-      if (existingBattleString) {
-        const existingBattle: BattleDto = JSON.parse(existingBattleString);
-        const opponent = await this.userService.findDefender(
-          existingBattle.defender.id,
-          userId,
-        );
-        return {
-          ...existingBattle,
-          opponent: opponent,
-        };
-      }
-    }
-
-    if (activeDefender) {
-      throw new HttpException(
-        "This player is already in a battle",
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-
-    const [attacker, defender] = await Promise.all([
-      this.userService.findOne(userId),
-      this.userService.findDefender(opponentId, userId),
-    ]);
-
-    if (
-      !attacker.socials.find(
-        (s) => s.channel === SocialChannel.TELEGRAM_CHANNEL,
-      )
-    ) {
-      this.mixpanel.track("Pvp", {
-        distinct_id: userId,
-        opponent_id: opponentId,
-        type: "DeathMatch",
-        value: "failed",
-        condition: "telegram",
-      });
-      throw new HttpException(
-        "You must join our Telegram channel to participate in PvP",
-        HttpStatus.PRECONDITION_REQUIRED,
-      );
-    }
-
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    if (attacker.pvp.lastAttackDate < today) {
-      attacker.pvp.attacksToday = 0;
-    }
-
-    if (attacker.pvp.attacksToday >= attacker.pvp.attacksAvailable) {
-      this.mixpanel.track("Pvp", {
-        distinct_id: userId,
-        opponent_id: opponentId,
-        type: "DeathMatch",
-        value: "failed",
-        condition: "maxAttack",
-      });
-      throw new HttpException(
-        "You have reached the maximum number of attacks for today",
-        HttpStatus.PRECONDITION_FAILED,
-      );
-    }
-
-    if (defender.pvp.lastDefendDate >= today) {
-      this.mixpanel.track("Pvp", {
-        distinct_id: userId,
-        opponent_id: opponentId,
-        type: "DeathMatch",
-        value: "failed",
-        condition: "maxDefence",
-      });
-      throw new HttpException(
-        "This player has already been attacked today",
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-    this.mixpanel.track("Pvp", {
-      distinct_id: userId,
-      opponent_id: opponentId,
-      type: "DeathMatch",
-      value: "start",
-    });
-    attacker.pvp.attacksToday++;
-    attacker.pvp.lastAttackDate = now;
-    // We set the attacker as defeated, if he wins, we will update the stats
-    attacker.pvp.defeat++;
-
-    // Lock attacker and defender and generate battle id
-    const battleId = randomUUID();
-    const battle: BattleDto = {
-      battleId,
-      attacker: {
-        id: attacker.id,
-        username: attacker.username,
-        pvp: attacker.pvp,
-      },
-      defender: {
-        id: defender.id,
-        username: defender.username,
-        pvp: defender.pvp,
-      },
-      round: 0,
-      roundResults: [],
+  private createBattleParticipant(
+    attackerId: number,
+    username: string,
+  ): BattleParticipantDto {
+    return {
+      id: attackerId,
+      username,
+      pvp: new UserPvp(),
     };
-    await Promise.all([
-      attacker.save(),
-      this.redis.set(
-        this.getBattleLockKey(battleId),
-        JSON.stringify(battle),
-        "EX",
-        3600,
-      ),
-      this.redis.set(
-        this.getAttackerLockKey(attacker.id),
-        battleId,
-        "EX",
-        3600,
-      ),
-      this.redis.set(
-        this.getDefenderLockKey(defender.id),
-        battleId,
-        "EX",
-        3600,
-      ),
-    ]);
-
-    return battle;
   }
 
   async getBattleResults(userId: number): Promise<BattleDto[]> {
@@ -496,16 +639,5 @@ export class MultiplayerService {
       cashLoot: result.cashLoot,
       productLoot: result.productLoot,
     }));
-  }
-
-  private createBattleParticipant(
-    attackerId: number,
-    username: string,
-  ): BattleParticipantDto {
-    return {
-      id: attackerId,
-      username,
-      pvp: new UserPvp(), // You might want to initialize this with default values
-    };
   }
 }

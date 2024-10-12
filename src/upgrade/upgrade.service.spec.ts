@@ -10,7 +10,7 @@ import { EUpgradeCategory } from "./upgrade.interface";
 import { EProduct } from "../market/market.const";
 import { mockTokenData } from "../../test/utils/user";
 import { MarketModule } from "../market/market.module";
-import { appConfigImports } from '../config/app';
+import { appConfigImports } from "../config/app";
 
 describe("UpgradeService", () => {
   let module: TestingModule;
@@ -21,11 +21,7 @@ describe("UpgradeService", () => {
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
-      imports: [
-        ...appConfigImports,
-        MarketModule,
-        UserModule,
-      ],
+      imports: [...appConfigImports, MarketModule, UserModule],
       providers: [UpgradeService],
     }).compile();
 
@@ -37,7 +33,7 @@ describe("UpgradeService", () => {
     // Create a user before each test
     const res = await userService.findOneOrCreate(
       mockTokenData(),
-      faker.internet.ip()
+      faker.internet.ip(),
     );
     user = res.user;
   });
@@ -56,7 +52,7 @@ describe("UpgradeService", () => {
       await service.buyUpgrade(user.id, params);
       const updatedUser = await userService.findOne(user.id);
       const userUpgrade = updatedUser.products.find(
-        (u) => u.name === EProduct.HERB
+        (u) => u.name === EProduct.HERB,
       );
       expect(userUpgrade).toBeDefined();
       expect(userUpgrade.level).toBe(2);
@@ -80,7 +76,7 @@ describe("UpgradeService", () => {
       await service.buyUpgrade(user.id, params);
       const updatedUser = await userService.findOne(user.id);
       const userUpgrade = updatedUser.products.find(
-        (u) => u.name === EProduct.MUSHROOM
+        (u) => u.name === EProduct.MUSHROOM,
       );
       expect(userUpgrade).toBeDefined();
       expect(userUpgrade.level).toBe(1);
@@ -93,7 +89,7 @@ describe("UpgradeService", () => {
       };
       await userService.update(user.id, { cashAmount: 50 });
       await expect(service.buyUpgrade(user.id, params)).rejects.toThrow(
-        "Not enough cash"
+        "Not enough cash",
       );
     });
 
@@ -103,7 +99,7 @@ describe("UpgradeService", () => {
         upgrade: EProduct.MUSHROOM,
       };
       await expect(service.buyUpgrade(user.id, params)).rejects.toThrow(
-        "Upgrade not unlocked"
+        "Upgrade not unlocked",
       );
     });
 
@@ -112,10 +108,12 @@ describe("UpgradeService", () => {
         category: EUpgradeCategory.PRODUCT,
         upgrade: EProduct.HERB,
       };
+      await userService.update(user.id, { cashAmount: 5000000 });
+
       await service.buyUpgrade(user.id, params);
-      await expect(
-        service.buyUpgrade(user.id, params)
-      ).rejects.toThrow("Upgrade not available yet");
+      await expect(service.buyUpgrade(user.id, params)).rejects.toThrow(
+        "Upgrade not available yet",
+      );
     });
   });
 

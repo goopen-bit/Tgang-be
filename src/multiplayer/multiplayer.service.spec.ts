@@ -8,24 +8,30 @@ import { AnalyticsModule } from "../analytics/analytics.module";
 import { mixpanelToken } from "../config/env";
 import { UserModule } from "../user/user.module";
 import { faker } from "@faker-js/faker";
-import { appConfigImports } from '../config/app';
-import { BattleResult, BattleResultSchema } from "./schemas/battleResult.schema";
+import { appConfigImports } from "../config/app";
+import {
+  BattleResult,
+  BattleResultSchema,
+} from "./schemas/battleResult.schema";
 import { SocialChannel } from "../social/social.const";
 import { BattleDto, BattleParticipantDto } from "./dto/battle.dto";
 import { EProduct } from "../market/market.const";
-import { PVP_BASE_ACCURACY, PVP_BASE_CRITICAL_HIT_CHANCE, PVP_BASE_DAMAGE, PVP_BASE_EVASION, PVP_BASE_HEALTH_POINTS, PVP_BASE_PROTECTION } from "../user/user.const";
-
+import { PVP_BASE_DAMAGE } from "../user/user.const";
+import { UserPvp } from "../user/schemas/userPvp.schema";
+import { ECRAFTABLE_ITEM } from "../lab/craftable_item.const";
 
 function createMockBattle(battle: Partial<BattleDto>): BattleDto {
   return {
     battleId: faker.string.uuid(),
     attacker: {
       id: faker.number.int(),
-      ...battle.attacker,
+      username: battle.attacker?.username || "",
+      pvp: (battle.attacker?.pvp || {}) as UserPvp,
     },
     defender: {
       id: faker.number.int(),
-      ...battle.defender,
+      username: battle.defender?.username || "",
+      pvp: (battle.defender?.pvp || {}) as UserPvp,
     },
     round: 0,
     roundResults: [],
@@ -33,7 +39,6 @@ function createMockBattle(battle: Partial<BattleDto>): BattleDto {
     ...battle,
   };
 }
-
 
 describe("MultiplayerService", () => {
   let service: MultiplayerService;
@@ -152,7 +157,12 @@ describe("MultiplayerService", () => {
           cashAmount: 1000,
           reputation: 10000,
           socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
-          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0, lootPower: 1 },
+          pvp: {
+            lastDefendDate: new Date(0),
+            victory: 0,
+            defeat: 0,
+            lootPower: 1,
+          },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         });
         defender = createMockUser({
@@ -173,12 +183,20 @@ describe("MultiplayerService", () => {
 
       it("should update PvP stats for the attacker", async () => {
         const battle = createMockBattle({
-          attacker: { id: attacker.id, username: attacker.username, ...attacker.pvp },
-          defender: { id: defender.id, username: defender.username, ...defender.pvp },
+          attacker: {
+            id: attacker.id,
+            username: attacker.username,
+            pvp: attacker.pvp,
+          },
+          defender: {
+            id: defender.id,
+            username: defender.username,
+            pvp: defender.pvp,
+          },
           winner: "attacker",
         });
 
-        const res = await service['updatePvpStats'](battle);
+        const res = await service["updatePvpStats"](battle);
         expect(res).toBeDefined();
         expect(res.cashLoot).toBeGreaterThan(0);
         expect(res.productLoot).toHaveLength(1);
@@ -186,12 +204,20 @@ describe("MultiplayerService", () => {
 
       it("should update PvP stats for the defender", async () => {
         const battle = createMockBattle({
-          attacker: { id: attacker.id, username: attacker.username, ...attacker.pvp },
-          defender: { id: defender.id, username: defender.username, ...defender.pvp },
+          attacker: {
+            id: attacker.id,
+            username: attacker.username,
+            pvp: attacker.pvp,
+          },
+          defender: {
+            id: defender.id,
+            username: defender.username,
+            pvp: defender.pvp,
+          },
           winner: "defender",
         });
 
-        const res = await service['updatePvpStats'](battle);
+        const res = await service["updatePvpStats"](battle);
         expect(res).toBeDefined();
         expect(res.cashLoot).toBe(0);
         expect(res.productLoot).toHaveLength(0);
@@ -207,7 +233,12 @@ describe("MultiplayerService", () => {
           cashAmount: 1000,
           reputation: 10000,
           socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
-          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0, lootPower: 1 },
+          pvp: {
+            lastDefendDate: new Date(0),
+            victory: 0,
+            defeat: 0,
+            lootPower: 1,
+          },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         });
         defender = createMockUser({
@@ -229,52 +260,103 @@ describe("MultiplayerService", () => {
       it("should perform an attack and update battle stats", async () => {
         const battle = await service.startBattle(attacker.id, defender.id);
 
-        const result = await service.performAttack(attacker.id, battle.battleId);
+        const result = await service.performAttack(
+          attacker.id,
+          battle.battleId,
+          {},
+        );
         expect(result).toBeDefined();
         expect(result.round).toBe(1);
         expect(result.roundResults).toHaveLength(1);
       });
 
       it("should not perform an attack if the battle does not exist", async () => {
-        await expect(service.performAttack(attacker.id, faker.string.uuid())).rejects.toThrow(
-          "Battle not found",
-        );
+        await expect(
+          service.performAttack(attacker.id, faker.string.uuid(), {}),
+        ).rejects.toThrow("Battle not found");
       });
 
       it("should not perform an attack if the attacker is not in the battle", async () => {
         const battle = await service.startBattle(attacker.id, defender.id);
-        await expect(service.performAttack(faker.number.int(), battle.battleId)).rejects.toThrow(
-          "You are not the attacker",
-        );
+        await expect(
+          service.performAttack(faker.number.int(), battle.battleId, {}),
+        ).rejects.toThrow("You are not the attacker");
       });
 
       it("should perform attacks until there is a winner", async () => {
         let battle = await service.startBattle(attacker.id, defender.id);
         const statSpy = jest.spyOn(service as any, "updatePvpStats");
-        
+
         do {
-          battle = await service.performAttack(attacker.id, battle.battleId);
-        } while (!battle.winner)
+          battle = await service.performAttack(
+            attacker.id,
+            battle.battleId,
+            {},
+          );
+        } while (!battle.winner);
 
         expect(statSpy).toHaveBeenCalledTimes(1);
         expect(battle.winner).toBeDefined();
       });
 
       it("should use product to increase attack power", async () => {
-        await userModel.updateOne({
-          id: attacker.id,
-        }, {
-          $set: {
-            products: [{ name: EProduct.POWDER, quantity: 100, level: 2 }],
+        await userModel.updateOne(
+          {
+            id: attacker.id,
           },
-        });
+          {
+            $set: {
+              craftedItems: [
+                { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, quantity: 2 },
+              ],
+            },
+          },
+        );
 
-        const battle = await service.startBattle(attacker.id, defender.id);
-        const result = await service.performAttack(attacker.id, battle.battleId, { product: EProduct.POWDER });
+        const battle = await service.startBattle(attacker.id, defender.id, [
+          ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
+        ]);
+        const result = await service.performAttack(
+          attacker.id,
+          battle.battleId,
+          { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2 },
+        );
         expect(result).toBeDefined();
         expect(result.round).toBe(1);
-        expect(result.roundResults[0].usedProduct).toBe(EProduct.POWDER);
-        expect(result.attacker.damage).toBeGreaterThan(PVP_BASE_DAMAGE);
+        expect(result.roundResults[0].usedItem).toBe(
+          ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
+        );
+        expect(result.attacker.pvp.damage).toBeGreaterThan(PVP_BASE_DAMAGE);
+      });
+
+      it("should use crafted item to increase attack power", async () => {
+        await userModel.updateOne(
+          {
+            id: attacker.id,
+          },
+          {
+            $set: {
+              craftedItems: [
+                { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, quantity: 1 },
+              ],
+            },
+          },
+        );
+
+        const battle = await service.startBattle(attacker.id, defender.id, [
+          ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
+        ]);
+        const result = await service.performAttack(
+          attacker.id,
+          battle.battleId,
+          { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2 },
+        );
+        expect(result).toBeDefined();
+        expect(result.round).toBe(1);
+        expect(result.roundResults[0].usedItem).toBe(
+          ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
+        );
+        expect(result.attacker.pvp.damage).toBeGreaterThan(PVP_BASE_DAMAGE);
       });
     });
 
@@ -286,7 +368,9 @@ describe("MultiplayerService", () => {
             username: "attacker",
             cashAmount: 1000,
             reputation: 10000,
-            socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
+            socials: [
+              { channel: SocialChannel.TELEGRAM_CHANNEL, member: true },
+            ],
             products: [{ name: EProduct.HERB, quantity: 100, level: 1 }],
           }),
         });
@@ -294,199 +378,80 @@ describe("MultiplayerService", () => {
         attacker = {
           id: user.id,
           username: user.username,
-          ...user.toObject().pvp,
+          pvp: user.toObject().pvp,
         };
       });
 
-      it("should use product to increase attack power", async () => {
-        await userModel.updateOne({
-          id: attacker.id,
-        }, {
-          $set: {
-            products: [{ name: EProduct.POWDER, quantity: 100, level: 2 }],
-          },
+      describe("startBattle", () => {
+        let attacker: Partial<User>;
+        let defender: Partial<User>;
+        beforeEach(async () => {
+          attacker = createMockUser({
+            username: "attacker",
+            cashAmount: 1000,
+            reputation: 10000,
+            socials: [
+              { channel: SocialChannel.TELEGRAM_CHANNEL, member: true },
+            ],
+            pvp: {
+              lastDefendDate: new Date(0),
+              victory: 0,
+              defeat: 0,
+              lootPower: 1,
+            },
+            products: [{ name: "Herb", quantity: 100, level: 1 }],
+            craftedItems: [
+              { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, quantity: 2 },
+            ],
+          });
+          defender = createMockUser({
+            username: "defender",
+            cashAmount: 2000,
+            reputation: 10000,
+            pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
+            products: [{ name: "Herb", quantity: 100, level: 1 }],
+          });
+
+          await userModel.create({
+            ...attacker,
+          });
+          await userModel.create({
+            ...defender,
+          });
         });
 
-        const result = await service.useProduct(EProduct.POWDER, attacker);
-        expect(result).toBeDefined();
-        expect(result.damage).toBeGreaterThan(PVP_BASE_DAMAGE);
-      });
-
-      it("should use product to increase health points", async () => {
-        const result = await service.useProduct(EProduct.HERB, attacker);
-        expect(result).toBeDefined();
-        expect(result.healthPoints).toBeGreaterThan(PVP_BASE_HEALTH_POINTS);
-      });
-
-      it("should use product to increase protection", async () => {
-        await userModel.updateOne({
-          id: attacker.id,
-        }, {
-          $set: {
-            products: [{ name: EProduct.PILL, quantity: 100, level: 2 }],
-          },
+        it("should start a new battle", async () => {
+          const result = await service.startBattle(attacker.id, defender.id);
+          expect(result).toBeDefined();
+          expect(result.attacker.id).toBe(attacker.id);
+          expect(result.defender.id).toBe(defender.id);
+          expect(result.round).toBe(0);
+          expect(result.roundResults).toHaveLength(0);
         });
 
-        const result = await service.useProduct(EProduct.PILL, attacker);
-        expect(result).toBeDefined();
-        expect(result.protection).toBeGreaterThan(PVP_BASE_PROTECTION);
-      });
-
-      it("should use product to increase evasion", async () => {
-        await userModel.updateOne({
-          id: attacker.id,
-        }, {
-          $set: {
-            products: [{ name: EProduct.MUSHROOM, quantity: 100, level: 2 }],
-          },
+        it("should start a new battle with selected items", async () => {
+          const result = await service.startBattle(attacker.id, defender.id, [
+            ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
+          ]);
+          expect(result).toBeDefined();
+          expect(result.attacker.id).toBe(attacker.id);
+          expect(result.defender.id).toBe(defender.id);
+          expect(result.round).toBe(0);
+          expect(result.roundResults).toHaveLength(0);
+          expect(result.attacker.selectedItems).toHaveLength(1);
+          expect(result.attacker.selectedItems[0].itemId).toBe(
+            ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
+          );
+          expect(result.attacker.selectedItems[0].quantity).toBe(2);
         });
 
-        const result = await service.useProduct(EProduct.MUSHROOM, attacker);
-        expect(result).toBeDefined();
-        expect(result.evasion).toBeGreaterThan(PVP_BASE_EVASION);
-      });
-
-      it("should use product to increase critical chance", async () => {
-        await userModel.updateOne({
-          id: attacker.id,
-        }, {
-          $set: {
-            products: [{ name: EProduct.CRYSTAL, quantity: 100, level: 2 }],
-          },
+        it("should not start a new battle with unavailable items", async () => {
+          await expect(
+            service.startBattle(attacker.id, defender.id, [
+              ECRAFTABLE_ITEM.HEALTH_POTION,
+            ]),
+          ).rejects.toThrow("Item HEALTH_POTION not available");
         });
-
-        const result = await service.useProduct(EProduct.CRYSTAL, attacker);
-        expect(result).toBeDefined();
-        expect(result.criticalChance).toBeGreaterThan(PVP_BASE_CRITICAL_HIT_CHANCE);
-      });
-
-      it("should use product to increase accuracy", async () => {
-        await userModel.updateOne({
-          id: attacker.id,
-        }, {
-          $set: {
-            products: [{ name: EProduct.ACID, quantity: 100, level: 2 }],
-          },
-        });
-
-        const result = await service.useProduct(EProduct.ACID, attacker);
-        expect(result).toBeDefined();
-        expect(result.accuracy).toBeGreaterThan(PVP_BASE_ACCURACY);
-      });
-
-      it("should not use product if the attacker does not have the product", async () => {
-        await expect(service.useProduct(EProduct.POWDER, attacker)).rejects.toThrow(
-          "Product not found",
-        );
-      });
-
-      it("should not use product if the attacker is out of stock", async () => {
-        await userModel.updateOne({
-          id: attacker.id,
-        }, {
-          $set: {
-            products: [{ name: EProduct.POWDER, quantity: 0, level: 2 }],
-          },
-        });
-
-        await expect(service.useProduct(EProduct.POWDER, attacker)).rejects.toThrow(
-          "Product out of stock",
-        );
-      });
-    });
-
-    describe("startBattle", () => {
-      let attacker: Partial<User>;
-      let defender: Partial<User>;
-      beforeEach(async () => {
-        attacker = createMockUser({
-          username: "attacker",
-          cashAmount: 1000,
-          reputation: 10000,
-          socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
-          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0, lootPower: 1 },
-          products: [{ name: "Herb", quantity: 100, level: 1 }],
-        });
-        defender = createMockUser({
-          username: "defender",
-          cashAmount: 2000,
-          reputation: 10000,
-          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
-          products: [{ name: "Herb", quantity: 100, level: 1 }],
-        });
-
-        await userModel.create({
-          ...attacker,
-        });
-        await userModel.create({
-          ...defender,
-        });
-      });
-
-      it("should start a new battle", async () => {
-        const result = await service.startBattle(attacker.id, defender.id);
-        expect(result).toBeDefined();
-        expect(result.attacker.id).toBe(attacker.id);
-        expect(result.defender.id).toBe(defender.id);
-        expect(result.round).toBe(0);
-        expect(result.roundResults).toHaveLength(0);
-      });
-
-      it("should not start a new battle if the attacker is already in battle", async () => {
-        const newDefender = createMockUser({
-          username: "defender",
-          cashAmount: 2000,
-          reputation: 10000,
-          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
-          products: [{ name: "Herb", quantity: 100, level: 1 }],
-        });
-
-        await userModel.create({
-          ...newDefender,
-        });
-
-        const newBattle = await service.startBattle(attacker.id, newDefender.id);
-        const battle = await service.startBattle(attacker.id, newDefender.id);
-        expect(battle).toBeDefined();
-        expect(battle.battleId).toBe(newBattle.battleId);
-      });
-
-      it("should not start a new battle if the defender is already in battle", async () => {
-        const newAttacker = createMockUser({
-          username: "attacker",
-          cashAmount: 2000,
-          reputation: 10000,
-          socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
-          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
-          products: [{ name: "Herb", quantity: 100, level: 1 }],
-        });
-
-        await userModel.create({
-          ...newAttacker,
-        });
-
-        await service.startBattle(attacker.id, defender.id);
-        await expect(service.startBattle(newAttacker.id, defender.id)).rejects.toThrow(
-          "This player is already in a battle",
-        );
-      });
-
-      it("should not start a new if attacker did not join telegram channel", async () => {
-        const newAttacker = createMockUser({
-          username: "attacker",
-          cashAmount: 2000,
-          reputation: 10000,
-          pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
-          products: [{ name: "Herb", quantity: 100, level: 1 }],
-        });
-
-        await userModel.create({
-          ...newAttacker,
-        });
-
-        await expect(service.startBattle(newAttacker.id, defender.id)).rejects.toThrow(
-          "You must join our Telegram channel to participate in PvP",
-        );
       });
     });
   });

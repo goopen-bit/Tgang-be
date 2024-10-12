@@ -62,7 +62,6 @@ export class AchievementsService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    console.log(user);
     if (achievement.checkRequirement(user)) {
       if (user.achievements[achievementId]) return user;
       user.achievements[achievementId] = true;

@@ -346,7 +346,7 @@ export class UserService {
       {
         $match: {
           id: { $nin: [userId, ...exIds] },
-          reputation: { $gt: 1000 },
+          reputation: { $gt: 3000 },
           cashAmount: { $gt: 1000 },
           $or: [
             { "pvp.lastDefendDate": { $lt: today } },

@@ -115,7 +115,7 @@ export class MultiplayerService {
     attacker: User,
     defender: User | BotUser,
   ) {
-    this.validateTelegramChannel(attacker);
+    // this.validateTelegramChannel(attacker);
     this.validateAttacksAvailable(attacker);
     this.validateDefenderAvailability(defender);
 
@@ -123,6 +123,23 @@ export class MultiplayerService {
     attacker.pvp.lastAttackDate = new Date();
     attacker.pvp.defeat++;
     await attacker.save();
+  }
+
+  private async getBattleAndValidate(
+    userId: number,
+    battleId: string,
+  ): Promise<BattleDto> {
+    const battleString = await this.redis.get(this.getBattleLockKey(battleId));
+    if (!battleString) {
+      throw new HttpException("Battle not found", HttpStatus.NOT_FOUND);
+    }
+    const battle: BattleDto = JSON.parse(battleString);
+
+    if (battle.attacker.id !== userId) {
+      throw new HttpException("You are not the attacker", HttpStatus.FORBIDDEN);
+    }
+
+    return battle;
   }
 
   private async checkExistingBattles(userId: number, opponentId: number) {
@@ -145,23 +162,6 @@ export class MultiplayerService {
         HttpStatus.UNAUTHORIZED,
       );
     }
-  }
-
-  private async getBattleAndValidate(
-    userId: number,
-    battleId: string,
-  ): Promise<BattleDto> {
-    const battleString = await this.redis.get(this.getBattleLockKey(battleId));
-    if (!battleString) {
-      throw new HttpException("Battle not found", HttpStatus.NOT_FOUND);
-    }
-    const battle: BattleDto = JSON.parse(battleString);
-
-    if (battle.attacker.id !== userId) {
-      throw new HttpException("You are not the attacker", HttpStatus.FORBIDDEN);
-    }
-
-    return battle;
   }
 
   /*******************************************************************
@@ -285,7 +285,10 @@ export class MultiplayerService {
     opponentId: number,
     selectedItemIds?: ECRAFTABLE_ITEM[],
   ) {
-    await this.checkExistingBattles(userId, opponentId);
+    const existingBattle = await this.checkExistingBattles(userId, opponentId);
+    if (existingBattle) {
+      return existingBattle;
+    }
 
     const [attacker, defender] = await Promise.all([
       this.userService.findOne(userId),
@@ -313,6 +316,16 @@ export class MultiplayerService {
   ) {
     const user = await this.userService.findOne(userId);
 
+    const selectedItem = player.selectedItems.find(
+      (item) => item.itemId === itemId,
+    );
+    if (!selectedItem || selectedItem.quantity <= 0) {
+      throw new HttpException(
+        "Item not available for this battle",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const craftedItem = user.craftedItems.find(
       (item) => item.itemId === itemId,
     );
@@ -324,16 +337,25 @@ export class MultiplayerService {
     }
 
     const item = CRAFTABLE_ITEMS[itemId];
-    if (!item) {
-      throw new HttpException("Invalid item", HttpStatus.BAD_REQUEST);
+
+    // Check if an effect for this item already exists
+    const existingEffectIndex = player.pvp.activeEffects.findIndex(
+      (effect) => effect.itemId === item.itemId,
+    );
+
+    if (existingEffectIndex !== -1) {
+      // Remove the existing effect
+      player.pvp.activeEffects.splice(existingEffectIndex, 1);
     }
 
+    // Add the new effect
     player.pvp.activeEffects.push({
       itemId: item.itemId,
       effect: item.pvpEffect,
       remainingRounds: item.duration,
     });
 
+    selectedItem.quantity--;
     craftedItem.quantity--;
     if (craftedItem.quantity === 0) {
       user.craftedItems = user.craftedItems.filter(
@@ -346,6 +368,21 @@ export class MultiplayerService {
   }
 
   private applyActiveEffects(player: BattleParticipantDto) {
+    // Reset player's stats to base values
+    // @TODO be carefull to update that when armory is up
+    const baseStats = new UserPvp();
+    for (const stat in baseStats) {
+      if (stat !== "activeEffects") {
+        player.pvp[stat] = baseStats[stat];
+      }
+    }
+
+    // Ensure activeEffects is an array
+    if (!Array.isArray(player.pvp.activeEffects)) {
+      player.pvp.activeEffects = [];
+    }
+
+    // Apply all active effects
     for (const activeEffect of player.pvp.activeEffects) {
       for (const [stat, value] of Object.entries(activeEffect.effect)) {
         player.pvp[stat] += value;
@@ -490,16 +527,16 @@ export class MultiplayerService {
     }
   }
 
-  private async updatePvpStats(batle: BattleDto) {
+  private async updatePvpResult(battle: BattleDto) {
     const [attacker, defender] = await Promise.all([
-      this.userService.findOne(batle.attacker.id),
-      this.userService.findDefender(batle.defender.id, batle.attacker.id),
+      this.userService.findOne(battle.attacker.id),
+      this.userService.findDefender(battle.defender.id, battle.attacker.id),
     ]);
 
     let cashLoot = 0;
     let productLoot: LootDto[] = [];
 
-    if (batle.winner === "attacker") {
+    if (battle.winner === "attacker") {
       attacker.pvp.victory++;
       // Update attacker defeat since we decreased it before the battle
       attacker.pvp.defeat--;
@@ -530,29 +567,29 @@ export class MultiplayerService {
       attacker.save(),
       (defender as any).isBot ? Promise.resolve() : (defender as any).save(),
       this.battleResultModel.create({
-        battleId: batle.battleId,
+        battleId: battle.battleId,
         attackerId: attacker.id,
         attackerUsername: attacker.username,
         defenderId: defender.id,
         defenderUsername: defender.username,
-        winner: batle.winner,
-        rounds: batle.round,
-        cashLoot: batle.winner === "attacker" ? cashLoot : 0,
-        productLoot: batle.winner === "attacker" ? productLoot : [],
+        winner: battle.winner,
+        rounds: battle.round,
+        cashLoot: battle.winner === "attacker" ? cashLoot : 0,
+        productLoot: battle.winner === "attacker" ? productLoot : [],
       }),
     ]);
 
-    batle.productLoot = productLoot;
-    batle.cashLoot = cashLoot;
+    battle.productLoot = productLoot;
+    battle.cashLoot = cashLoot;
 
-    return batle;
+    return battle;
   }
 
   private async handleBattleEnd(battle: BattleDto) {
     if (battle.winner) {
       this.clearActiveEffects(battle.attacker);
       this.clearActiveEffects(battle.defender);
-      battle = await this.updatePvpStats(battle);
+      battle = await this.updatePvpResult(battle);
       await this.clearBattleLocks(battle);
     } else {
       this.trackPvpResult(battle.attacker.id, battle.defender.id, "ongoing");
@@ -571,20 +608,10 @@ export class MultiplayerService {
     body: AttackDto,
   ): Promise<BattleDto> {
     const battle = await this.getBattleAndValidate(userId, battleId);
-    const { attacker, defender } = battle;
+    let { attacker, defender } = battle;
 
     if (body.itemId) {
-      const selectedItem = attacker.selectedItems.find(
-        (item) => item.itemId === body.itemId,
-      );
-      if (!selectedItem || selectedItem.quantity <= 0) {
-        throw new HttpException(
-          "Item not available for this battle",
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      await this.useCraftedItem(userId, body.itemId, attacker);
-      selectedItem.quantity--;
+      attacker = await this.useCraftedItem(userId, body.itemId, attacker);
     }
 
     const attackResult = this.applyEffectsAndPerformAttacks(
@@ -596,10 +623,15 @@ export class MultiplayerService {
     battle.round++;
     this.updateBattleStatus(battle, attackResult);
 
+    battle.attacker = attacker;
     await this.handleBattleEnd(battle);
 
     return battle;
   }
+
+  /*******************************************************************
+                                Battle History
+  ********************************************************************/
 
   private createBattleParticipant(
     attackerId: number,

@@ -240,6 +240,7 @@ describe("MultiplayerService", () => {
             lootPower: 1,
           },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
+          craftedItems: [{ itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, quantity: 2 }],
         });
         defender = createMockUser({
           username: "defender",
@@ -299,64 +300,40 @@ describe("MultiplayerService", () => {
         expect(battle.winner).toBeDefined();
       });
 
-      it("should use product to increase attack power", async () => {
-        await userModel.updateOne(
-          {
-            id: attacker.id,
-          },
-          {
-            $set: {
-              craftedItems: [
-                { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, quantity: 2 },
-              ],
-            },
-          },
-        );
-
+      it("should use crafted item to increase attack power and update selected items", async () => {
         const battle = await service.startBattle(attacker.id, defender.id, [
           ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
         ]);
+        
+        expect(battle.attacker.selectedItems).toHaveLength(1);
+        expect(battle.attacker.selectedItems[0].quantity).toBe(2);
+
         const result = await service.performAttack(
           attacker.id,
           battle.battleId,
           { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2 },
         );
+        
         expect(result).toBeDefined();
         expect(result.round).toBe(1);
-        expect(result.roundResults[0].usedItem).toBe(
-          ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
-        );
+        expect(result.roundResults[0].usedItem).toBe(ECRAFTABLE_ITEM.BOOSTER_ATTACK_2);
         expect(result.attacker.pvp.damage).toBeGreaterThan(PVP_BASE_DAMAGE);
+        
+        // Check if the selected items are updated
+        expect(result.attacker.selectedItems).toHaveLength(1);
+        expect(result.attacker.selectedItems[0].quantity).toBe(1);
       });
 
-      it("should use crafted item to increase attack power", async () => {
-        await userModel.updateOne(
-          {
-            id: attacker.id,
-          },
-          {
-            $set: {
-              craftedItems: [
-                { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, quantity: 1 },
-              ],
-            },
-          },
-        );
-
-        const battle = await service.startBattle(attacker.id, defender.id, [
-          ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
-        ]);
-        const result = await service.performAttack(
-          attacker.id,
-          battle.battleId,
-          { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2 },
-        );
-        expect(result).toBeDefined();
-        expect(result.round).toBe(1);
-        expect(result.roundResults[0].usedItem).toBe(
-          ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
-        );
-        expect(result.attacker.pvp.damage).toBeGreaterThan(PVP_BASE_DAMAGE);
+      it("should not allow using an item that wasn't selected for the battle", async () => {
+        const battle = await service.startBattle(attacker.id, defender.id, []);
+        
+        await expect(
+          service.performAttack(
+            attacker.id,
+            battle.battleId,
+            { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2 },
+          )
+        ).rejects.toThrow("Item not available for this battle");
       });
     });
 

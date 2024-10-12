@@ -33,6 +33,7 @@ export interface DealerUpgrade {
   basePrice: number;
   upgradeMultiplier: number;
   amountMultiplier: number;
+  upgradeTimeMultiplier: number;
   image: string;
   requirements: Requirement[] | null;
 }
@@ -42,6 +43,7 @@ export interface ProductUpgrade {
   description: string;
   basePrice: number;
   upgradeMultiplier: number;
+  upgradeTimeMultiplier: number;
   baseDiscount: number;
   image: string;
   requirements: Requirement[] | null;

@@ -141,6 +141,13 @@ describe("LabService", () => {
         "Plot is empty"
       );
     });
+
+    it("should throw error if not enough time has passed since previous upgrade", async () => {
+      await service.upgradeLabCapacity(user.id, 1);
+      await expect(
+        service.upgradeLabCapacity(user.id, 1)
+      ).rejects.toThrow("Upgrade not available yet");
+    });
   });
 
   describe("upgradeLabProduction", () => {
@@ -188,6 +195,13 @@ describe("LabService", () => {
       await expect(service.upgradeLabProduction(user.id, 2)).rejects.toThrow(
         "Plot is empty"
       );
+    });
+
+    it("should throw error if not enough time has passed since previous upgrade", async () => {
+      await service.upgradeLabProduction(user.id, 1);
+      await expect(
+        service.upgradeLabProduction(user.id, 1)
+      ).rejects.toThrow("Upgrade not available yet");
     });
   });
 

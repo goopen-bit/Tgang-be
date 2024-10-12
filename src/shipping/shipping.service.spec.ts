@@ -109,6 +109,14 @@ describe("ShippingService", () => {
         service.upgradeShippingCapacity(user.id, EShippingMethod.PLANE)
       ).rejects.toThrow("Upgrade not bought");
     });
+
+    it("should throw error if not enough time has passed since previous upgrade", async () => {
+      await service.buyShippingUpgrade(user.id, EShippingMethod.PALLET);
+      await service.upgradeShippingCapacity(user.id, EShippingMethod.PALLET);
+      await expect(
+        service.upgradeShippingCapacity(user.id, EShippingMethod.PALLET)
+      ).rejects.toThrow("Upgrade not available yet");
+    });
   });
 
   describe("upgradShippingTime", () => {
@@ -146,6 +154,14 @@ describe("ShippingService", () => {
       await expect(
         service.upgradeShippingTime(user.id, EShippingMethod.PLANE)
       ).rejects.toThrow("Upgrade not bought");
+    });
+
+    it("should throw error if not enough time has passed since previous upgrade", async () => {
+      await service.buyShippingUpgrade(user.id, EShippingMethod.PALLET);
+      await service.upgradeShippingTime(user.id, EShippingMethod.PALLET);
+      await expect(
+        service.upgradeShippingTime(user.id, EShippingMethod.PALLET)
+      ).rejects.toThrow("Upgrade not available yet");
     });
   });
 });

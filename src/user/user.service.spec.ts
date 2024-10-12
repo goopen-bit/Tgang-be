@@ -8,7 +8,7 @@ import { Model } from "mongoose";
 import { EProduct } from "../market/market.const";
 import { upgradesData } from "../upgrade/data/upgrades";
 import { STARTING_CASH } from "./user.const";
-import { subDays, subHours } from "date-fns";
+import { addDays, subDays, subHours } from "date-fns";
 import { appConfigImports } from "../config/app";
 import { UniqueEnforcer } from "enforce-unique";
 import {
@@ -19,6 +19,8 @@ import {
   PVP_BASE_EVASION,
   PVP_BASE_CRITICAL_HIT_CHANCE,
 } from "./user.const";
+import { EAchievement, Achievement } from "./data/achievements";
+import { HttpException, HttpStatus } from "@nestjs/common";
 
 const uniqueEnforcerUserId = new UniqueEnforcer();
 

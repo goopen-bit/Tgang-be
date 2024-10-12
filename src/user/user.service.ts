@@ -14,7 +14,6 @@ import {
   PREMIUM_REFERRAL_CASH,
   PREMIUM_REFERRAL_REPUTATION,
   PVP_BASE_ACCURACY,
-  PVP_BASE_CRITICAL_HIT_CHANCE,
   PVP_BASE_DAMAGE,
   PVP_BASE_EVASION,
   PVP_BASE_HEALTH_POINTS,
@@ -25,6 +24,7 @@ import {
   ROBBERY_AMOUNT_PER_DAILY_STRIKE,
   ROBBERY_MAX_AMOUNT_PER_DAILY_STRIKE,
   STARTING_CASH,
+  PVP_BASE_CRITICAL_HIT_CHANCE,
 } from "./user.const";
 import { upgradesData } from "../upgrade/data/upgrades";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";

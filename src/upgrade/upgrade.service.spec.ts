@@ -106,6 +106,17 @@ describe("UpgradeService", () => {
         "Upgrade not unlocked"
       );
     });
+
+    it("should throw error if not enough time has passed since previous upgrade", async () => {
+      const params: BuyUpgradeDto = {
+        category: EUpgradeCategory.PRODUCT,
+        upgrade: EProduct.HERB,
+      };
+      await service.buyUpgrade(user.id, params);
+      await expect(
+        service.buyUpgrade(user.id, params)
+      ).rejects.toThrow("Upgrade not available yet");
+    });
   });
 
   describe("findAll", () => {

@@ -7,9 +7,11 @@ export interface ShippingMethod {
   basePrice: number;
   baseCapacityUpgradePrice: number;
   capacityPriceMultiplier: number;
+  capacityUpgradeTimeMultiplier: number;
   baseCapacity: number;
   baseShippingTimeUpgradePrice: number;
   shippingTimePriceMultiplier: number;
+  shippingTimeUpgradeTimeMultiplier: number;
   baseShippingTime: number;
   shippingTimeMultiplier: number;
   image: string;

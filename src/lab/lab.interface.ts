@@ -4,8 +4,10 @@ export interface Lab {
   labPrice: number;
   baseCapacity: number;
   baseCapacityUpgradePrice: number;
+  capacityUpgradeTimeMultiplier: number;
   baseProduction: number;
   baseProductionUpgradePrice: number;
+  productionUpgradeTimeMultiplier: number;
   image: string;
   levelRequirement: number;
 }

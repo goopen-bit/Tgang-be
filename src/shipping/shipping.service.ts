@@ -69,6 +69,10 @@ export class ShippingService {
       throw new HttpException("Upgrade not bought", 400);
     }
 
+    if (userShipping.nextCapacityUpgrade > new Date()) {
+      throw new HttpException("Upgrade not available yet", 400);
+    }
+
     checkRequirements(user, userShipping.requirements);
 
     if (user.cashAmount < userShipping.upgradeCapacityPrice) {
@@ -77,6 +81,7 @@ export class ShippingService {
 
     user.cashAmount -= userShipping.upgradeCapacityPrice;
     userShipping.capacityLevel += 1;
+    userShipping.lastCapacityUpgrade = new Date();
     await user.save();
     this.mixpanel.track("Boost Upgrade", {
       distinct_id: user.id,
@@ -97,6 +102,10 @@ export class ShippingService {
       throw new HttpException("Upgrade not bought", 400);
     }
 
+    if (userShipping.nextShippingTimeUpgrade > new Date()) {
+      throw new HttpException("Upgrade not available yet", 400);
+    }
+
     checkRequirements(user, userShipping.requirements);
 
     if (user.cashAmount < userShipping.upgradeShippingTimePrice) {
@@ -105,6 +114,7 @@ export class ShippingService {
 
     user.cashAmount -= userShipping.upgradeShippingTimePrice;
     userShipping.shippingTimeLevel += 1;
+    userShipping.lastShippingTimeUpgrade = new Date();
     await user.save();
     this.mixpanel.track("Boost Upgrade", {
       distinct_id: user.id,

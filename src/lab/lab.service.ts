@@ -117,12 +117,17 @@ export class LabService {
     const user = await this.userService.findOne(userId);
     const labPlot = this.getLabPlotForUpgrade(user, plotId);
 
+    if (labPlot.lab.nextCapacityUpgrade > new Date()) {
+      throw new HttpException("Upgrade not available yet", HttpStatus.BAD_REQUEST);
+    }
+
     if (user.cashAmount < labPlot.lab.upgradeCapacityPrice) {
       throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
     }
 
     user.cashAmount -= labPlot.lab.upgradeCapacityPrice;
     labPlot.lab.capacityLevel++;
+    labPlot.lab.lastCapacityUpgrade = new Date();
     await user.save();
     this.mixpanel.track("Boost Upgrade", {
       distinct_id: user.id,
@@ -137,12 +142,17 @@ export class LabService {
     const user = await this.userService.findOne(userId);
     const labPlot = this.getLabPlotForUpgrade(user, plotId);
 
+    if (labPlot.lab.nextProductionUpgrade > new Date()) {
+      throw new HttpException("Upgrade not available yet", HttpStatus.BAD_REQUEST);
+    }
+
     if (user.cashAmount < labPlot.lab.upgradeProductionPrice) {
       throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST);
     }
 
     user.cashAmount -= labPlot.lab.upgradeProductionPrice;
     labPlot.lab.productionLevel++;
+    labPlot.lab.lastProductionUpgrade = new Date();
     this.mixpanel.track("Boost Upgrade", {
       distinct_id: user.id,
       type: "Lab Production",

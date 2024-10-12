@@ -24,6 +24,7 @@ import {
   ROBBERY_AMOUNT_PER_DAILY_STRIKE,
   ROBBERY_MAX_AMOUNT_PER_DAILY_STRIKE,
   STARTING_CASH,
+  PVP_BASE_CRITICAL_HIT_CHANCE,
 } from "./user.const";
 import { upgradesData } from "../upgrade/data/upgrades";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";

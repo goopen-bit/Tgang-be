@@ -25,7 +25,15 @@ import {
 import { randomUUID } from "crypto";
 import { UserPvp } from "../user/schemas/userPvp.schema";
 import { CRAFTABLE_ITEMS, ECRAFTABLE_ITEM } from "../lab/craftable_item.const";
-import { AttackDto } from "./dto/attack.dto";
+import {
+  PVP_BASE_ACCURACY,
+  PVP_BASE_CRITICAL_HIT_CHANCE,
+  PVP_BASE_DAMAGE,
+  PVP_BASE_EVASION,
+  PVP_BASE_HEALTH_POINTS,
+  PVP_BASE_LOOT_POWER,
+  PVP_BASE_PROTECTION,
+} from "../user/user.const";
 
 @Injectable()
 export class MultiplayerService {
@@ -216,28 +224,7 @@ export class MultiplayerService {
                                 StartBattle
   ********************************************************************/
 
-  private async validateAndGetItems(
-    userId: number,
-    itemIds: ECRAFTABLE_ITEM[] = [],
-  ) {
-    const user = await this.userService.findOne(userId);
-    return itemIds.map((itemId) => {
-      const item = user.craftedItems.find((i) => i.itemId === itemId);
-      if (!item || item.quantity <= 0) {
-        throw new HttpException(
-          `Item ${itemId} not available`,
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      return { itemId, quantity: item.quantity };
-    });
-  }
-
-  private createBattle(
-    attacker: User,
-    defender: User | BotUser,
-    selectedItems: { itemId: ECRAFTABLE_ITEM; quantity: number }[],
-  ): BattleDto {
+  private createBattle(attacker: User, defender: User | BotUser): BattleDto {
     const battleId = randomUUID();
     return {
       battleId,
@@ -245,7 +232,6 @@ export class MultiplayerService {
         id: attacker.id,
         username: attacker.username,
         pvp: attacker.pvp,
-        selectedItems,
       },
       defender: {
         id: defender.id,
@@ -280,13 +266,10 @@ export class MultiplayerService {
     ]);
   }
 
-  async startBattle(
-    userId: number,
-    opponentId: number,
-    selectedItemIds?: ECRAFTABLE_ITEM[],
-  ) {
+  async startBattle(userId: number, opponentId: number) {
     const existingBattle = await this.checkExistingBattles(userId, opponentId);
     if (existingBattle) {
+      console.log(existingBattle);
       return existingBattle;
     }
 
@@ -296,17 +279,14 @@ export class MultiplayerService {
     ]);
     await this.validateBattleConditions(attacker, defender);
 
-    const selectedItems = selectedItemIds
-      ? await this.validateAndGetItems(userId, selectedItemIds)
-      : [];
-    const battle = this.createBattle(attacker, defender, selectedItems);
+    const battle = this.createBattle(attacker, defender);
     await this.lockBattleParticipants(battle);
 
     return battle;
   }
 
   /*******************************************************************
-                                PerformAttack
+                                Combat Action
   ********************************************************************/
 
   private async useCraftedItem(
@@ -315,16 +295,6 @@ export class MultiplayerService {
     player: BattleParticipantDto,
   ) {
     const user = await this.userService.findOne(userId);
-
-    const selectedItem = player.selectedItems.find(
-      (item) => item.itemId === itemId,
-    );
-    if (!selectedItem || selectedItem.quantity <= 0) {
-      throw new HttpException(
-        "Item not available for this battle",
-        HttpStatus.BAD_REQUEST,
-      );
-    }
 
     const craftedItem = user.craftedItems.find(
       (item) => item.itemId === itemId,
@@ -335,27 +305,21 @@ export class MultiplayerService {
         HttpStatus.BAD_REQUEST,
       );
     }
-
     const item = CRAFTABLE_ITEMS[itemId];
-
-    // Check if an effect for this item already exists
     const existingEffectIndex = player.pvp.activeEffects.findIndex(
       (effect) => effect.itemId === item.itemId,
     );
 
     if (existingEffectIndex !== -1) {
-      // Remove the existing effect
       player.pvp.activeEffects.splice(existingEffectIndex, 1);
     }
 
-    // Add the new effect
     player.pvp.activeEffects.push({
       itemId: item.itemId,
       effect: item.pvpEffect,
       remainingRounds: item.duration,
     });
 
-    selectedItem.quantity--;
     craftedItem.quantity--;
     if (craftedItem.quantity === 0) {
       user.craftedItems = user.craftedItems.filter(
@@ -368,7 +332,6 @@ export class MultiplayerService {
   }
 
   private applyActiveEffects(player: BattleParticipantDto) {
-    // Reset player's stats to base values
     // @TODO be carefull to update that when armory is up
     const baseStats = new UserPvp();
     for (const stat in baseStats) {
@@ -376,13 +339,10 @@ export class MultiplayerService {
         player.pvp[stat] = baseStats[stat];
       }
     }
-
-    // Ensure activeEffects is an array
     if (!Array.isArray(player.pvp.activeEffects)) {
       player.pvp.activeEffects = [];
     }
 
-    // Apply all active effects
     for (const activeEffect of player.pvp.activeEffects) {
       for (const [stat, value] of Object.entries(activeEffect.effect)) {
         player.pvp[stat] += value;
@@ -414,21 +374,26 @@ export class MultiplayerService {
 
     return { damage, critical };
   }
-  private applyEffectsAndPerformAttacks(
+
+  private performAttacks(
     attacker: BattleParticipantDto,
     defender: BattleParticipantDto,
-    usedItemId?: ECRAFTABLE_ITEM,
-  ) {
-    this.applyActiveEffects(attacker);
-    this.applyActiveEffects(defender);
-
-    const attackerAttack = this.getAttackDamage(
-      attacker.pvp.damage,
-      attacker.pvp.accuracy,
-      attacker.pvp.criticalChance,
-      defender.pvp.protection,
-      defender.pvp.evasion,
-    );
+    attackerUsedItem: boolean = false,
+  ): {
+    attackerAttack: { damage: number; critical: boolean };
+    defenderAttack: { damage: number; critical: boolean };
+    usedItemId?: ECRAFTABLE_ITEM;
+  } {
+    let attackerAttack = { damage: 0, critical: false };
+    if (!attackerUsedItem) {
+      attackerAttack = this.getAttackDamage(
+        attacker.pvp.damage,
+        attacker.pvp.accuracy,
+        attacker.pvp.criticalChance,
+        defender.pvp.protection,
+        defender.pvp.evasion,
+      );
+    }
 
     const defenderAttack = this.getAttackDamage(
       defender.pvp.damage,
@@ -441,20 +406,52 @@ export class MultiplayerService {
     attacker.pvp.healthPoints -= defenderAttack.damage;
     defender.pvp.healthPoints -= attackerAttack.damage;
 
-    return { attackerAttack, defenderAttack, usedItemId };
+    return { attackerAttack, defenderAttack };
   }
 
   private clearActiveEffects(player: BattleParticipantDto) {
     player.pvp.activeEffects = [];
   }
 
+  private getBaseStats(): Record<string, number> {
+    return {
+      healthPoints: PVP_BASE_HEALTH_POINTS,
+      protection: PVP_BASE_PROTECTION,
+      damage: PVP_BASE_DAMAGE,
+      accuracy: PVP_BASE_ACCURACY,
+      evasion: PVP_BASE_EVASION,
+      criticalChance: PVP_BASE_CRITICAL_HIT_CHANCE,
+      lootPower: PVP_BASE_LOOT_POWER,
+    };
+  }
+
   private decreaseEffectDuration(player: BattleParticipantDto) {
-    player.pvp.activeEffects = player.pvp.activeEffects
-      .map((effect) => ({
-        ...effect,
-        remainingRounds: effect.remainingRounds - 1,
-      }))
-      .filter((effect) => effect.remainingRounds > 0);
+    if (player.pvp?.activeEffects?.length > 0) {
+      const baseStats = this.getBaseStats();
+      const expiredEffects = [];
+
+      player.pvp.activeEffects = player.pvp.activeEffects
+        .map((effect) => {
+          const updatedEffect = {
+            ...effect,
+            remainingRounds: effect.remainingRounds - 1,
+          };
+
+          if (updatedEffect.remainingRounds === 0) {
+            expiredEffects.push(effect);
+          }
+
+          return updatedEffect;
+        })
+        .filter((effect) => effect.remainingRounds > 0);
+      expiredEffects.forEach((effect) => {
+        Object.keys(effect.effect).forEach((skill) => {
+          if (player.pvp[skill] !== undefined) {
+            player.pvp[skill] = baseStats[skill];
+          }
+        });
+      });
+    }
   }
 
   private updateBattleStatus(
@@ -483,7 +480,9 @@ export class MultiplayerService {
       this.trackPvpResult(attacker.id, defender.id, "lost");
     }
 
-    this.decreaseEffectDuration(attacker);
+    if (!attackResult.usedItemId) {
+      this.decreaseEffectDuration(attacker);
+    }
     this.decreaseEffectDuration(defender);
   }
 
@@ -602,28 +601,35 @@ export class MultiplayerService {
     }
   }
 
-  async performAttack(
+  async combatAction(
     userId: number,
     battleId: string,
-    body: AttackDto,
+    itemId?: ECRAFTABLE_ITEM,
   ): Promise<BattleDto> {
     const battle = await this.getBattleAndValidate(userId, battleId);
     let { attacker, defender } = battle;
 
-    if (body.itemId) {
-      attacker = await this.useCraftedItem(userId, body.itemId, attacker);
+    let attackerUsedItem = false;
+
+    if (itemId) {
+      attacker = await this.useCraftedItem(userId, itemId, attacker);
+      this.applyActiveEffects(attacker);
+      this.applyActiveEffects(defender);
+      attackerUsedItem = true;
     }
 
-    const attackResult = this.applyEffectsAndPerformAttacks(
+    const attackResult = this.performAttacks(
       attacker,
       defender,
-      body.itemId,
+      attackerUsedItem,
     );
-
+    attackResult.usedItemId = itemId;
     battle.round++;
     this.updateBattleStatus(battle, attackResult);
 
     battle.attacker = attacker;
+    battle.defender = defender;
+
     await this.handleBattleEnd(battle);
 
     return battle;

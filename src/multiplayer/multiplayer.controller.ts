@@ -1,10 +1,16 @@
-import { Controller, Post, Get, Param, ParseIntPipe, Body } from "@nestjs/common";
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  ParseIntPipe,
+  Body,
+} from "@nestjs/common";
 import { MultiplayerService } from "./multiplayer.service";
 import { Auth } from "../decorators/auth.decorator";
 import { GetAuthToken } from "../decorators/get-auth-token.decorator";
 import { AuthTokenData } from "../config/types";
 import { AttackDto } from "./dto/attack.dto";
-import { StartBattleDto } from "./dto/battle.dto";
 
 @Auth()
 @Controller("multiplayer")
@@ -20,18 +26,17 @@ export class MultiplayerController {
   async startFight(
     @GetAuthToken() user: AuthTokenData,
     @Param("opponentId", new ParseIntPipe()) opponentId: number,
-    @Body() body: StartBattleDto
   ) {
-    return this.multiplayerService.startBattle(user.id, opponentId, body.selectedItemIds);
+    return this.multiplayerService.startBattle(user.id, opponentId);
   }
 
-  @Post("attack/:battleId")
-  async performAttack(
+  @Post("combatAction/:battleId")
+  async combatAction(
     @GetAuthToken() user: AuthTokenData,
     @Param("battleId") battleId: string,
-    @Body() body: AttackDto
+    @Body() body: AttackDto,
   ) {
-    return this.multiplayerService.performAttack(user.id, battleId, body);
+    return this.multiplayerService.combatAction(user.id, battleId, body.itemId);
   }
 
   @Get("battle-results")

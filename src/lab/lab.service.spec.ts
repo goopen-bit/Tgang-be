@@ -277,6 +277,16 @@ describe("LabService", () => {
       );
       u.products = [
         {
+          name: EProduct.POWDER,
+          quantity: 10,
+          level: 0,
+        },
+        {
+          name: EProduct.PILL,
+          quantity: 10,
+          level: 0,
+        },
+        {
           name: EProduct.HERB,
           quantity: 10,
           level: 0,
@@ -293,29 +303,29 @@ describe("LabService", () => {
     it("should craft an item when not in battle", async () => {
       jest.spyOn(service, "getActiveBattle").mockResolvedValue(false);
 
-      await service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, 2);
+      await service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_1, 2);
       const updatedUser = await userService.findOne(user.id);
 
       const craftedItem = updatedUser.craftedItems.find(
-        (item) => item.itemId === ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
+        (item) => item.itemId === ECRAFTABLE_ITEM.BOOSTER_ATTACK_1,
       );
       expect(craftedItem).toBeDefined();
       expect(craftedItem.quantity).toBe(2);
 
-      const herb = updatedUser.products.find((p) => p.name === EProduct.HERB);
-      expect(herb.quantity).toBe(6); // 10 - (2 * 2)
-
-      const mushroom = updatedUser.products.find(
-        (p) => p.name === EProduct.MUSHROOM,
+      const powder = updatedUser.products.find(
+        (p) => p.name === EProduct.POWDER,
       );
-      expect(mushroom.quantity).toBe(8); // 10 - (1 * 2)
+      expect(powder.quantity).toBe(4); // 10 - (3 * 2)
+
+      const pill = updatedUser.products.find((p) => p.name === EProduct.PILL);
+      expect(pill.quantity).toBe(8); // 10 - (1 * 2)
     });
 
     it("should throw an error when trying to craft an item while in battle", async () => {
       jest.spyOn(service, "getActiveBattle").mockResolvedValue(true);
 
       await expect(
-        service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, 2),
+        service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_1, 2),
       ).rejects.toThrow(
         new HttpException("Cannot craft items while in battle", 400),
       );
@@ -324,12 +334,12 @@ describe("LabService", () => {
     it("should stack crafted items", async () => {
       jest.spyOn(service, "getActiveBattle").mockResolvedValue(false);
 
-      await service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, 1);
-      await service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, 2);
+      await service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_1, 1);
+      await service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_1, 2);
 
       const updatedUser = await userService.findOne(user.id);
       const craftedItem = updatedUser.craftedItems.find(
-        (item) => item.itemId === ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
+        (item) => item.itemId === ECRAFTABLE_ITEM.BOOSTER_ATTACK_1,
       );
       expect(craftedItem.quantity).toBe(3);
     });
@@ -338,8 +348,8 @@ describe("LabService", () => {
       jest.spyOn(service, "getActiveBattle").mockResolvedValue(false);
 
       await expect(
-        service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, 10),
-      ).rejects.toThrow("Not enough Herb");
+        service.craftItem(user.id, ECRAFTABLE_ITEM.BOOSTER_ATTACK_1, 10),
+      ).rejects.toThrow("Not enough Powder");
     });
   });
 

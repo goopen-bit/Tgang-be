@@ -14,8 +14,7 @@ import {
   BattleResultSchema,
 } from "./schemas/battleResult.schema";
 import { SocialChannel } from "../social/social.const";
-import { BattleDto, BattleParticipantDto } from "./dto/battle.dto";
-import { EProduct } from "../market/market.const";
+import { BattleDto } from "./dto/battle.dto";
 import { PVP_BASE_DAMAGE } from "../user/user.const";
 import { UserPvp } from "../user/schemas/userPvp.schema";
 import { ECRAFTABLE_ITEM } from "../lab/craftable_item.const";
@@ -244,7 +243,8 @@ describe("MultiplayerService", () => {
         },
         products: [{ name: "Herb", quantity: 100, level: 1 }],
         craftedItems: [
-          { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, quantity: 2 },
+          { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_1, quantity: 2 },
+          { itemId: ECRAFTABLE_ITEM.HEALTH_POTION_SMALL, quantity: 1 },
         ],
       });
       defender = createMockUser({
@@ -261,13 +261,18 @@ describe("MultiplayerService", () => {
         products: [{ name: "Herb", quantity: 100, level: 1 }],
       });
 
-      await userModel.create({
-        ...attacker,
-      });
-      await userModel.create({
-        ...defender,
-      });
+      attacker.id = faker.number.int({ min: 1000, max: 9999 });
+      defender.id = faker.number.int({ min: 10000, max: 99999 });
 
+      await userModel.create(attacker);
+      await userModel.create(defender);
+    });
+
+    afterEach(async () => {
+      await userModel.deleteMany({});
+    });
+
+    beforeEach(() => {
       jest
         .spyOn(service as any, "getAttackDamage")
         .mockReturnValue({ damage: 15, critical: false });
@@ -294,14 +299,14 @@ describe("MultiplayerService", () => {
       const result = await service.combatAction(
         attacker.id,
         battle.battleId,
-        ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
+        ECRAFTABLE_ITEM.BOOSTER_ATTACK_1,
       );
       expect(result).toBeDefined();
       expect(result.round).toBe(1);
       expect(result.roundResults).toHaveLength(1);
       expect(result.roundResults[0].attackerDamage).toBe(0);
       expect(result.roundResults[0].usedItem).toBe(
-        ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
+        ECRAFTABLE_ITEM.BOOSTER_ATTACK_1,
       );
       expect(result.attacker.pvp.damage).toBeGreaterThan(initialDamage);
       expect(result.attacker.pvp.healthPoints).toBeLessThan(
@@ -316,7 +321,7 @@ describe("MultiplayerService", () => {
       let result = await service.combatAction(
         attacker.id,
         battle.battleId,
-        ECRAFTABLE_ITEM.BOOSTER_ATTACK_2,
+        ECRAFTABLE_ITEM.BOOSTER_ATTACK_1,
       );
 
       const increasedDamage = result.attacker.pvp.damage;
@@ -358,9 +363,39 @@ describe("MultiplayerService", () => {
         service.combatAction(
           attacker.id,
           battle.battleId,
-          ECRAFTABLE_ITEM.HEALTH_POTION,
+          ECRAFTABLE_ITEM.BOOSTER_DEFENSE_1,
         ),
       ).rejects.toThrow("Item not found or out of stock");
+    });
+
+    it("should increase player health when using a health potion", async () => {
+      // Modify the attacker to have reduced health
+      await userModel.findOneAndUpdate(
+        { id: attacker.id },
+        { $set: { "pvp.healthPoints": 50 } },
+      );
+
+      const battle = await service.startBattle(attacker.id, defender.id);
+
+      const initialAttackerHealth = battle.attacker.pvp.healthPoints;
+
+      const result = await service.combatAction(
+        attacker.id,
+        battle.battleId,
+        ECRAFTABLE_ITEM.HEALTH_POTION_SMALL,
+      );
+
+      expect(result).toBeDefined();
+      expect(result.round).toBe(1);
+      expect(result.roundResults).toHaveLength(1);
+      expect(result.roundResults[0].attackerDamage).toBe(0);
+      expect(result.roundResults[0].usedItem).toBe(
+        ECRAFTABLE_ITEM.HEALTH_POTION_SMALL,
+      );
+      expect(result.attacker.pvp.healthPoints).toBe(initialAttackerHealth + 10);
+      expect(result.defender.pvp.healthPoints).toBe(
+        battle.defender.pvp.healthPoints,
+      );
     });
   });
 
@@ -381,7 +416,7 @@ describe("MultiplayerService", () => {
         },
         products: [{ name: "Herb", quantity: 100, level: 1 }],
         craftedItems: [
-          { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_2, quantity: 2 },
+          { itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_1, quantity: 2 },
         ],
       });
       defender = createMockUser({

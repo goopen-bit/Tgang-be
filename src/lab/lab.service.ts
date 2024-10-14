@@ -8,9 +8,11 @@ import { Mixpanel } from "mixpanel";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
 import Redis from "ioredis";
-import { CraftItemDto } from "./dto/craft-item.dto";
-import { ECRAFTABLE_ITEM, CraftableItem, CRAFTABLE_ITEMS } from './craftable_item.const';
-import { MultiplayerService } from "../multiplayer/multiplayer.service";
+import {
+  ECRAFTABLE_ITEM,
+  CraftableItem,
+  CRAFTABLE_ITEMS,
+} from "./craftable_item.const";
 
 @Injectable()
 export class LabService {
@@ -25,9 +27,12 @@ export class LabService {
   async buyLabPlot(userId: number) {
     const lockKey = `buyLabPlot:${userId}`;
 
-    const lock = await this.redis.set(lockKey, 'locked', 'EX', 5, 'NX');
+    const lock = await this.redis.set(lockKey, "locked", "EX", 5, "NX");
     if (!lock) {
-      throw new HttpException('Please try again later', HttpStatus.TOO_MANY_REQUESTS);
+      throw new HttpException(
+        "Please try again later",
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
 
     try {
@@ -37,7 +42,7 @@ export class LabService {
       }
 
       const newPlotId = user.labPlots.length + 1;
-      if (user.labPlots.some(plot => plot.plotId === newPlotId)) {
+      if (user.labPlots.some((plot) => plot.plotId === newPlotId)) {
         throw new HttpException("Plot ID already exists", HttpStatus.CONFLICT);
       }
 
@@ -119,7 +124,10 @@ export class LabService {
     const labPlot = this.getLabPlotForUpgrade(user, plotId);
 
     if (labPlot.lab.nextCapacityUpgrade > new Date()) {
-      throw new HttpException("Upgrade not available yet", HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        "Upgrade not available yet",
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     if (user.cashAmount < labPlot.lab.upgradeCapacityPrice) {
@@ -144,7 +152,10 @@ export class LabService {
     const labPlot = this.getLabPlotForUpgrade(user, plotId);
 
     if (labPlot.lab.nextProductionUpgrade > new Date()) {
-      throw new HttpException("Upgrade not available yet", HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        "Upgrade not available yet",
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     if (user.cashAmount < labPlot.lab.upgradeProductionPrice) {
@@ -186,30 +197,46 @@ export class LabService {
     return user;
   }
 
-  async craftItem(userId: number, itemId: ECRAFTABLE_ITEM, quantity: number = 1) {
+  async craftItem(
+    userId: number,
+    itemId: ECRAFTABLE_ITEM,
+    quantity: number = 1,
+  ) {
     const user = await this.userService.findOne(userId);
 
     // Check if the user is in an active battle
     const isInBattle = await this.getActiveBattle(userId);
     if (isInBattle) {
-      throw new HttpException("Cannot craft items while in battle", HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        "Cannot craft items while in battle",
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const craftableItem = this.getCraftableItem(itemId);
 
-    for (const [product, requiredAmount] of Object.entries(craftableItem.requirements)) {
-      const userProduct = user.products.find(p => p.name === product);
+    for (const [product, requiredAmount] of Object.entries(
+      craftableItem.requirements,
+    )) {
+      const userProduct = user.products.find((p) => p.name === product);
       if (!userProduct || userProduct.quantity < requiredAmount * quantity) {
-        throw new HttpException(`Not enough ${product}`, HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          `Not enough ${product}`,
+          HttpStatus.BAD_REQUEST,
+        );
       }
     }
 
-    for (const [product, requiredAmount] of Object.entries(craftableItem.requirements)) {
-      const userProduct = user.products.find(p => p.name === product);
+    for (const [product, requiredAmount] of Object.entries(
+      craftableItem.requirements,
+    )) {
+      const userProduct = user.products.find((p) => p.name === product);
       userProduct.quantity -= requiredAmount * quantity;
     }
 
-    const existingCraftedItem = user.craftedItems.find(item => item.itemId === itemId);
+    const existingCraftedItem = user.craftedItems.find(
+      (item) => item.itemId === itemId,
+    );
     if (existingCraftedItem) {
       existingCraftedItem.quantity += quantity;
     } else {

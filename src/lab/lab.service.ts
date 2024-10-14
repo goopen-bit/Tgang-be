@@ -10,6 +10,7 @@ import { InjectRedis } from "@goopen/nestjs-ioredis-provider";
 import Redis from "ioredis";
 import { CraftItemDto } from "./dto/craft-item.dto";
 import { ECRAFTABLE_ITEM, CraftableItem, CRAFTABLE_ITEMS } from './craftable_item.const';
+import { MultiplayerService } from "../multiplayer/multiplayer.service";
 
 @Injectable()
 export class LabService {
@@ -187,6 +188,13 @@ export class LabService {
 
   async craftItem(userId: number, itemId: ECRAFTABLE_ITEM, quantity: number = 1) {
     const user = await this.userService.findOne(userId);
+
+    // Check if the user is in an active battle
+    const isInBattle = await this.getActiveBattle(userId);
+    if (isInBattle) {
+      throw new HttpException("Cannot craft items while in battle", HttpStatus.BAD_REQUEST);
+    }
+
     const craftableItem = this.getCraftableItem(itemId);
 
     for (const [product, requiredAmount] of Object.entries(craftableItem.requirements)) {
@@ -224,5 +232,13 @@ export class LabService {
       throw new HttpException("Invalid craftable item", HttpStatus.BAD_REQUEST);
     }
     return craftableItem;
+  }
+
+  async getActiveBattle(userId: number) {
+    const existingBattle = await this.redis.get(`attacking:${userId}`);
+    if (existingBattle) {
+      return true;
+    }
+    return false;
   }
 }

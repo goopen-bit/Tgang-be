@@ -13,6 +13,7 @@ import { MultiplayerModule } from './multiplayer/multiplayer.module';
 import { appConfigImports } from './config/app';
 import { AchievementsService } from './achievements/achievements.service';
 import { AchievementsModule } from './achievements/achievements.module';
+import { ArsenalModule } from './arsenal/arsenal.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AchievementsModule } from './achievements/achievements.module';
     SocialModule,
     MultiplayerModule,
     AchievementsModule,
+    ArsenalModule,
   ],
   controllers: [AppController],
   providers: [AppService, AchievementsService],

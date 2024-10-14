@@ -1,5 +1,36 @@
 import { Prop, Schema } from "@nestjs/mongoose";
-import { PVP_BASE_ACCURACY, PVP_BASE_ATTACKS_PER_DAY, PVP_BASE_CRITICAL_HIT_CHANCE, PVP_BASE_DAMAGE, PVP_BASE_EVASION, PVP_BASE_HEALTH_POINTS, PVP_BASE_LOOT_POWER, PVP_BASE_PROTECTION } from "../user.const";
+import {
+  PVP_BASE_ACCURACY,
+  PVP_BASE_ATTACKS_PER_DAY,
+  PVP_BASE_CRITICAL_HIT_CHANCE,
+  PVP_BASE_DAMAGE,
+  PVP_BASE_EVASION,
+  PVP_BASE_HEALTH_POINTS,
+  PVP_BASE_LOOT_POWER,
+  PVP_BASE_PROTECTION
+} from "../user.const";
+import { Effects, GearName, GearType } from "../../arsenal/arsenal.interface";
+
+function applyGearEffect(effect: Effects, equippedGear: UserGear[]) {
+  return equippedGear.reduce((acc, gear) => {
+    return acc + gear.effects.find((e) => e.effect === effect)?.value || 0;
+  }, 0);
+}
+
+@Schema({ _id: false })
+export class UserGear {
+  @Prop({ required: true })
+  name: GearName;
+
+  @Prop({ required: true })
+  type: GearType;
+
+  @Prop({ required: true })
+  price: number;
+
+  @Prop({ required: true })
+  effects: { effect: Effects; value: number }[];
+}
 
 @Schema({ _id: false })
 export class UserPvp {
@@ -42,7 +73,8 @@ export class UserPvp {
   @Prop({
     virtual: true,
     get: function () {
-      return PVP_BASE_HEALTH_POINTS;
+      const gearEffect = applyGearEffect(Effects.HEALTH_POINTS, this.equippedGear);
+      return PVP_BASE_HEALTH_POINTS + gearEffect;
     },
   })
   healthPoints?: number;
@@ -50,7 +82,8 @@ export class UserPvp {
   @Prop({
     virtual: true,
     get: function () {
-      return PVP_BASE_PROTECTION;
+      const gearEffect = applyGearEffect(Effects.PROTECTION, this.equippedGear);
+      return PVP_BASE_PROTECTION + gearEffect;
     },
   })
   protection?: number;
@@ -58,7 +91,8 @@ export class UserPvp {
   @Prop({
     virtual: true,
     get: function () {
-      return PVP_BASE_DAMAGE;
+      const gearEffect = applyGearEffect(Effects.DAMAGE, this.equippedGear);
+      return PVP_BASE_DAMAGE + gearEffect;
     },
   })
   damage?: number;
@@ -66,7 +100,8 @@ export class UserPvp {
   @Prop({
     virtual: true,
     get: function () {
-      return PVP_BASE_ACCURACY;
+      const gearEffect = applyGearEffect(Effects.ACCURACY, this.equippedGear);
+      return PVP_BASE_ACCURACY + gearEffect;
     },
   })
   accuracy?: number;
@@ -74,7 +109,8 @@ export class UserPvp {
   @Prop({
     virtual: true,
     get: function () {
-      return PVP_BASE_EVASION;
+      const gearEffect = applyGearEffect(Effects.EVASION, this.equippedGear);
+      return PVP_BASE_EVASION + gearEffect;
     },
   })
   evasion?: number;
@@ -82,7 +118,8 @@ export class UserPvp {
   @Prop({
     virtual: true,
     get: function () {
-      return PVP_BASE_LOOT_POWER;
+      const gearEffect = applyGearEffect(Effects.LOOT_POWER, this.equippedGear);
+      return PVP_BASE_LOOT_POWER + gearEffect;
     },
   })
   lootPower?: number;
@@ -90,8 +127,15 @@ export class UserPvp {
   @Prop({
     virtual: true,
     get: function () {
-      return PVP_BASE_CRITICAL_HIT_CHANCE;
+      const gearEffect = applyGearEffect(Effects.CRITICAL_CHANCE, this.equippedGear);
+      return PVP_BASE_CRITICAL_HIT_CHANCE + gearEffect;
     },
   })
   criticalChance?: number;
+
+  @Prop({ type: UserGear, default: [] })
+  purchasedGear: UserGear[];
+
+  @Prop({ type: UserGear, default: [] })
+  equippedGear: UserGear[];
 }

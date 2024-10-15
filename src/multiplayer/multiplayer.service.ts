@@ -290,12 +290,10 @@ export class MultiplayerService {
   ********************************************************************/
 
   private async useCraftedItem(
-    userId: number,
     itemId: ECRAFTABLE_ITEM,
     player: BattleParticipantDto,
+    user: User,
   ) {
-    const user = await this.userService.findOne(userId);
-
     const craftedItem = user.craftedItems.find(
       (item) => item.itemId === itemId,
     );
@@ -331,8 +329,8 @@ export class MultiplayerService {
     return player;
   }
 
-  private applyActiveEffects(player: BattleParticipantDto) {
-    // @TODO be carefull to update that when armory is up
+  private applyActiveEffects(player: BattleParticipantDto, user?: User) {
+    // @TODO be careful to update that when armory is up
     const baseStats = new UserPvp();
     for (const stat in baseStats) {
       if (stat !== "activeEffects") {
@@ -345,7 +343,20 @@ export class MultiplayerService {
 
     for (const activeEffect of player.pvp.activeEffects) {
       for (const [stat, value] of Object.entries(activeEffect.effect)) {
-        player.pvp[stat] += value;
+        if (
+          activeEffect.itemId === ECRAFTABLE_ITEM.HEALTH_POTION_SMALL &&
+          stat === "healthPoints"
+        ) {
+          // @TODO be careful to update that when armory is up
+          const maxHealth = user.pvp.healthPoints;
+
+          player.pvp.healthPoints = Math.min(
+            maxHealth,
+            player.pvp.healthPoints + value,
+          );
+        } else {
+          player.pvp[stat] += value;
+        }
       }
     }
   }
@@ -479,11 +490,6 @@ export class MultiplayerService {
       battle.winner = "defender";
       this.trackPvpResult(attacker.id, defender.id, "lost");
     }
-
-    if (!attackResult.usedItemId) {
-      this.decreaseEffectDuration(attacker);
-    }
-    this.decreaseEffectDuration(defender);
   }
 
   private async clearBattleLocks(battle: BattleDto) {
@@ -610,10 +616,13 @@ export class MultiplayerService {
     let { attacker, defender } = battle;
 
     let attackerUsedItem = false;
-
+    this.decreaseEffectDuration(attacker);
+    this.decreaseEffectDuration(defender);
     if (itemId) {
-      attacker = await this.useCraftedItem(userId, itemId, attacker);
-      this.applyActiveEffects(attacker);
+      const user = await this.userService.findOne(userId);
+
+      attacker = await this.useCraftedItem(itemId, attacker, user);
+      this.applyActiveEffects(attacker, user);
       this.applyActiveEffects(defender);
       attackerUsedItem = true;
     }
@@ -678,10 +687,4 @@ export class MultiplayerService {
       productLoot: result.productLoot,
     }));
   }
-
-  /*******************************************************************
-                                Active Battle
-  ********************************************************************/
-
-
 }

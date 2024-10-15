@@ -30,7 +30,7 @@ export class MultiplayerController {
     return this.multiplayerService.startBattle(user.id, opponentId);
   }
 
-  @Post("combatAction/:battleId")
+  @Post("action/:battleId")
   async combatAction(
     @GetAuthToken() user: AuthTokenData,
     @Param("battleId") battleId: string,

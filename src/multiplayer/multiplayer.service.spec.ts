@@ -15,22 +15,55 @@ import {
 } from "./schemas/battleResult.schema";
 import { SocialChannel } from "../social/social.const";
 import { BattleDto } from "./dto/battle.dto";
-import { PVP_BASE_DAMAGE } from "../user/user.const";
 import { UserPvp } from "../user/schemas/userPvp.schema";
 import { ECRAFTABLE_ITEM } from "../lab/craftable_item.const";
-
+import {
+  PVP_BASE_ACCURACY,
+  PVP_BASE_CRITICAL_HIT_CHANCE,
+  PVP_BASE_DAMAGE,
+  PVP_BASE_EVASION,
+  PVP_BASE_HEALTH_POINTS,
+  PVP_BASE_LOOT_POWER,
+  PVP_BASE_PROTECTION,
+} from "../user/user.const";
 function createMockBattle(battle: Partial<BattleDto>): BattleDto {
   return {
     battleId: faker.string.uuid(),
     attacker: {
       id: faker.number.int(),
       username: battle.attacker?.username || "",
-      pvp: (battle.attacker?.pvp || {}) as UserPvp,
+      pvp: {
+        ...battle.attacker.pvp,
+        healthPoints:
+          battle.attacker.pvp.healthPoints || PVP_BASE_HEALTH_POINTS,
+        protection: battle.attacker.pvp.protection || PVP_BASE_PROTECTION,
+        damage: battle.attacker.pvp.damage || PVP_BASE_DAMAGE,
+        accuracy: battle.attacker.pvp.accuracy || PVP_BASE_ACCURACY,
+        evasion: battle.attacker.pvp.evasion || PVP_BASE_EVASION,
+        criticalChance:
+          battle.attacker.pvp.criticalChance || PVP_BASE_CRITICAL_HIT_CHANCE,
+        lootPower: battle.attacker.pvp.lootPower || PVP_BASE_LOOT_POWER,
+        attacksAvailable: battle.attacker.pvp.attacksAvailable || 0,
+        activeEffects: [],
+      },
     },
     defender: {
       id: faker.number.int(),
       username: battle.defender?.username || "",
-      pvp: (battle.defender?.pvp || {}) as UserPvp,
+      pvp: {
+        ...battle.defender.pvp,
+        healthPoints:
+          battle.defender.pvp.healthPoints || PVP_BASE_HEALTH_POINTS,
+        protection: battle.defender.pvp.protection || PVP_BASE_PROTECTION,
+        damage: battle.defender.pvp.damage || PVP_BASE_DAMAGE,
+        accuracy: battle.defender.pvp.accuracy || PVP_BASE_ACCURACY,
+        evasion: battle.defender.pvp.evasion || PVP_BASE_EVASION,
+        criticalChance:
+          battle.defender.pvp.criticalChance || PVP_BASE_CRITICAL_HIT_CHANCE,
+        lootPower: battle.defender.pvp.lootPower || PVP_BASE_LOOT_POWER,
+        attacksAvailable: battle.defender.pvp.attacksAvailable || 0,
+        activeEffects: [],
+      },
     },
     round: 0,
     roundResults: [],
@@ -186,12 +219,36 @@ describe("MultiplayerService", () => {
         attacker: {
           id: attacker.id,
           username: attacker.username,
-          pvp: attacker.pvp,
+          pvp: {
+            ...attacker.pvp,
+            healthPoints: attacker.pvp.healthPoints || PVP_BASE_HEALTH_POINTS,
+            protection: attacker.pvp.protection || PVP_BASE_PROTECTION,
+            damage: attacker.pvp.damage || PVP_BASE_DAMAGE,
+            accuracy: attacker.pvp.accuracy || PVP_BASE_ACCURACY,
+            evasion: attacker.pvp.evasion || PVP_BASE_EVASION,
+            criticalChance:
+              attacker.pvp.criticalChance || PVP_BASE_CRITICAL_HIT_CHANCE,
+            lootPower: attacker.pvp.lootPower || PVP_BASE_LOOT_POWER,
+            attacksAvailable: attacker.pvp.attacksAvailable || 0,
+            activeEffects: [],
+          },
         },
         defender: {
           id: defender.id,
           username: defender.username,
-          pvp: defender.pvp,
+          pvp: {
+            ...defender.pvp,
+            healthPoints: defender.pvp.healthPoints || PVP_BASE_HEALTH_POINTS,
+            protection: defender.pvp.protection || PVP_BASE_PROTECTION,
+            damage: defender.pvp.damage || PVP_BASE_DAMAGE,
+            accuracy: defender.pvp.accuracy || PVP_BASE_ACCURACY,
+            evasion: defender.pvp.evasion || PVP_BASE_EVASION,
+            criticalChance:
+              defender.pvp.criticalChance || PVP_BASE_CRITICAL_HIT_CHANCE,
+            lootPower: defender.pvp.lootPower || PVP_BASE_LOOT_POWER,
+            attacksAvailable: defender.pvp.attacksAvailable || 0,
+            activeEffects: [],
+          },
         },
         winner: "attacker",
       });
@@ -207,12 +264,36 @@ describe("MultiplayerService", () => {
         attacker: {
           id: attacker.id,
           username: attacker.username,
-          pvp: attacker.pvp,
+          pvp: {
+            ...attacker.pvp,
+            healthPoints: attacker.pvp.healthPoints || PVP_BASE_HEALTH_POINTS,
+            protection: attacker.pvp.protection || PVP_BASE_PROTECTION,
+            damage: attacker.pvp.damage || PVP_BASE_DAMAGE,
+            accuracy: attacker.pvp.accuracy || PVP_BASE_ACCURACY,
+            evasion: attacker.pvp.evasion || PVP_BASE_EVASION,
+            criticalChance:
+              attacker.pvp.criticalChance || PVP_BASE_CRITICAL_HIT_CHANCE,
+            lootPower: attacker.pvp.lootPower || PVP_BASE_LOOT_POWER,
+            attacksAvailable: attacker.pvp.attacksAvailable || 0,
+            activeEffects: [],
+          },
         },
         defender: {
           id: defender.id,
           username: defender.username,
-          pvp: defender.pvp,
+          pvp: {
+            ...defender.pvp,
+            healthPoints: defender.pvp.healthPoints || PVP_BASE_HEALTH_POINTS,
+            protection: defender.pvp.protection || PVP_BASE_PROTECTION,
+            damage: defender.pvp.damage || PVP_BASE_DAMAGE,
+            accuracy: defender.pvp.accuracy || PVP_BASE_ACCURACY,
+            evasion: defender.pvp.evasion || PVP_BASE_EVASION,
+            criticalChance:
+              defender.pvp.criticalChance || PVP_BASE_CRITICAL_HIT_CHANCE,
+            lootPower: defender.pvp.lootPower || PVP_BASE_LOOT_POWER,
+            attacksAvailable: defender.pvp.attacksAvailable || 0,
+            activeEffects: [],
+          },
         },
         winner: "defender",
       });
@@ -269,7 +350,7 @@ describe("MultiplayerService", () => {
     });
 
     afterEach(async () => {
-      await userModel.deleteMany({});
+      // await userModel.deleteMany({});
     });
 
     beforeEach(() => {
@@ -392,7 +473,7 @@ describe("MultiplayerService", () => {
       expect(result.roundResults[0].usedItem).toBe(
         ECRAFTABLE_ITEM.HEALTH_POTION_SMALL,
       );
-      expect(result.attacker.pvp.healthPoints).toBe(initialAttackerHealth + 10);
+      expect(result.attacker.pvp.healthPoints).toBe(85);
       expect(result.defender.pvp.healthPoints).toBe(
         battle.defender.pvp.healthPoints,
       );

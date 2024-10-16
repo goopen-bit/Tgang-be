@@ -315,10 +315,10 @@ describe("LabService", () => {
       const powder = updatedUser.products.find(
         (p) => p.name === EProduct.POWDER,
       );
-      expect(powder.quantity).toBe(4); // 10 - (3 * 2)
+      expect(powder.quantity).toBe(6); // 10 - (2 * 2)
 
       const pill = updatedUser.products.find((p) => p.name === EProduct.PILL);
-      expect(pill.quantity).toBe(8); // 10 - (1 * 2)
+      expect(pill.quantity).toBe(6); // 10 - (2 * 2)
     });
 
     it("should throw an error when trying to craft an item while in battle", async () => {

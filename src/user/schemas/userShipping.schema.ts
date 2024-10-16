@@ -7,7 +7,15 @@ import { Requirement } from "../../upgrade/upgrade.interface";
 import { setUserRequirements } from "../../upgrade/upgrade.util";
 import { BASE_UPGRADE_TIME_SECONDS } from "../user.const";
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class UserShipping {
   @Prop({ required: true })
   method: EShippingMethod;

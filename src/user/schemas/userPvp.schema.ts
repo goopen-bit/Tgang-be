@@ -1,7 +1,24 @@
+import {
+  PVP_BASE_ACCURACY,
+  PVP_BASE_ATTACKS_PER_DAY,
+  PVP_BASE_CRITICAL_HIT_CHANCE,
+  PVP_BASE_DAMAGE,
+  PVP_BASE_EVASION,
+  PVP_BASE_HEALTH_POINTS,
+  PVP_BASE_LOOT_POWER,
+  PVP_BASE_PROTECTION,
+} from "../user.const";
 import { Prop, Schema } from "@nestjs/mongoose";
-import { PVP_BASE_ACCURACY, PVP_BASE_ATTACKS_PER_DAY, PVP_BASE_CRITICAL_HIT_CHANCE, PVP_BASE_DAMAGE, PVP_BASE_EVASION, PVP_BASE_HEALTH_POINTS, PVP_BASE_LOOT_POWER, PVP_BASE_PROTECTION } from "../user.const";
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class UserPvp {
   @Prop({ required: true, default: 0 })
   victory: number;
@@ -82,16 +99,16 @@ export class UserPvp {
   @Prop({
     virtual: true,
     get: function () {
-      return PVP_BASE_LOOT_POWER;
-    },
-  })
-  lootPower?: number;
-
-  @Prop({
-    virtual: true,
-    get: function () {
       return PVP_BASE_CRITICAL_HIT_CHANCE;
     },
   })
   criticalChance?: number;
+
+  @Prop({
+    virtual: true,
+    get: function () {
+      return PVP_BASE_LOOT_POWER;
+    },
+  })
+  lootPower?: number;
 }

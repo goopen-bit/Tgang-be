@@ -4,6 +4,7 @@ import { Auth } from '../decorators/auth.decorator';
 import { AuthTokenData } from '../config/types';
 import { GetAuthToken } from '../decorators/get-auth-token.decorator';
 import { BuyLabDto } from './dto/buy-lab.dto';
+import { CraftItemDto } from './dto/craft-item.dto';
 
 @Auth()
 @Controller('labs')
@@ -47,5 +48,13 @@ export class LabController {
     @Param('plotId') plotId: number,
   ) {
     return this.labService.collectLabProduction(user.id, plotId);
+  }
+
+  @Post('/craft-item')
+  craftItem(
+    @GetAuthToken() user: AuthTokenData,
+    @Body() body: CraftItemDto,
+  ) {
+    return this.labService.craftItem(user.id, body.itemId, body.quantity);
   }
 }

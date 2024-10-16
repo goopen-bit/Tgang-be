@@ -16,6 +16,7 @@ import { IReputationLevel } from "../user.interface";
 import { SocialChannel } from "../../social/social.const";
 import { UserPvp } from "./userPvp.schema";
 import { DbCollections } from "../../config/types";
+import { ECRAFTABLE_ITEM } from "../../lab/craftable_item.const";
 import { EAchievement } from "../data/achievements";
 
 @Schema({ _id: false })
@@ -24,7 +25,15 @@ export class UserAchievements {
   achievements: { [key in EAchievement]?: boolean };
 }
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class LabPlot {
   @Prop({ required: true })
   plotId: number;
@@ -33,7 +42,32 @@ export class LabPlot {
   lab?: UserLab;
 }
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
+export class CraftedItem {
+  @Prop({ type: String, enum: ECRAFTABLE_ITEM, required: true })
+  itemId: ECRAFTABLE_ITEM;
+
+  @Prop({ required: true, min: 0 })
+  quantity: number;
+}
+
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class ReferredUsers {
   @Prop({ required: true })
   id: number;
@@ -45,7 +79,15 @@ export class ReferredUsers {
   reward: number;
 }
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class Social {
   @Prop({ required: true })
   channel: SocialChannel;
@@ -189,6 +231,9 @@ export class User extends Document {
 
   @Prop({ type: UserPvp, default: () => new UserPvp() })
   pvp?: UserPvp;
+
+  @Prop({ type: [CraftedItem], default: [] })
+  craftedItems: CraftedItem[];
 
   @Prop({ type: Object, default: {} })
   achievements: { [key in EAchievement]?: boolean };

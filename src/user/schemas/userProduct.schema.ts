@@ -4,7 +4,15 @@ import { EProduct } from "../../market/market.const";
 import { addSeconds } from "date-fns";
 import { BASE_UPGRADE_TIME_SECONDS } from "../user.const";
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class UserProduct {
   @Prop({ required: true })
   name: EProduct;

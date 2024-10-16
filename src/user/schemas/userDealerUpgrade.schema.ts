@@ -6,7 +6,15 @@ import { setUserRequirements } from '../../upgrade/upgrade.util';
 import { BASE_UPGRADE_TIME_SECONDS } from '../user.const';
 import { addSeconds } from 'date-fns';
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class UserDealerUpgrade {
   @Prop({ required: true })
   upgrade: EDealerUpgrade;

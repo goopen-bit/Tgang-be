@@ -9,7 +9,15 @@ import { labs } from '../../lab/data/labs';
 import { addSeconds, getUnixTime } from 'date-fns';
 import { Lab } from '../../lab/lab.interface';
 
-@Schema({ _id: false })
+@Schema({
+  _id: false,
+  toObject: {
+    getters: true,
+  },
+  toJSON: {
+    getters: true,
+  },
+})
 export class UserLab {
   @Prop({ required: true })
   product: EProduct;

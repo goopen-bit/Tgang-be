@@ -231,12 +231,36 @@ export class MultiplayerService {
       attacker: {
         id: attacker.id,
         username: attacker.username,
-        pvp: attacker.pvp,
+        pvp: {
+          ...attacker.pvp,
+          healthPoints: attacker.pvp.healthPoints || PVP_BASE_HEALTH_POINTS,
+          protection: attacker.pvp.protection || PVP_BASE_PROTECTION,
+          damage: attacker.pvp.damage || PVP_BASE_DAMAGE,
+          accuracy: attacker.pvp.accuracy || PVP_BASE_ACCURACY,
+          evasion: attacker.pvp.evasion || PVP_BASE_EVASION,
+          criticalChance:
+            attacker.pvp.criticalChance || PVP_BASE_CRITICAL_HIT_CHANCE,
+          lootPower: attacker.pvp.lootPower || PVP_BASE_LOOT_POWER,
+          attacksAvailable: attacker.pvp.attacksAvailable || 0,
+          activeEffects: [],
+        },
       },
       defender: {
         id: defender.id,
         username: defender.username,
-        pvp: defender.pvp,
+        pvp: {
+          ...defender.pvp,
+          healthPoints: defender.pvp.healthPoints || PVP_BASE_HEALTH_POINTS,
+          protection: defender.pvp.protection || PVP_BASE_PROTECTION,
+          damage: defender.pvp.damage || PVP_BASE_DAMAGE,
+          accuracy: defender.pvp.accuracy || PVP_BASE_ACCURACY,
+          evasion: defender.pvp.evasion || PVP_BASE_EVASION,
+          criticalChance:
+            defender.pvp.criticalChance || PVP_BASE_CRITICAL_HIT_CHANCE,
+          lootPower: defender.pvp.lootPower || PVP_BASE_LOOT_POWER,
+          attacksAvailable: defender.pvp.attacksAvailable || 0,
+          activeEffects: [],
+        },
       },
       round: 0,
       roundResults: [],
@@ -648,17 +672,6 @@ export class MultiplayerService {
                                 Battle History
   ********************************************************************/
 
-  private createBattleParticipant(
-    attackerId: number,
-    username: string,
-  ): BattleParticipantDto {
-    return {
-      id: attackerId,
-      username,
-      pvp: new UserPvp(),
-    };
-  }
-
   async getBattleResults(userId: number): Promise<BattleDto[]> {
     const battleResults = await this.battleResultModel
       .find({
@@ -667,22 +680,53 @@ export class MultiplayerService {
       .sort({ createdAt: -1 })
       .exec();
 
+    // Use this default value for now as we don't display it in the FE
+    // And we don't want to do a BE call for each players
     return battleResults.map((result) => ({
       battleId: result.battleId,
-      attacker: this.createBattleParticipant(
-        result.attackerId,
-        result.attackerUsername,
-      ),
-      defender: this.createBattleParticipant(
-        result.defenderId,
-        result.defenderUsername,
-      ),
+      attacker: {
+        id: result.attackerId,
+        username: result.attackerUsername,
+        pvp: {
+          healthPoints: PVP_BASE_HEALTH_POINTS,
+          protection: PVP_BASE_PROTECTION,
+          damage: PVP_BASE_DAMAGE,
+          accuracy: PVP_BASE_ACCURACY,
+          evasion: PVP_BASE_EVASION,
+          criticalChance: PVP_BASE_CRITICAL_HIT_CHANCE,
+          lootPower: PVP_BASE_LOOT_POWER,
+          activeEffects: [],
+          attacksAvailable: 0,
+          attacksToday: 0,
+          lastAttackDate: new Date(),
+          lastDefendDate: new Date(),
+          victory: 0,
+          defeat: 0,
+        },
+      },
+      defender: {
+        id: result.defenderId,
+        username: result.defenderUsername,
+        pvp: {
+          healthPoints: PVP_BASE_HEALTH_POINTS,
+          protection: PVP_BASE_PROTECTION,
+          damage: PVP_BASE_DAMAGE,
+          accuracy: PVP_BASE_ACCURACY,
+          evasion: PVP_BASE_EVASION,
+          criticalChance: PVP_BASE_CRITICAL_HIT_CHANCE,
+          lootPower: PVP_BASE_LOOT_POWER,
+          activeEffects: [],
+          attacksAvailable: 0,
+          attacksToday: 0,
+          lastAttackDate: new Date(),
+          lastDefendDate: new Date(),
+          victory: 0,
+          defeat: 0,
+        },
+      },
       round: result.rounds,
       roundResults: [],
-      winner:
-        result.winner === "attacker"
-          ? result.attackerId.toString()
-          : result.defenderId.toString(),
+      winner: result.winner === "attacker" ? "attacker" : "defender",
       cashLoot: result.cashLoot,
       productLoot: result.productLoot,
     }));

@@ -9,8 +9,30 @@ import {
   IsOptional,
 } from "class-validator";
 import { EProduct } from "../../market/market.const";
-import { UserPvp } from "../../user/schemas/userPvp.schema";
 import { ECRAFTABLE_ITEM } from "../../lab/craftable_item.const";
+
+interface IActiveEffect {
+  itemId: ECRAFTABLE_ITEM;
+  effect: { [key: string]: number };
+  remainingRounds: number;
+}
+
+interface IUserPvp {
+  healthPoints: number;
+  damage: number;
+  protection: number;
+  accuracy: number;
+  evasion: number;
+  criticalChance: number;
+  lootPower: number;
+  lastAttackDate: Date;
+  lastDefendDate: Date;
+  attacksToday: number;
+  attacksAvailable: number;
+  victory: number;
+  defeat:number;
+  activeEffects?: IActiveEffect[];
+}
 
 export class StartBattleDto {
   @IsArray()
@@ -28,7 +50,7 @@ export class BattleParticipantDto {
   username: string;
 
   @IsObject()
-  pvp: UserPvp;
+  pvp: IUserPvp;
 
   @IsArray()
   selectedItems?: { itemId: ECRAFTABLE_ITEM; quantity: number }[];

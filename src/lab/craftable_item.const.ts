@@ -32,8 +32,8 @@ export const CRAFTABLE_ITEMS: Record<ECRAFTABLE_ITEM, CraftableItem> = {
   [ECRAFTABLE_ITEM.BOOSTER_ATTACK_1]: {
     itemId: ECRAFTABLE_ITEM.BOOSTER_ATTACK_1,
     requirements: {
-      [EProduct.POWDER]: 3,
-      [EProduct.PILL]: 1,
+      [EProduct.POWDER]: 2,
+      [EProduct.PILL]: 2,
     },
     pvpEffect: {
       damage: 10,

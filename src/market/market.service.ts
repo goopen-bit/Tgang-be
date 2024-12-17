@@ -16,11 +16,11 @@ import { Mixpanel } from "mixpanel";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 import { productUpgrades } from "../upgrade/data/dealerUpgrades";
 import { startOfDay, getUnixTime, subDays, subSeconds } from "date-fns";
+import { secretSeed } from "../config/env";
 
 @Injectable()
 export class MarketService {
   private readonly logger = new Logger(this.constructor.name);
-  private readonly secretKey = "STcHRUjgRaXK3fFn5Pi4rvAMAhKRZGCfqzexFAEiTzU=";
 
   constructor(
     private userService: UserService,
@@ -36,7 +36,7 @@ export class MarketService {
     for (let i = 0; i < 5; i++) {
       const secondsSinceEpochStartOfHour = currentTime - i * 3600;
       const hash = createHash("sha256")
-        .update(this.secretKey + secondsSinceEpochStartOfHour.toString())
+        .update(secretSeed + secondsSinceEpochStartOfHour.toString())
         .digest("hex");
 
       const hashInteger = parseInt(hash, 16);
@@ -51,7 +51,7 @@ export class MarketService {
     const specificTime = startOfDay(date);
     const secondsSinceEpoch = getUnixTime(specificTime);
     return createHash("sha256")
-      .update(this.secretKey + secondsSinceEpoch.toString())
+      .update(secretSeed + secondsSinceEpoch.toString())
       .digest("hex");
   }
 

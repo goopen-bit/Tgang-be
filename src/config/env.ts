@@ -22,6 +22,11 @@ export const logLevel =
   (process.env['LOG_LEVEL']?.split(',') as unknown as LogLevel[]) || undefined;
 
 /**
+ * Secret seed for generating hashes.
+ */
+export const secretSeed = process.env['SECRET_SEED'];
+
+/**
  * Telegram bot token.
  */
 export const telegramBotToken = process.env['TELEGRAM_BOT_TOKEN'];

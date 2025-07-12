@@ -1,7 +1,6 @@
 import { Injectable, HttpException } from "@nestjs/common";
 import { BuyUpgradeDto } from "./dto/buy-upgrade.dto";
 import { UserService } from "../user/user.service";
-import { MarketService } from "../market/market.service";
 import { upgradesData } from "./data/upgrades";
 import {
   DealerUpgrade,
@@ -9,17 +8,16 @@ import {
   EUpgradeCategory,
   Upgrade,
 } from "./upgrade.interface";
-import { EProduct } from "../market/market.const";
 import { productUpgrades } from "./data/dealerUpgrades";
 import { Mixpanel } from "mixpanel";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";
 import { checkRequirements } from "./upgrade.util";
+import { EProduct } from "../config/types";
 
 @Injectable()
 export class UpgradeService {
   constructor(
     private userService: UserService,
-    private marketService: MarketService,
     @InjectMixpanel() private readonly mixpanel: Mixpanel,
   ) {}
 
@@ -120,13 +118,6 @@ export class UpgradeService {
         throw new HttpException("Invalid upgrade category", 400);
     }
 
-    // @note todo add current market id to user
-    const userMarketId = "NY";
-    const updatedMarket = await this.marketService.getMarketWithReputation(
-      userMarketId,
-      userId,
-    );
-
-    return { user: updatedUser, market: updatedMarket };
+    return { user: updatedUser };
   }
 }

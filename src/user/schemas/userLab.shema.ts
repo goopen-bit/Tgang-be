@@ -4,7 +4,7 @@ import {
   LAB_CAPACITY_MULTIPLIER,
   LAB_PRODUCTION_MULTIPLIER,
 } from '../user.const';
-import { EProduct } from '../../market/market.const';
+import { EProduct } from '../../config/types';
 import { labs } from '../../lab/data/labs';
 import { addSeconds, getUnixTime } from 'date-fns';
 import { Lab } from '../../lab/lab.interface';

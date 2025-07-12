@@ -1,4 +1,4 @@
-import { EProduct } from "../market/market.const";
+import { EProduct } from "../config/types";
 
 export enum ECRAFTABLE_ITEM {
   BOOSTER_ATTACK_1 = "BOOSTER_ATTACK_1",

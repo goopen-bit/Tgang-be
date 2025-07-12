@@ -8,7 +8,7 @@ import {
   IsString,
   IsOptional,
 } from "class-validator";
-import { EProduct } from "../../market/market.const";
+import { EProduct } from "../../config/types";
 import { ECRAFTABLE_ITEM } from "../../lab/craftable_item.const";
 
 interface IActiveEffect {

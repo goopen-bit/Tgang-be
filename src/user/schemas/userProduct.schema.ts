@@ -1,6 +1,6 @@
 import { Prop, Schema } from "@nestjs/mongoose";
 import { productUpgrades } from "../../upgrade/data/dealerUpgrades";
-import { EProduct } from "../../market/market.const";
+import { EProduct } from "../../config/types";
 import { addSeconds } from "date-fns";
 import { BASE_UPGRADE_TIME_SECONDS } from "../user.const";
 

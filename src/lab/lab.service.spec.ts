@@ -6,7 +6,7 @@ import { User, UserSchema } from "../user/schemas/user.schema";
 import { faker } from "@faker-js/faker";
 import { AuthTokenData } from "../config/types";
 import { UserService } from "../user/user.service";
-import { EProduct } from "../market/market.const";
+import { EProduct } from "../config/types";
 import { subHours } from "date-fns";
 import { mockTokenData } from "../../test/utils/user";
 import { appConfigImports } from "../config/app";

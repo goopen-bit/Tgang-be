@@ -3,7 +3,7 @@ import { UserService } from '../user/user.service';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Connection, Model } from 'mongoose';
 import { Pool } from './schemas/pool.schema';
-import { EProduct } from '../market/market.const';
+import { EProduct } from '../config/types';
 
 @Injectable()
 export class PoolService {

@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { BuyLabDto } from "./dto/buy-lab.dto";
 import { labs } from "./data/labs";
-import { EProduct } from "../market/market.const";
+import { EProduct } from "../config/types";
 import { User } from "../user/schemas/user.schema";
 import { Mixpanel } from "mixpanel";
 import { InjectMixpanel } from "../analytics/injectMixpanel.decorator";

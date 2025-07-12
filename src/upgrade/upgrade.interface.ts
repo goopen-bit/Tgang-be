@@ -1,4 +1,4 @@
-import { EProduct } from "../market/market.const";
+import { EProduct } from "../config/types";
 
 export enum EUpgradeCategory {
   PRODUCT = "product",

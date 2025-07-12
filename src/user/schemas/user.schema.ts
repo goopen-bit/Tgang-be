@@ -10,7 +10,6 @@ import { UserDealerUpgrade } from "./userDealerUpgrade.schema";
 import { UserLab } from "./userLab.shema";
 import { EDealerUpgrade } from "../../upgrade/upgrade.interface";
 import { UserProduct } from "./userProduct.schema";
-import { UserShipping } from "./userShipping.schema";
 import { reputationLevels } from "../data/reputationLevel";
 import { IReputationLevel } from "../user.interface";
 import { SocialChannel } from "../../social/social.const";
@@ -143,8 +142,6 @@ export class User extends Document {
   @Prop({ type: [UserDealerUpgrade], default: [] })
   dealerUpgrades: UserDealerUpgrade[];
 
-  @Prop({ type: [UserShipping], default: [] })
-  shipping: UserShipping[];
 
   @Prop({ type: [LabPlot], default: [{ plotId: 0 }] })
   labPlots: LabPlot[];

@@ -1,5 +1,5 @@
 import { IsEnum, IsInt } from 'class-validator';
-import { EProduct } from '../../market/market.const';
+import { EProduct } from '../../config/types';
 
 export class BuyLabDto {
   @IsEnum(EProduct)

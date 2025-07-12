@@ -5,7 +5,7 @@ import { User, UserSchema } from "./schemas/user.schema";
 import { mockTokenData } from "../../test/utils/user";
 import { MongooseModule, getModelToken } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { EProduct } from "../market/market.const";
+import { EProduct } from "../config/types";
 import { upgradesData } from "../upgrade/data/upgrades";
 import { STARTING_CASH } from "./user.const";
 import { addDays, subDays, subHours } from "date-fns";

@@ -5,7 +5,7 @@ import { UserModule } from '../user/user.module';
 import { Pool, PoolSchema } from './schemas/pool.schema';
 import { UserService } from '../user/user.service';
 import { appConfigImports } from '../config/app';
-import { EProduct } from '../market/market.const';
+import { EProduct } from '../config/types';
 import { AuthTokenData } from '../config/types';
 import { mockTokenData } from '../../test/utils/user';
 import { faker } from "@faker-js/faker";

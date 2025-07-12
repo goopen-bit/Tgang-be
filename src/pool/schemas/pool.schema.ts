@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
-import { EProduct } from "../../market/market.const";
+import { EProduct } from "../../config/types";
 import { DbCollections } from "../../config/types";
 
 @Schema({ _id: false })

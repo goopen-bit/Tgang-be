@@ -1,4 +1,4 @@
-import { EProduct } from "../../market/market.const";
+import { EProduct } from "../../config/types";
 import {
   EDealerUpgrade,
   DealerUpgrade,

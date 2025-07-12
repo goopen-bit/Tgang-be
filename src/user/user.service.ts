@@ -9,7 +9,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { ClientSession, Model } from "mongoose";
 import { User } from "./schemas/user.schema";
 import { AuthTokenData } from "../config/types";
-import { EProduct } from "../market/market.const";
+import { EProduct } from "../config/types";
 import {
   PREMIUM_REFERRAL_CASH,
   PREMIUM_REFERRAL_REPUTATION,

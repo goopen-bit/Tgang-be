@@ -7,9 +7,8 @@ import { BuyUpgradeDto } from "./dto/buy-upgrade.dto";
 import { upgradesData } from "./data/upgrades";
 import { User } from "../user/schemas/user.schema";
 import { EUpgradeCategory } from "./upgrade.interface";
-import { EProduct } from "../market/market.const";
+import { EProduct } from "../config/types";
 import { mockTokenData } from "../../test/utils/user";
-import { MarketModule } from "../market/market.module";
 import { appConfigImports } from "../config/app";
 
 describe("UpgradeService", () => {
@@ -21,7 +20,7 @@ describe("UpgradeService", () => {
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
-      imports: [...appConfigImports, MarketModule, UserModule],
+      imports: [...appConfigImports, UserModule],
       providers: [UpgradeService],
     }).compile();
 

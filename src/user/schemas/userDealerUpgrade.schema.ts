@@ -1,10 +1,10 @@
 import { Prop, Schema } from '@nestjs/mongoose';
 import { dealerUpgrades } from '../../upgrade/data/dealerUpgrades';
 import { DealerUpgrade, EDealerUpgrade, Requirement } from '../../upgrade/upgrade.interface';
-import { EProduct } from '../../market/market.const';
 import { setUserRequirements } from '../../upgrade/upgrade.util';
 import { BASE_UPGRADE_TIME_SECONDS } from '../user.const';
 import { addSeconds } from 'date-fns';
+import { EProduct } from '../../config/types';
 
 @Schema({
   _id: false,

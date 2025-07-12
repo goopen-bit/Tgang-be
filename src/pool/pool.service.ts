@@ -148,15 +148,18 @@ export class PoolService {
       await session.commitTransaction();
       
       return { 
-        success: true, 
-        message: 'Swap successful',
-        tokenIn,
-        tokenOut,
-        amountIn,
-        amountOut,
-        newPrice: isBuyingProduct 
-          ? (reserveIn + amountIn) / (reserveOut - amountOut)
-          : (reserveOut - amountOut) / (reserveIn + amountIn)
+        user,
+        swap: {
+          success: true, 
+          message: 'Swap successful',
+          tokenIn,
+          tokenOut,
+          amountIn,
+          amountOut,
+          newPrice: isBuyingProduct 
+            ? (reserveIn + amountIn) / (reserveOut - amountOut)
+            : (reserveOut - amountOut) / (reserveIn + amountIn)
+        }
       };
     } catch (error) {
       await session.abortTransaction();

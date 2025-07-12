@@ -83,23 +83,23 @@ describe('PoolService', () => {
       it('should swap USD to HERB successfully', async () => {
         const result = await service.swap(user.id, 'USD', EProduct.HERB, 20, 0.01);
         
-        expect(result.success).toBe(true);
-        expect(result.tokenIn).toBe('USD');
-        expect(result.tokenOut).toBe(EProduct.HERB);
-        expect(result.amountIn).toBe(20);
-        expect(result.amountOut).toBeGreaterThan(0);
-        expect(result.newPrice).toBeGreaterThan(0);
+        expect(result.swap.success).toBe(true);
+        expect(result.swap.tokenIn).toBe('USD');
+        expect(result.swap.tokenOut).toBe(EProduct.HERB);
+        expect(result.swap.amountIn).toBe(20);
+        expect(result.swap.amountOut).toBeGreaterThan(0);
+        expect(result.swap.newPrice).toBeGreaterThan(0);
       });
 
       it('should swap USD to POWDER successfully', async () => {
         const result = await service.swap(user.id, 'USD', EProduct.POWDER, 100, 0.01);
         
-        expect(result.success).toBe(true);
-        expect(result.tokenIn).toBe('USD');
-        expect(result.tokenOut).toBe(EProduct.POWDER);
-        expect(result.amountIn).toBe(100);
-        expect(result.amountOut).toBeGreaterThan(0);
-        expect(result.newPrice).toBeGreaterThan(0);
+        expect(result.swap.success).toBe(true);
+        expect(result.swap.tokenIn).toBe('USD');
+        expect(result.swap.tokenOut).toBe(EProduct.POWDER);
+        expect(result.swap.amountIn).toBe(100);
+        expect(result.swap.amountOut).toBeGreaterThan(0);
+        expect(result.swap.newPrice).toBeGreaterThan(0);
       });
 
       it('should fail when user has insufficient cash', async () => {
@@ -119,23 +119,23 @@ describe('PoolService', () => {
       it('should swap HERB to USD successfully', async () => {
         const result = await service.swap(user.id, EProduct.HERB, 'USD', 10, 1);
         
-        expect(result.success).toBe(true);
-        expect(result.tokenIn).toBe(EProduct.HERB);
-        expect(result.tokenOut).toBe('USD');
-        expect(result.amountIn).toBe(10);
-        expect(result.amountOut).toBeGreaterThan(0);
-        expect(result.newPrice).toBeGreaterThan(0);
+        expect(result.swap.success).toBe(true);
+        expect(result.swap.tokenIn).toBe(EProduct.HERB);
+        expect(result.swap.tokenOut).toBe('USD');
+        expect(result.swap.amountIn).toBe(10);
+        expect(result.swap.amountOut).toBeGreaterThan(0);
+        expect(result.swap.newPrice).toBeGreaterThan(0);
       });
 
       it('should swap POWDER to USD successfully', async () => {
         const result = await service.swap(user.id, EProduct.POWDER, 'USD', 1, 1);
         
-        expect(result.success).toBe(true);
-        expect(result.tokenIn).toBe(EProduct.POWDER);
-        expect(result.tokenOut).toBe('USD');
-        expect(result.amountIn).toBe(1);
-        expect(result.amountOut).toBeGreaterThan(0);
-        expect(result.newPrice).toBeGreaterThan(0);
+        expect(result.swap.success).toBe(true);
+        expect(result.swap.tokenIn).toBe(EProduct.POWDER);
+        expect(result.swap.tokenOut).toBe('USD');
+        expect(result.swap.amountIn).toBe(1);
+        expect(result.swap.amountOut).toBeGreaterThan(0);
+        expect(result.swap.newPrice).toBeGreaterThan(0);
       });
 
       it('should fail when user has insufficient product', async () => {
@@ -176,7 +176,7 @@ describe('PoolService', () => {
         
         const result = await service.swap(user.id, 'USD', EProduct.HERB, 100, 1);
         
-        expect(result.newPrice).toBeGreaterThan(priceBefore);
+        expect(result.swap.newPrice).toBeGreaterThan(priceBefore);
       });
 
       it('should decrease price when selling product', async () => {
@@ -185,7 +185,7 @@ describe('PoolService', () => {
         
         const result = await service.swap(user.id, EProduct.HERB, 'USD', 10, 1);
         
-        expect(result.newPrice).toBeLessThan(priceBefore);
+        expect(result.swap.newPrice).toBeLessThan(priceBefore);
       });
     });
 

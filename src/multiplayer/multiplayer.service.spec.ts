@@ -117,42 +117,42 @@ describe("MultiplayerService", () => {
       const users = [
         createMockUser({
           username: "current",
-          cashAmount: 500,
+          cashAmount: 50000,
           reputation: 10000,
           pvp: { lastDefendDate: yesterday },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           username: "player1",
-          cashAmount: 1000,
+          cashAmount: 100000,
           reputation: 10000,
           pvp: { lastDefendDate: new Date(0) },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           username: "player2",
-          cashAmount: 2000,
+          cashAmount: 200000,
           reputation: 10000,
           pvp: { lastDefendDate: new Date() },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           username: "player3",
-          cashAmount: 3000,
+          cashAmount: 300000,
           reputation: 100,
           pvp: { lastDefendDate: new Date(0) },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           username: "player4",
-          cashAmount: 1500,
+          cashAmount: 150000,
           reputation: 10000,
           pvp: { lastDefendDate: yesterday },
           products: [{ name: "Herb", quantity: 100, level: 1 }],
         }),
         createMockUser({
           username: "player5",
-          cashAmount: 1500,
+          cashAmount: 150000,
           reputation: 100,
           pvp: undefined,
           products: [{ name: "Herb", quantity: 100, level: 1 }],
@@ -187,7 +187,7 @@ describe("MultiplayerService", () => {
     beforeEach(async () => {
       attacker = createMockUser({
         username: "attacker",
-        cashAmount: 1000,
+        cashAmount: 100000,
         reputation: 10000,
         socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
         pvp: {
@@ -200,7 +200,7 @@ describe("MultiplayerService", () => {
       });
       defender = createMockUser({
         username: "defender",
-        cashAmount: 2000,
+        cashAmount: 200000,
         reputation: 10000,
         pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
         products: [{ name: "Herb", quantity: 100, level: 1 }],
@@ -311,7 +311,7 @@ describe("MultiplayerService", () => {
     beforeEach(async () => {
       attacker = createMockUser({
         username: "attacker",
-        cashAmount: 1000,
+        cashAmount: 100000,
         reputation: 10000,
         socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
         pvp: {
@@ -330,7 +330,7 @@ describe("MultiplayerService", () => {
       });
       defender = createMockUser({
         username: "defender",
-        cashAmount: 2000,
+        cashAmount: 200000,
         reputation: 10000,
         pvp: {
           lastDefendDate: new Date(0),
@@ -486,7 +486,7 @@ describe("MultiplayerService", () => {
     beforeEach(async () => {
       attacker = createMockUser({
         username: "attacker",
-        cashAmount: 1000,
+        cashAmount: 100000,
         reputation: 10000,
         socials: [{ channel: SocialChannel.TELEGRAM_CHANNEL, member: true }],
         pvp: {
@@ -502,7 +502,7 @@ describe("MultiplayerService", () => {
       });
       defender = createMockUser({
         username: "defender",
-        cashAmount: 2000,
+        cashAmount: 200000,
         reputation: 10000,
         pvp: { lastDefendDate: new Date(0), victory: 0, defeat: 0 },
         products: [{ name: "Herb", quantity: 100, level: 1 }],

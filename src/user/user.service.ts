@@ -308,7 +308,7 @@ export class UserService {
         username: faker.internet.userName({
           firstName: faker.person.firstName(),
         }),
-        cashAmount: Math.floor(Math.random() * 100000) + 10000,
+        cashAmount: Math.floor(Math.random() * 10000000) + 1000000, // $100-$1000 range in cents
         reputation: Math.floor(Math.random() * 100000) + 1000,
         products: products,
         userLevel: reputationLevels[Math.floor(Math.random() * 5)],
@@ -347,7 +347,7 @@ export class UserService {
         $match: {
           id: { $nin: [userId, ...exIds] },
           reputation: { $gt: 3000 },
-          cashAmount: { $gt: 1000 },
+          cashAmount: { $gt: 100000 }, // $1000.00 in cents
           $or: [
             { "pvp.lastDefendDate": { $lt: today } },
             { "pvp.lastDefendDate": { $exists: false } },

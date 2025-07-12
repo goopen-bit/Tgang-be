@@ -1,7 +1,7 @@
 import { Db } from 'mongodb';
-import { DbCollections } from '../../src/config/types';
-import { EProduct } from "../../src/market/market.const";
+import { DbCollections, EProduct } from '../../src/config/types';
 
+// All monetary values are stored in cents to avoid floating point precision issues
 module.exports = {
   async up(db: Db) {
     await db.collection(DbCollections.POOLS).insertMany([
@@ -9,7 +9,7 @@ module.exports = {
         id: 'USD-HERB',
         cash: {
           name: 'USD',
-          reserve: 1000000,
+          reserve: 100000000, // $1,000,000.00 in cents
         },
         product: {
           name: EProduct.HERB,
@@ -21,7 +21,7 @@ module.exports = {
         id: 'USD-MUSHROOM',
         cash: {
           name: 'USD',
-          reserve: 1250000,
+          reserve: 125000000, // $1,250,000.00 in cents
         },
         product: {
           name: EProduct.MUSHROOM,
@@ -33,7 +33,7 @@ module.exports = {
         id: 'USD-ACID',
         cash: {
           name: 'USD',
-          reserve: 1500000,
+          reserve: 150000000, // $1,500,000.00 in cents
         },
         product: {
           name: EProduct.ACID,
@@ -45,7 +45,7 @@ module.exports = {
         id: 'USD-PILL',
         cash: {
           name: 'USD',
-          reserve: 2000000,
+          reserve: 200000000, // $2,000,000.00 in cents
         },
         product: {
           name: EProduct.PILL,
@@ -57,7 +57,7 @@ module.exports = {
         id: 'USD-CRYSTAL',
         cash: {
           name: 'USD',
-          reserve: 3000000,
+          reserve: 300000000, // $3,000,000.00 in cents
         },
         product: {
           name: EProduct.CRYSTAL,
@@ -69,7 +69,7 @@ module.exports = {
         id: 'USD-POWDER',
         cash: {
           name: 'USD',
-          reserve: 5000000,
+          reserve: 500000000, // $5,000,000.00 in cents
         },
         product: {
           name: EProduct.POWDER,

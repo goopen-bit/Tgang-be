@@ -92,15 +92,17 @@ export class PoolService {
       let amountOut: number;
       
       if (isBuyingProduct) {
-        // USD -> Product
-        reserveIn = pool.cash.reserve;
-        reserveOut = pool.product.reserve;
-        amountOut = ((amountInWithFee * reserveOut) / (reserveIn + amountInWithFee)); // TODO: math.floor
+        // USD (cents) -> Product (integer units)
+        reserveIn = pool.cash.reserve; // USD reserve in cents (integer)
+        reserveOut = pool.product.reserve; // Product reserve in integer units
+        // AMM formula with floor to ensure integer result
+        amountOut = Math.floor((amountInWithFee * reserveOut) / (reserveIn + amountInWithFee));
       } else {
-        // Product -> USD
-        reserveIn = pool.product.reserve;
-        reserveOut = pool.cash.reserve;
-        amountOut = ((amountInWithFee * reserveOut) / (reserveIn + amountInWithFee)); // TODO: math.floor
+        // Product (integer units) -> USD (cents)
+        reserveIn = pool.product.reserve; // Product reserve in integer units
+        reserveOut = pool.cash.reserve; // USD reserve in cents (integer)
+        // AMM formula with floor to ensure integer result
+        amountOut = Math.floor((amountInWithFee * reserveOut) / (reserveIn + amountInWithFee));
       }
 
       if (amountOut < minAmountOut) {

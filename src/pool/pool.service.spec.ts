@@ -47,7 +47,7 @@ describe('PoolService', () => {
       const userDoc = await userService.findOne(user.id);
       
       // Give user some cash and add POWDER product for testing
-      userDoc.cashAmount = 1000;
+      userDoc.cashAmount = 100000000; // $1,000,000.00 in cents for testing
       
       // Update existing HERB quantity or add it
       const herbProduct = userDoc.products.find(p => p.name === EProduct.HERB);
@@ -81,43 +81,43 @@ describe('PoolService', () => {
 
     describe('buying product with USD', () => {
       it('should swap USD to HERB successfully', async () => {
-        const result = await service.swap(user.id, 'USD', EProduct.HERB, 20, 0.01);
+        const result = await service.swap(user.id, 'USD', EProduct.HERB, 200000, 1); // $2000.00 in cents, min 1 HERB
         
         expect(result.swap.success).toBe(true);
         expect(result.swap.tokenIn).toBe('USD');
         expect(result.swap.tokenOut).toBe(EProduct.HERB);
-        expect(result.swap.amountIn).toBe(20);
+        expect(result.swap.amountIn).toBe(200000); // $2000.00 in cents
         expect(result.swap.amountOut).toBeGreaterThan(0);
         expect(result.swap.newPrice).toBeGreaterThan(0);
       });
 
       it('should swap USD to POWDER successfully', async () => {
-        const result = await service.swap(user.id, 'USD', EProduct.POWDER, 100, 0.01);
+        const result = await service.swap(user.id, 'USD', EProduct.POWDER, 1000000, 1); // $10000.00 in cents
         
         expect(result.swap.success).toBe(true);
         expect(result.swap.tokenIn).toBe('USD');
         expect(result.swap.tokenOut).toBe(EProduct.POWDER);
-        expect(result.swap.amountIn).toBe(100);
+        expect(result.swap.amountIn).toBe(1000000); // $10000.00 in cents
         expect(result.swap.amountOut).toBeGreaterThan(0);
         expect(result.swap.newPrice).toBeGreaterThan(0);
       });
 
       it('should fail when user has insufficient cash', async () => {
         await expect(
-          service.swap(user.id, 'USD', EProduct.HERB, 2000, 1)
+          service.swap(user.id, 'USD', EProduct.HERB, 200000000, 1) // $2M in cents - should exceed cash
         ).rejects.toThrow('Insufficient cash');
       });
 
       it('should fail when slippage exceeds limit', async () => {
         await expect(
-          service.swap(user.id, 'USD', EProduct.HERB, 20, 1000)
+          service.swap(user.id, 'USD', EProduct.HERB, 200000, 100000) // $2000 in cents, min $1000 out - high slippage
         ).rejects.toThrow('Slippage exceeded');
       });
     });
 
     describe('selling product for USD', () => {
       it('should swap HERB to USD successfully', async () => {
-        const result = await service.swap(user.id, EProduct.HERB, 'USD', 10, 1);
+        const result = await service.swap(user.id, EProduct.HERB, 'USD', 10, 100); // 10 HERB, min $1.00 out
         
         expect(result.swap.success).toBe(true);
         expect(result.swap.tokenIn).toBe(EProduct.HERB);
@@ -128,7 +128,7 @@ describe('PoolService', () => {
       });
 
       it('should swap POWDER to USD successfully', async () => {
-        const result = await service.swap(user.id, EProduct.POWDER, 'USD', 1, 1);
+        const result = await service.swap(user.id, EProduct.POWDER, 'USD', 1, 100); // 1 POWDER, min $1.00 out
         
         expect(result.swap.success).toBe(true);
         expect(result.swap.tokenIn).toBe(EProduct.POWDER);
@@ -140,13 +140,13 @@ describe('PoolService', () => {
 
       it('should fail when user has insufficient product', async () => {
         await expect(
-          service.swap(user.id, EProduct.HERB, 'USD', 200, 1)
+          service.swap(user.id, EProduct.HERB, 'USD', 200, 100) // 200 HERB, min $1.00 out - should exceed quantity
         ).rejects.toThrow('Insufficient product');
       });
 
       it('should fail when slippage exceeds limit', async () => {
         await expect(
-          service.swap(user.id, EProduct.HERB, 'USD', 10, 1000)
+          service.swap(user.id, EProduct.HERB, 'USD', 10, 100000) // 10 HERB, min $1000 out - high slippage
         ).rejects.toThrow('Slippage exceeded');
       });
     });
@@ -154,7 +154,7 @@ describe('PoolService', () => {
     describe('error handling', () => {
       it('should fail with invalid token pair', async () => {
         await expect(
-          service.swap(user.id, 'INVALID', EProduct.HERB, 20, 1)
+          service.swap(user.id, 'INVALID', EProduct.HERB, 2000, 1) // $20 in cents
         ).rejects.toThrow('Invalid token pair');
       });
 
@@ -164,7 +164,7 @@ describe('PoolService', () => {
         await createdUser.save();
         
         await expect(
-          service.swap(user.id, 'USD', EProduct.HERB, 20, 1)
+          service.swap(user.id, 'USD', EProduct.HERB, 2000, 1) // $20 in cents
         ).rejects.toThrow('Product not unlocked');
       });
     });
@@ -174,7 +174,7 @@ describe('PoolService', () => {
         const poolBefore = await service.getOne('USD-HERB');
         const priceBefore = poolBefore.cash.reserve / poolBefore.product.reserve;
         
-        const result = await service.swap(user.id, 'USD', EProduct.HERB, 100, 1);
+        const result = await service.swap(user.id, 'USD', EProduct.HERB, 10000, 1); // $100 in cents
         
         expect(result.swap.newPrice).toBeGreaterThan(priceBefore);
       });
@@ -183,7 +183,7 @@ describe('PoolService', () => {
         const poolBefore = await service.getOne('USD-HERB');
         const priceBefore = poolBefore.cash.reserve / poolBefore.product.reserve;
         
-        const result = await service.swap(user.id, EProduct.HERB, 'USD', 10, 1);
+        const result = await service.swap(user.id, EProduct.HERB, 'USD', 10, 100); // 10 HERB, min $1.00 out
         
         expect(result.swap.newPrice).toBeLessThan(priceBefore);
       });
@@ -201,7 +201,7 @@ describe('PoolService', () => {
         jest.spyOn(userService, 'findOne').mockResolvedValue(userDoc);
 
         await expect(
-          service.swap(user.id, 'USD', EProduct.HERB, 20, 0)
+          service.swap(user.id, 'USD', EProduct.HERB, 2000, 0) // $20 in cents
         ).rejects.toThrow('Save failed');
         
         // Verify pool state unchanged
@@ -217,7 +217,7 @@ describe('PoolService', () => {
         jest.spyOn(service['poolModel'], 'findOneAndUpdate').mockRejectedValueOnce(new Error('Pool update failed'));
         
         await expect(
-          service.swap(user.id, 'USD', EProduct.HERB, 20, 1)
+          service.swap(user.id, 'USD', EProduct.HERB, 200000, 1) // $2000 in cents
         ).rejects.toThrow('Pool update failed');
         
         // Verify user state unchanged

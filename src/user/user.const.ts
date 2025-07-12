@@ -1,20 +1,21 @@
-export const STARTING_CASH = 1000;
-export const REFERRAL_CASH = 1000;
+// All monetary values are stored in cents to avoid floating point precision issues
+export const STARTING_CASH = 100000; // $1000.00 in cents
+export const REFERRAL_CASH = 100000; // $1000.00 in cents
 export const REFERRAL_REPUTATION = 2000;
-export const PREMIUM_REFERRAL_CASH = 2000;
+export const PREMIUM_REFERRAL_CASH = 200000; // $2000.00 in cents
 export const PREMIUM_REFERRAL_REPUTATION = 5000;
 
 export const BASE_CUSTOMER_LIMIT = 500;
 
-export const BASE_LAB_PLOT_PRICE = 989;
+export const BASE_LAB_PLOT_PRICE = 98900; // $989.00 in cents
 export const LAB_PLOT_PRICE_MULTIPLIER = 4;
 export const LAB_CAPACITY_MULTIPLIER = 2;
 export const LAB_PRODUCTION_MULTIPLIER = 2;
 
 export const BASE_UPGRADE_TIME_SECONDS = 60;
 
-export const ROBBERY_AMOUNT_PER_DAILY_STRIKE = 1000;
-export const ROBBERY_MAX_AMOUNT_PER_DAILY_STRIKE = 10000;
+export const ROBBERY_AMOUNT_PER_DAILY_STRIKE = 100000; // $1000.00 in cents
+export const ROBBERY_MAX_AMOUNT_PER_DAILY_STRIKE = 1000000; // $10000.00 in cents
 
 export const PVP_NUMBER_OF_PLAYERS = 1;
 export const PVP_BASE_ATTACKS_PER_DAY = 2;

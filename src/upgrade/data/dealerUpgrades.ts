@@ -5,12 +5,13 @@ import {
   ProductUpgrade,
 } from "../upgrade.interface";
 
+// All monetary values are stored in cents to avoid floating point precision issues
 export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
   [EDealerUpgrade.SOCIAL_MEDIA_CAMPAGIN]: {
     product: null,
     title: "Social Media Campaign",
     description: "Leverage social media to attract more customers.",
-    basePrice: 400,
+    basePrice: 40000, // $400.00 in cents
     upgradeMultiplier: 2,
     amountMultiplier: 10,
     upgradeTimeMultiplier: null,
@@ -41,7 +42,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     product: EProduct.HERB,
     title: "🌱 Combo Packs",
     description: "Sell 🌱 in combo packs that encourage larger purchases.",
-    basePrice: 2000,
+    basePrice: 200000, // $2000.00 in cents
     upgradeMultiplier: 2,
     amountMultiplier: 1,
     upgradeTimeMultiplier: null,
@@ -52,7 +53,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     product: EProduct.MUSHROOM,
     title: "🍄 Bulk Bags",
     description: "Provide larger bags for bulk purchases.",
-    basePrice: 2000,
+    basePrice: 200000, // $2000.00 in cents
     upgradeMultiplier: 2,
     amountMultiplier: 1,
     upgradeTimeMultiplier: null,
@@ -70,7 +71,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     product: EProduct.ACID,
     title: "🧪 Festival Blotters",
     description: "Offer blotters designed for festivals, encouraging larger purchases.",
-    basePrice: 2000,
+    basePrice: 200000, // $2000.00 in cents
     upgradeMultiplier: 2,
     amountMultiplier: 1,
     upgradeTimeMultiplier: null,
@@ -88,7 +89,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     product: EProduct.PILL,
     title: "💊 Party Packs",
     description: "Sell larger quantities for festivals and parties.",
-    basePrice: 2000,
+    basePrice: 200000, // $2000.00 in cents
     upgradeMultiplier: 2,
     amountMultiplier: 1,
     upgradeTimeMultiplier: null,
@@ -106,7 +107,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     product: EProduct.CRYSTAL,
     title: "💎 High-Dose Packages",
     description: "Offer packages with higher doses for frequent users.",
-    basePrice: 2000,
+    basePrice: 200000, // $2000.00 in cents
     upgradeMultiplier: 2,
     amountMultiplier: 1,
     upgradeTimeMultiplier: null,
@@ -124,7 +125,7 @@ export const dealerUpgrades: Record<EDealerUpgrade, DealerUpgrade> = {
     product: EProduct.POWDER,
     title: "🧂 High-End Packaging",
     description: "Offer luxurious packaging that encourages larger buys.",
-    basePrice: 2000,
+    basePrice: 200000, // $2000.00 in cents
     upgradeMultiplier: 2,
     amountMultiplier: 1,
     upgradeTimeMultiplier: null,
@@ -144,7 +145,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
   [EProduct.HERB]: {
     title: "Herb",
     description: "Some good ol'Herbs.",
-    basePrice: 500,
+    basePrice: 50000, // $500.00 in cents
     upgradeMultiplier: 2,
     upgradeTimeMultiplier: 2,
     baseDiscount: 10,
@@ -154,7 +155,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
   [EProduct.MUSHROOM]: {
     title: "Mushroom",
     description: "Used by shamans for centuries.",
-    basePrice: 800,
+    basePrice: 80000, // $800.00 in cents
     upgradeMultiplier: 2,
     upgradeTimeMultiplier: 2,
     baseDiscount: 10,
@@ -171,7 +172,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
   [EProduct.ACID]: {
     title: "Acid",
     description: "Hoffman's bicycle ride.",
-    basePrice: 1200,
+    basePrice: 120000, // $1200.00 in cents
     upgradeMultiplier: 2.2,
     upgradeTimeMultiplier: 2,
     baseDiscount: 10,
@@ -188,7 +189,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
   [EProduct.PILL]: {
     title: "Pill",
     description: "Feel the love.",
-    basePrice: 1600,
+    basePrice: 160000, // $1600.00 in cents
     upgradeMultiplier: 2.2,
     upgradeTimeMultiplier: 2,
     baseDiscount: 10,
@@ -205,7 +206,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
   [EProduct.CRYSTAL]: {
     title: "Crystal",
     description: "Hisenberg's blue.",
-    basePrice: 2000,
+    basePrice: 200000, // $2000.00 in cents
     upgradeMultiplier: 2.5,
     upgradeTimeMultiplier: 2,
     baseDiscount: 10,
@@ -215,7 +216,7 @@ export const productUpgrades: Record<EProduct, ProductUpgrade> = {
   [EProduct.POWDER]: {
     title: "Powder",
     description: "Fidel's favorite.",
-    basePrice: 2400,
+    basePrice: 240000, // $2400.00 in cents
     upgradeMultiplier: 2.5,
     upgradeTimeMultiplier: 2,
     baseDiscount: 10,

@@ -8,7 +8,7 @@ import { Model } from "mongoose";
 import { EProduct } from "../config/types";
 import { upgradesData } from "../upgrade/data/upgrades";
 import { STARTING_CASH } from "./user.const";
-import { addDays, subDays, subHours } from "date-fns";
+import { subDays, subHours } from "date-fns";
 import { appConfigImports } from "../config/app";
 import { UniqueEnforcer } from "enforce-unique";
 import {
@@ -19,8 +19,6 @@ import {
   PVP_BASE_EVASION,
   PVP_BASE_CRITICAL_HIT_CHANCE,
 } from "./user.const";
-import { EAchievement, Achievement } from "./data/achievements";
-import { HttpException, HttpStatus } from "@nestjs/common";
 
 const uniqueEnforcerUserId = new UniqueEnforcer();
 
@@ -127,13 +125,13 @@ describe("UserService", () => {
 
       expect(result.lastRobbery).toBeInstanceOf(Date);
       expect(result.robberyStrike).toBe(1);
-      expect(result.cashAmount).toBe(1000);
+      expect(result.cashAmount).toBe(100000); // $1000.00 in cents
     });
 
     it("should throw an error if trying to claim reward again on the same day", async () => {
       user.lastRobbery = new Date();
       user.robberyStrike = 0;
-      user.cashAmount = 1000;
+      user.cashAmount = 100000;
       await service.update(user.id, user);
 
       await expect(service.dailyRobbery(user.id)).rejects.toThrow(
@@ -146,7 +144,7 @@ describe("UserService", () => {
       const lastRobbery = subHours(now, 23);
       user.lastRobbery = lastRobbery;
       user.robberyStrike = 1;
-      user.cashAmount = 1000;
+      user.cashAmount = 100000;
       await service.update(user.id, user);
 
       await expect(service.dailyRobbery(user.id)).rejects.toThrow();
@@ -157,12 +155,12 @@ describe("UserService", () => {
       const lastRobbery = subDays(now, 2);
       user.lastRobbery = lastRobbery;
       user.robberyStrike = 1;
-      user.cashAmount = 1000;
+      user.cashAmount = 100000; // $1000.00 in cents
       await service.update(user.id, user);
 
       const result = await service.dailyRobbery(user.id);
       expect(result.robberyStrike).toBe(1);
-      expect(result.cashAmount).toBe(2000);
+      expect(result.cashAmount).toBe(200000); // $2000.00 in cents
     });
   });
 
@@ -175,24 +173,24 @@ describe("UserService", () => {
       const users = [
         createMockUser({
           username: "player1",
-          cashAmount: 1000,
+          cashAmount: 100000,
           reputation: 10000,
           pvp: { lastDefendDate: yesterday },
         }),
         createMockUser({
           username: "player2",
-          cashAmount: 2000,
+          cashAmount: 200000,
           reputation: 10000,
         }),
         createMockUser({
           username: "player3",
-          cashAmount: 3000,
+          cashAmount: 300000,
           reputation: 10000,
           pvp: { lastDefendDate: new Date() },
         }),
         createMockUser({
           username: "player4",
-          cashAmount: 1500,
+          cashAmount: 150000,
           reputation: 100,
         }),
       ];
@@ -227,13 +225,13 @@ describe("UserService", () => {
       const users = [
         createMockUser({
           username: "player1",
-          cashAmount: 1000,
+          cashAmount: 100000,
           reputation: 10001,
           pvp: { lastDefendDate: yesterday },
         }),
         createMockUser({
           username: "player2",
-          cashAmount: 2000,
+          cashAmount: 200000,
           reputation: 10000,
         }),
       ];

@@ -55,7 +55,7 @@ describe("LabService", () => {
         user,
         faker.internet.ip(),
       );
-      u.cashAmount = 1000000;
+      u.cashAmount = 100000000; // $1,000,000.00 in cents - enough for lab plots
       await u.save();
     });
 
@@ -63,7 +63,7 @@ describe("LabService", () => {
       await service.buyLabPlot(user.id);
       const updatedUser = await userService.findOne(user.id);
       expect(updatedUser.labPlots.length).toBeGreaterThan(0);
-      expect(updatedUser.cashAmount).toBeLessThan(1000000);
+      expect(updatedUser.cashAmount).toBeLessThan(100000000); // Should be less than starting $1M in cents
     });
 
     it("should throw error if not enough money", async () => {
@@ -84,7 +84,7 @@ describe("LabService", () => {
         user,
         faker.internet.ip(),
       );
-      u.cashAmount = 1000000;
+      u.cashAmount = 100000000; // $1,000,000.00 in cents - enough for lab plots
       u.labPlots = [{ plotId: 1 }];
       await u.save();
     });
@@ -94,7 +94,7 @@ describe("LabService", () => {
       await service.buyLab(user.id, { labProduct: EProduct.HERB, plotId: 1 });
       const updatedUser = await userService.findOne(user.id);
       expect(updatedUser.labPlots[0].lab).toBeDefined();
-      expect(updatedUser.cashAmount).toBeLessThan(1000000);
+      expect(updatedUser.cashAmount).toBeLessThan(100000000); // Should be less than starting $1M in cents
     });
 
     it("should throw error if plot is not empty", async () => {
@@ -122,7 +122,7 @@ describe("LabService", () => {
         user,
         faker.internet.ip(),
       );
-      u.cashAmount = 1000000;
+      u.cashAmount = 100000000; // $1,000,000.00 in cents - enough for lab plots
       u.labPlots = [
         {
           plotId: 1,
@@ -143,7 +143,7 @@ describe("LabService", () => {
       await service.upgradeLabCapacity(user.id, 1);
       const updatedUser = await userService.findOne(user.id);
       expect(updatedUser.labPlots[0].lab.capacityLevel).toBeGreaterThan(1);
-      expect(updatedUser.cashAmount).toBeLessThan(1000000);
+      expect(updatedUser.cashAmount).toBeLessThan(100000000); // Should be less than starting $1M in cents
     });
 
     it("should throw error if not enough money", async () => {
@@ -180,7 +180,7 @@ describe("LabService", () => {
         user,
         faker.internet.ip(),
       );
-      u.cashAmount = 1000000;
+      u.cashAmount = 100000000; // $1,000,000.00 in cents - enough for lab plots
       u.labPlots = [
         {
           plotId: 1,
@@ -201,7 +201,7 @@ describe("LabService", () => {
       await service.upgradeLabProduction(user.id, 1);
       const updatedUser = await userService.findOne(user.id);
       expect(updatedUser.labPlots[0].lab.productionLevel).toBeGreaterThan(1);
-      expect(updatedUser.cashAmount).toBeLessThan(1000000);
+      expect(updatedUser.cashAmount).toBeLessThan(100000000); // Should be less than starting $1M in cents
     });
 
     it("should throw error if not enough money", async () => {

@@ -1,6 +1,6 @@
 import { mongoUrl } from '../../src/config/env';
 import * as MigrateMongoConfig from '../../migrate-mongo/migrations';
-// import * as SeedMongoConfig from "../../migrate-mongo/seeders";
+import * as SeedMongoConfig from '../../migrate-mongo/seeders';
 import { cleanUpMongo, runMigrations } from '../utils/mongo';
 
 export function isLocalhost() {
@@ -20,7 +20,7 @@ const setup = async () => {
   isLocalhost();
   await cleanUpMongo();
   await runMigrations(MigrateMongoConfig);
-  // await runMigrations(SeedMongoConfig);
+  await runMigrations(SeedMongoConfig);
 };
 
 export default setup;

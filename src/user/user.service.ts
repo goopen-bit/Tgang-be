@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { ClientSession, Model } from "mongoose";
 import { User } from "./schemas/user.schema";
 import { AuthTokenData } from "../config/types";
 import { EProduct } from "../market/market.const";
@@ -211,8 +211,8 @@ export class UserService {
     return user;
   }
 
-  async findOne(id: number): Promise<User> {
-    const user = await this.userModel.findOne({ id }).exec();
+  async findOne(id: number, session?: ClientSession): Promise<User> {
+    const user = await this.userModel.findOne({ id }).session(session).exec();
     if (!user) {
       throw new NotFoundException("User not found");
     }

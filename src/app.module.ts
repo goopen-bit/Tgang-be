@@ -13,6 +13,7 @@ import { MultiplayerModule } from './multiplayer/multiplayer.module';
 import { appConfigImports } from './config/app';
 import { AchievementsService } from './achievements/achievements.service';
 import { AchievementsModule } from './achievements/achievements.module';
+import { PoolModule } from './pool/pool.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AchievementsModule } from './achievements/achievements.module';
     SocialModule,
     MultiplayerModule,
     AchievementsModule,
+    PoolModule,
   ],
   controllers: [AppController],
   providers: [AppService, AchievementsService],

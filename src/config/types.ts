@@ -13,6 +13,7 @@ export enum NodeEnvironments {
  */
 export enum DbCollections {
   USERS = 'users',
+  POOLS = 'pools',
   BATTLE_RESULTS = 'battle-results',
 }
 
